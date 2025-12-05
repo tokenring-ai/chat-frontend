@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import type { ResultOfRPCCall } from "@tokenring-ai/web-host/jsonrpc/createJsonRPCClient";
-import { AgentRpcSchemas } from "@tokenring-ai/agent/rpc/types";
+import AgentRpcSchema from "@tokenring-ai/agent/rpc/schema";
 import { HumanInterfaceResponse } from '@tokenring-ai/agent/HumanInterfaceRequest';
 import HumanRequestRenderer from '../components/HumanRequest/HumanRequestRenderer.tsx';
 import FilesBrowser from '../components/FilesBrowser.tsx';
+import Sidebar from '../components/Sidebar.tsx';
 import { agentRPCClient } from "../rpc.ts";
 
 type Message = {
@@ -13,18 +15,22 @@ type Message = {
 };
 
 interface ChatInterfaceProps {
-  agent: ResultOfRPCCall<typeof AgentRpcSchemas, "listAgents">[0];
+  agent: ResultOfRPCCall<typeof AgentRpcSchema, "listAgents">[0];
   onSwitchAgent: () => void;
 }
 
 export default function ChatInterface({ agent, onSwitchAgent }: ChatInterfaceProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [position, setPosition] = useState(0);
-  const [eventsData, setEventsData] = useState<ResultOfRPCCall<typeof AgentRpcSchemas, "getAgentEvents"> | null>(null);
+  const [eventsData, setEventsData] = useState<ResultOfRPCCall<typeof AgentRpcSchema, "getAgentEvents"> | null>(null);
   const [showFiles, setShowFiles] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const currentPage = location.pathname.endsWith('/files') ? 'files' : 'agent';
 
   useEffect(() => {
     const interval = setInterval(() => loadEvents(), 100);
@@ -102,33 +108,30 @@ export default function ChatInterface({ agent, onSwitchAgent }: ChatInterfacePro
   const waitingOn = eventsData?.waitingOn;
 
   return (
-    <div className="flex flex-col h-screen">
-      <div className="flex items-center justify-between bg-[#252526] border-b border-[#3e3e42] py-[15px] px-5">
-        <h1 className="text-[#4ec9b0] text-lg font-bold">TokenRing Coder</h1>
-        <div className="flex items-center gap-[15px] text-[#9cdcfe]">
-          {agent.name}
-          <button onClick={() => setShowFiles(true)} className="bg-[#0e639c] border-none rounded-sm text-white cursor-pointer text-xs py-1.5 px-3 hover:bg-[#1177bb]">Files</button>
-          <button onClick={onSwitchAgent} className="bg-[#0e639c] border-none rounded-sm text-white cursor-pointer text-xs py-1.5 px-3 hover:bg-[#1177bb]">Switch</button>
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto p-5 leading-relaxed">
+    <div className="flex h-full">
+      <Sidebar currentPage={currentPage} onPageChange={(page) => navigate(page === 'agent' ? `/agent/${agent.id}` : `/agent/${agent.id}/files`)} />
+      <div className="flex flex-col flex-1">
+        <Routes>
+          <Route path="/" element={
+            <>
+            <div className="flex-1 overflow-y-auto p-5 leading-relaxed">
         {messages.map((msg, i) => {
-          const colorClass = msg.type === 'chat' ? 'text-[#4ec9b0]' :
-            msg.type === 'reasoning' ? 'text-[#dcdcaa]' :
-              msg.type === 'input' ? 'text-[#4fc1ff]' :
-                msg.level === 'warning' ? 'text-[#dcdcaa]' :
-                  msg.level === 'error' ? 'text-[#f48771]' : 'text-[#569cd6]';
+          const colorClass = msg.type === 'chat' ? 'text-accent' :
+            msg.type === 'reasoning' ? 'text-warning' :
+              msg.type === 'input' ? 'text-input' :
+                msg.level === 'warning' ? 'text-warning' :
+                  msg.level === 'error' ? 'text-error' : 'text-code';
           return (
             <div key={i} className={`mb-2 whitespace-pre-wrap break-words ${colorClass}`}>
-              {msg.type === 'input' && <span className="text-[#4fc1ff] mr-1">&gt; </span>}
+              {msg.type === 'input' && <span className="text-input mr-1">&gt; </span>}
               {msg.content}
             </div>
           );
         })}
-        {busy && <div className="animate-pulse-slow text-[#dcdcaa]">{busyMessage}</div>}
-        <div ref={messagesEndRef} />
-      </div>
-      <form onSubmit={handleSubmit} className="bg-[#252526] border-t border-[#3e3e42] flex gap-2.5 py-[15px] px-5">
+              {busy && <div className="animate-pulse-slow text-warning">{busyMessage}</div>}
+              <div ref={messagesEndRef} />
+            </div>
+            <form onSubmit={handleSubmit} className="bg-secondary border-t border-default flex gap-2.5 py-[15px] px-5">
         <input
           ref={inputRef}
           type="text"
@@ -137,14 +140,18 @@ export default function ChatInterface({ agent, onSwitchAgent }: ChatInterfacePro
           placeholder="Type your message..."
           disabled={!idle || !!waitingOn}
           autoFocus
-          className="flex-1 bg-[#3c3c3c] border border-[#3e3e42] text-[#d4d4d4] text-sm outline-none p-2 focus:border-[#007acc]"
+          className="flex-1 bg-input border border-default text-primary text-sm outline-none p-2 focus:border-focus"
         />
         {idle ? (
-          <button type="submit" disabled={!input.trim() || !!waitingOn} className="bg-[#0e639c] border-none rounded-sm text-white cursor-pointer text-sm py-2 px-5 hover:enabled:bg-[#1177bb] disabled:cursor-not-allowed disabled:opacity-50">Send</button>
-        ) : (
-          <button type="button" onClick={handleCancel} className="bg-[#d16969] border-none rounded-sm text-white cursor-pointer text-sm py-2 px-5 hover:bg-[#e07878]">Cancel</button>
-        )}
-      </form>
+          <button type="submit" disabled={!input.trim() || !!waitingOn} className="btn-primary border-none rounded-sm text-white cursor-pointer text-sm py-2 px-5 hover:enabled:btn-primary disabled:cursor-not-allowed disabled:opacity-50">Send</button>
+          ) : (
+            <button type="button" onClick={handleCancel} className="btn-danger border-none rounded-sm text-white cursor-pointer text-sm py-2 px-5 hover:btn-danger">Cancel</button>
+          )}
+            </form>
+            </>
+          } />
+          <Route path="/files" element={<FilesBrowser agentId={agent.id} onClose={() => navigate(`/agent/${agent.id}`)} />} />
+        </Routes>
 
       {waitingOn && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]">
@@ -154,6 +161,7 @@ export default function ChatInterface({ agent, onSwitchAgent }: ChatInterfacePro
           />
         </div>
       )}
+      </div>
       {showFiles && <FilesBrowser agentId={agent.id} onClose={() => setShowFiles(false)} />}
     </div>
   );

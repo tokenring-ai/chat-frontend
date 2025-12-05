@@ -128,16 +128,12 @@ export default function FilesBrowser({ agentId, onClose }: FilesBrowserProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]">
-      <div className="bg-[#1e1e1e] border border-[#3e3e42] rounded w-[90%] h-[90%] flex flex-col">
-        <div className="flex items-center justify-between bg-[#252526] border-b border-[#3e3e42] p-4">
-          <h2 className="text-[#4ec9b0] text-lg font-bold">Files</h2>
-          <div className="flex gap-2">
-            <button onClick={() => fileInputRef.current?.click()} className="bg-[#0e639c] border-none rounded-sm text-white cursor-pointer text-xs py-1.5 px-3 hover:bg-[#1177bb] flex items-center gap-1">
-              <Upload size={14} /> Upload
-            </button>
-            <button onClick={onClose} className="bg-[#0e639c] border-none rounded-sm text-white cursor-pointer text-xs py-1.5 px-3 hover:bg-[#1177bb]">Close</button>
-          </div>
+    <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex items-center justify-between bg-secondary border-b border-default p-4">
+          <h2 className="text-accent text-lg font-bold">Files</h2>
+          <button onClick={() => fileInputRef.current?.click()} className="btn-primary border-none rounded-sm text-white cursor-pointer text-xs py-1.5 px-3 hover:btn-primary flex items-center gap-1">
+            <Upload size={14} /> Upload
+          </button>
           <input
             ref={fileInputRef}
             type="file"
@@ -146,22 +142,21 @@ export default function FilesBrowser({ agentId, onClose }: FilesBrowserProps) {
             className="hidden"
           />
         </div>
-        <div className="flex flex-1 overflow-hidden">
-          <div className="w-1/3 border-r border-[#3e3e42] overflow-y-auto">
-            <div className="p-2 border-b border-[#3e3e42] text-[#9cdcfe] text-sm">{currentPath === '.' ? '/' : currentPath}</div>
+        <div className="flex flex-1 overflow-hidden bg-primary">
+          <div className="w-1/3 border-r border-default overflow-y-auto">
+            <div className="p-2 border-b border-default text-info text-sm">{currentPath === '.' ? '/' : currentPath}</div>
             {currentPath !== '.' && (
-              <div onClick={goUp} className="p-2 text-[#dcdcaa] cursor-pointer hover:bg-[#2d2d30] text-sm">.. (parent)</div>
+              <div onClick={goUp} className="p-2 text-warning cursor-pointer hover:bg-tertiary text-sm">.. (parent)</div>
             )}
             {files.map((file, i) => {
               const isDir = file.endsWith('/');
               const cleanFile = isDir ? file.slice(0, -1) : file;
-              // file is already the full relative path from listDirectory
               const isSelected = selectedFiles.has(cleanFile);
               return (
                 <div
                   key={i}
                   onClick={() => handleFileClick(file)}
-                  className={`p-2 cursor-pointer hover:bg-[#2d2d30] text-sm flex items-center justify-between ${selectedFile === file ? 'bg-[#37373d]' : ''} ${isDir ? 'text-[#dcdcaa]' : 'text-[#d4d4d4]'}`}
+                  className={`p-2 cursor-pointer hover:bg-tertiary text-sm flex items-center justify-between ${selectedFile === file ? 'bg-active' : ''} ${isDir ? 'text-warning' : 'text-primary'}`}
                 >
                   <div className="flex items-center gap-2">
                     {isDir ? <Folder size={16} /> : <File size={16} />}
@@ -171,17 +166,17 @@ export default function FilesBrowser({ agentId, onClose }: FilesBrowserProps) {
                     <div className="flex gap-1">
                       <button
                         onClick={(e) => handleDownload(file, e)}
-                        className="p-1 hover:bg-[#3e3e42] rounded"
+                        className="p-1 hover:bg-hover rounded"
                         title="Download file"
                       >
                         <Download size={14} />
                       </button>
                       <button
                         onClick={(e) => handleAddFile(file, e)}
-                        className="p-1 hover:bg-[#3e3e42] rounded"
+                        className="p-1 hover:bg-hover rounded"
                         title={isSelected ? "Already in chat" : "Add to chat"}
                       >
-                        {isSelected ? <Check size={14} className="text-[#4ec9b0]" /> : <Plus size={14} />}
+                        {isSelected ? <Check size={14} className="text-accent" /> : <Plus size={14} />}
                       </button>
                     </div>
                   )}
@@ -191,13 +186,12 @@ export default function FilesBrowser({ agentId, onClose }: FilesBrowserProps) {
           </div>
           <div className="flex-1 overflow-y-auto p-4">
             {fileContent ? (
-              <pre className="text-[#d4d4d4] text-sm whitespace-pre-wrap break-words">{fileContent}</pre>
+              <pre className="text-primary text-sm whitespace-pre-wrap break-words">{fileContent}</pre>
             ) : (
-              <div className="text-[#858585] text-sm">Select a file to view its contents</div>
+              <div className="text-muted text-sm">Select a file to view its contents</div>
             )}
           </div>
         </div>
-      </div>
     </div>
   );
 }

@@ -1,8 +1,50 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #252526;
+    --bg-tertiary: #2d2d30;
+    --bg-hover: #2a2d2e;
+    --bg-active: #5d5d5d;
+    --bg-sidebar: #333333;
+    --bg-input: #3c3c3c;
+    --border: #3e3e42;
+    --border-focus: #007acc;
+    --text-primary: #d4d4d4;
+    --text-secondary: #cccccc;
+    --text-muted: #858585;
+    --text-accent: #4ec9b0;
+    --text-info: #9cdcfe;
+    --text-warning: #dcdcaa;
+    --button-primary: #0e639c;
+    --button-primary-hover: #1177bb;
+  }
+
+  .light {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f3f3f3;
+    --bg-tertiary: #e8e8e8;
+    --bg-hover: #e0e0e0;
+    --bg-active: #ffffff;
+    --bg-sidebar: #f0f0f0;
+    --bg-input: #ffffff;
+    --border: #d4d4d4;
+    --border-focus: #007acc;
+    --text-primary: #1e1e1e;
+    --text-secondary: #333333;
+    --text-muted: #6e6e6e;
+    --text-accent: #0e8a74;
+    --text-info: #0066cc;
+    --text-warning: #795e26;
+    --button-primary: #007acc;
+    --button-primary-hover: #005a9e;
+  }
+
   body {
-    @apply bg-[#1e1e1e] text-[#d4d4d4] font-mono text-sm;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    @apply font-mono text-sm;
   }
 }
 
@@ -16,7 +58,29 @@
   }
 }
 
+.bg-primary { background-color: var(--bg-primary); }
+.bg-secondary { background-color: var(--bg-secondary); }
+.bg-tertiary { background-color: var(--bg-tertiary); }
+.bg-hover { background-color: var(--bg-hover); }
+.bg-active { background-color: var(--bg-active); }
+.bg-sidebar { background-color: var(--bg-sidebar); }
+.bg-input { background-color: var(--bg-input); }
+.border-default { border-color: var(--border); }
+.border-focus { border-color: var(--border-focus); }
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-accent { color: var(--text-accent); }
+.text-info { color: var(--text-info); }
+.text-warning { color: var(--text-warning); }
+.text-input { color: #4fc1ff; }
+.text-error { color: #f48771; }
+.text-code { color: #569cd6; }
+.btn-primary { background-color: var(--button-primary); }
+.btn-primary:hover { background-color: var(--button-primary-hover); }
+.btn-danger { background-color: #d16969; }
+.btn-danger:hover { background-color: #e07878; }
+
 @theme {
  --font-mono: Monaco, monospace;
- /* Other configurations */
 }
