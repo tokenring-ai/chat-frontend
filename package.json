@@ -21,6 +21,7 @@
         "@tailwindcss/postcss": "^4.1.17",
         "@tailwindcss/typography": "^0.5.19",
         "@tokenring-ai/agent": "0.2.0",
+        "@tokenring-ai/filesystem": "0.2.0",
         "@tokenring-ai/web-host": "0.2.0",
         "@types/react": "^19.2.7",
         "@types/react-dom": "^19.2.3",

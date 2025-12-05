@@ -3,6 +3,7 @@ import type { ResultOfRPCCall } from "@tokenring-ai/web-host/jsonrpc/createJsonR
 import { AgentRpcSchemas } from "@tokenring-ai/agent/rpc/types";
 import { HumanInterfaceResponse } from '@tokenring-ai/agent/HumanInterfaceRequest';
 import HumanRequestRenderer from '../components/HumanRequest/HumanRequestRenderer.tsx';
+import FilesBrowser from '../components/FilesBrowser.tsx';
 import { agentRPCClient } from "../rpc.ts";
 
 type Message = {
@@ -21,6 +22,7 @@ export default function ChatInterface({ agent, onSwitchAgent }: ChatInterfacePro
   const [input, setInput] = useState('');
   const [position, setPosition] = useState(0);
   const [eventsData, setEventsData] = useState<ResultOfRPCCall<typeof AgentRpcSchemas, "getAgentEvents"> | null>(null);
+  const [showFiles, setShowFiles] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -105,6 +107,7 @@ export default function ChatInterface({ agent, onSwitchAgent }: ChatInterfacePro
         <h1 className="text-[#4ec9b0] text-lg font-bold">TokenRing Coder</h1>
         <div className="flex items-center gap-[15px] text-[#9cdcfe]">
           {agent.name}
+          <button onClick={() => setShowFiles(true)} className="bg-[#0e639c] border-none rounded-sm text-white cursor-pointer text-xs py-1.5 px-3 hover:bg-[#1177bb]">Files</button>
           <button onClick={onSwitchAgent} className="bg-[#0e639c] border-none rounded-sm text-white cursor-pointer text-xs py-1.5 px-3 hover:bg-[#1177bb]">Switch</button>
         </div>
       </div>
@@ -151,6 +154,7 @@ export default function ChatInterface({ agent, onSwitchAgent }: ChatInterfacePro
           />
         </div>
       )}
+      {showFiles && <FilesBrowser agentId={agent.id} onClose={() => setShowFiles(false)} />}
     </div>
   );
 }
