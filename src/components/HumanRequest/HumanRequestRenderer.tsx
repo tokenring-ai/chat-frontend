@@ -31,10 +31,10 @@ export default function HumanRequestRenderer({ request, onResponse }: HumanReque
             return <TreeSelectionRequest request={request} onResponse={handleResponse} />;
         default:
             return (
-                <div className="human-request-card error">
-                    <h3>Unknown Request Type</h3>
-                    <p>Received an unknown request type: {(request as any).type}</p>
-                    <button onClick={() => onResponse(null as any)} className="btn-secondary">Dismiss</button>
+                <div className="bg-[#252526] border border-[#3e3e42] rounded-md p-5 max-w-[500px] w-[90%] shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                    <h3 className="text-[#4ec9b0] mb-[15px] text-lg">Unknown Request Type</h3>
+                    <p className="mb-5 leading-normal">Received an unknown request type: {(request as any).type}</p>
+                    <button onClick={() => onResponse(null as any)} className="bg-[#3c3c3c] border border-[#3e3e42] rounded-sm text-[#d4d4d4] cursor-pointer text-sm py-2 px-4 hover:bg-[#4e4e4e]">Dismiss</button>
                 </div>
             );
     }

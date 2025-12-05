@@ -132,28 +132,28 @@ export default function App() {
   const waitingOn = eventsData?.waitingOn;
 
   if (loading) {
-    return <div className="loading">Loading agents...</div>;
+    return <div className="flex items-center justify-center h-screen text-lg">Loading agents...</div>;
   }
 
   if (!currentAgent) {
     return (
-      <div className="agent-selector">
-        <h1>TokenRing Coder</h1>
-        <h2>Select or Create Agent</h2>
+      <div className="max-w-[600px] mx-auto my-[50px] px-5">
+        <h1 className="text-[#4ec9b0] text-4xl font-bold mb-6">TokenRing Coder</h1>
+        <h2 className="text-[#9cdcfe] text-xl font-bold mb-5">Select or Create Agent</h2>
         {agents.length > 0 && (
-          <div className="agent-list">
-            <h3>Running Agents</h3>
+          <div className="mb-8 flex flex-col gap-2">
+            <h3 className="text-[#dcdcaa] text-sm font-bold p-2.5">Running Agents</h3>
             {agents.map(a => (
-              <button key={a.id} onClick={() => selectAgent(a.id)} className="agent-btn">
+              <button key={a.id} onClick={() => selectAgent(a.id)} className="w-full block bg-[#2d2d30] border border-[#3e3e42] text-[#d4d4d4] cursor-pointer text-sm p-2.5 text-left transition-colors hover:bg-[#3e3e42]">
                 {a.name} ({a.id.slice(0, 8)})
               </button>
             ))}
           </div>
         )}
-        <div className="agent-list">
-          <h3>Create New Agent</h3>
+        <div className="mb-8 flex flex-col gap-2">
+          <h3 className="text-[#dcdcaa] text-sm font-bold p-2.5">Create New Agent</h3>
           { agentTypes.map(t => (
-            <button key={t.type} onClick={() => createAgent(t.type)} className="agent-btn">
+            <button key={t.type} onClick={() => createAgent(t.type)} className="w-full block bg-[#2d2d30] border border-[#3e3e42] text-[#d4d4d4] cursor-pointer text-sm p-2.5 text-left transition-colors hover:bg-[#3e3e42]">
               {t.name}
             </button>
           ))}
@@ -163,25 +163,32 @@ export default function App() {
   }
 
   return (
-    <div className="chat-container">
-      <div className="header">
-        <h1>TokenRing Coder</h1>
-        <div className="agent-info">
+    <div className="flex flex-col h-screen">
+      <div className="flex items-center justify-between bg-[#252526] border-b border-[#3e3e42] py-[15px] px-5">
+        <h1 className="text-[#4ec9b0] text-lg font-bold">TokenRing Coder</h1>
+        <div className="flex items-center gap-[15px] text-[#9cdcfe]">
           {currentAgent.name}
-          <button onClick={() => setCurrentAgentId(null)} className="switch-btn">Switch</button>
+          <button onClick={() => setCurrentAgentId(null)} className="bg-[#0e639c] border-none rounded-sm text-white cursor-pointer text-xs py-1.5 px-3 hover:bg-[#1177bb]">Switch</button>
         </div>
       </div>
-      <div className="messages">
-        {messages.map((msg, i) => (
-          <div key={i} className={`message ${msg.type} ${msg.level || ''}`}>
-            {msg.type === 'input' && <span className="prompt">&gt; </span>}
-            {msg.content}
-          </div>
-        ))}
-        {busy && <div className="spinner">{busyMessage}</div>}
+      <div className="flex-1 overflow-y-auto p-5 leading-relaxed">
+        {messages.map((msg, i) => {
+          const colorClass = msg.type === 'chat' ? 'text-[#4ec9b0]' : 
+                            msg.type === 'reasoning' ? 'text-[#dcdcaa]' :
+                            msg.type === 'input' ? 'text-[#4fc1ff]' :
+                            msg.level === 'warning' ? 'text-[#dcdcaa]' :
+                            msg.level === 'error' ? 'text-[#f48771]' : 'text-[#569cd6]';
+          return (
+            <div key={i} className={`mb-2 whitespace-pre-wrap break-words ${colorClass}`}>
+              {msg.type === 'input' && <span className="text-[#4fc1ff] mr-1">&gt; </span>}
+              {msg.content}
+            </div>
+          );
+        })}
+        {busy && <div className="animate-pulse-slow text-[#dcdcaa]">{busyMessage}</div>}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSubmit} className="input-form">
+      <form onSubmit={handleSubmit} className="bg-[#252526] border-t border-[#3e3e42] flex gap-2.5 py-[15px] px-5">
         <input
           ref={inputRef}
           type="text"
@@ -190,12 +197,13 @@ export default function App() {
           placeholder="Type your message..."
           disabled={busy || !!waitingOn}
           autoFocus
+          className="flex-1 bg-[#3c3c3c] border border-[#3e3e42] text-[#d4d4d4] text-sm outline-none p-2 focus:border-[#007acc]"
         />
-        <button type="submit" disabled={busy || !input.trim() || !!waitingOn}>Send</button>
+        <button type="submit" disabled={busy || !input.trim() || !!waitingOn} className="bg-[#0e639c] border-none rounded-sm text-white cursor-pointer text-sm py-2 px-5 hover:enabled:bg-[#1177bb] disabled:cursor-not-allowed disabled:opacity-50">Send</button>
       </form>
 
       {waitingOn && (
-        <div className="human-request-overlay">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]">
           <HumanRequestRenderer
             request={waitingOn.request}
             onResponse={handleHumanResponse}

@@ -9,16 +9,26 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "clsx": "^2.1.1",
+        "lucide-react": "^0.555.0",
+        "@radix-ui/react-scroll-area": "^1.2.2",
         "react": "^19.2.0",
-        "react-dom": "^19.2.0"
+        "react-dom": "^19.2.0",
+        "tailwind-merge": "^3.4.0"
     },
     "devDependencies": {
+        "@tailwindcss/forms": "^0.5.10",
+        "@tailwindcss/postcss": "^4.1.17",
+        "@tailwindcss/typography": "^0.5.19",
+        "@tokenring-ai/agent": "0.2.0",
+        "@tokenring-ai/web-host": "0.2.0",
         "@types/react": "^19.2.7",
         "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^5.1.1",
-        "typescript": "^5.7.2",
-        "vite": "^6.0.3",
-        "@tokenring-ai/agent": "0.2.0",
-        "@tokenring-ai/web-host": "0.2.0"
+        "autoprefixer": "^10.4.22",
+        "postcss": "^8.5.6",
+        "tailwindcss": "^4.1.17",
+        "typescript": "^5.9.3",
+        "vite": "^7.2.6"
     }
 }

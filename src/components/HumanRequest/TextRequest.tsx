@@ -15,9 +15,9 @@ export default function TextRequest({ request, onResponse }: TextRequestProps) {
     };
 
     return (
-        <div className="human-request-card">
-            <h3>Input Required</h3>
-            <p>{request.message}</p>
+        <div className="bg-[#252526] border border-[#3e3e42] rounded-md p-5 max-w-[500px] w-[90%] shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+            <h3 className="text-[#4ec9b0] mb-[15px] text-lg">Input Required</h3>
+            <p className="mb-5 leading-normal">{request.message}</p>
             <form onSubmit={handleSubmit}>
                 <input
                     type="text"
@@ -25,17 +25,17 @@ export default function TextRequest({ request, onResponse }: TextRequestProps) {
                     onChange={(e) => setText(e.target.value)}
                     placeholder="Enter text"
                     autoFocus
-                    className="input-field"
+                    className="bg-[#3c3c3c] border border-[#3e3e42] text-[#d4d4d4] text-sm p-2.5 w-full outline-none focus:border-[#007acc]"
                 />
-                <div className="button-group">
+                <div className="flex gap-2.5 justify-end mt-5">
                     <button
                         type="button"
                         onClick={() => onResponse(null)}
-                        className="btn-secondary"
+                        className="bg-[#3c3c3c] border border-[#3e3e42] rounded-sm text-[#d4d4d4] cursor-pointer text-sm py-2 px-4 hover:bg-[#4e4e4e]"
                     >
                         Cancel
                     </button>
-                    <button type="submit" className="btn-primary">Submit</button>
+                    <button type="submit" className="bg-[#0e639c] border-none rounded-sm text-white cursor-pointer text-sm py-2 px-4 hover:bg-[#1177bb]">Submit</button>
                 </div>
             </form >
         </div >
