@@ -205,3 +205,162 @@ body {
  cursor: not-allowed;
  opacity: 0.5;
 }
+
+/* Human Interface Request Styles */
+.human-request-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.human-request-card {
+  background: #252526;
+  border: 1px solid #3e3e42;
+  border-radius: 6px;
+  padding: 20px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.human-request-card h3 {
+  color: #4ec9b0;
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+
+.human-request-card p {
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.btn-primary {
+  background: #0e639c;
+  border: none;
+  border-radius: 2px;
+  color: white;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 8px 16px;
+}
+
+.btn-primary:hover {
+  background: #1177bb;
+}
+
+.btn-secondary {
+  background: #3c3c3c;
+  border: 1px solid #3e3e42;
+  border-radius: 2px;
+  color: #d4d4d4;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 8px 16px;
+}
+
+.btn-secondary:hover {
+  background: #4e4e4e;
+}
+
+.input-field {
+  background: #3c3c3c;
+  border: 1px solid #3e3e42;
+  color: #d4d4d4;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px;
+  width: 100%;
+  outline: none;
+}
+
+.input-field:focus {
+  border-color: #007acc;
+}
+
+.link-primary {
+  color: #4fc1ff;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.link-primary:hover {
+  text-decoration: underline;
+}
+
+/* Tree Selection Styles */
+.tree-selection-card {
+  max-width: 600px;
+}
+
+.tree-container {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #3e3e42;
+  background: #1e1e1e;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+.tree-node {
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-node-content {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.tree-node-content:hover {
+  background: #2d2d30;
+}
+
+.tree-expander {
+  width: 20px;
+  text-align: center;
+  color: #858585;
+  user-select: none;
+}
+
+.tree-spacer {
+  width: 20px;
+}
+
+.tree-label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tree-label.selected {
+  color: #4ec9b0;
+  font-weight: bold;
+}
+
+.tree-checkbox {
+  cursor: pointer;
+}
+
+.tree-children {
+  display: flex;
+  flex-direction: column;
+}

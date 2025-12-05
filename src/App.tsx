@@ -1,6 +1,10 @@
-import {useEffect, useRef, useState} from 'react';
-import {AgentClient} from './client.ts';
+import { AgentRpcSchemas } from "@tokenring-ai/agent/rpc/types";
+import { useEffect, useRef, useState } from 'react';
 import './App.css';
+import { HumanInterfaceResponse } from '@tokenring-ai/agent/HumanInterfaceRequest';
+import HumanRequestRenderer from './components/HumanRequest/HumanRequestRenderer.tsx';
+import { agentRPCClient } from "./rpc.ts";
+import type { ResultOfRPCCall } from "@tokenring-ai/web-host/jsonrpc/createJsonRPCClient";
 
 type Message = {
   type: 'chat' | 'reasoning' | 'system' | 'input';
@@ -8,88 +12,127 @@ type Message = {
   level?: 'info' | 'warning' | 'error';
 };
 
-type Agent = { id: string; name: string; type: string };
-
 export default function App() {
-  const [client] = useState(() => new AgentClient());
-  const [connected, setConnected] = useState(false);
-  const [agents, setAgents] = useState<Agent[]>([]);
-  const [currentAgent, setCurrentAgent] = useState<Agent | null>(null);
+  const [currentAgentId, setCurrentAgentId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [busyMessage, setBusyMessage] = useState('');
+  const [position, setPosition] = useState(0);
+  const [agents, setAgents] = useState<ResultOfRPCCall<typeof AgentRpcSchemas,"listAgents">>([]);
+  const [eventsData, setEventsData] = useState<ResultOfRPCCall<typeof AgentRpcSchemas,"getAgentEvents">|null>(null);
+  const [agentTypes, setAgentTypes] = useState<ResultOfRPCCall<typeof AgentRpcSchemas, "getAgentTypes">>([]);
+  const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    client.connect().then(() => {
-      setConnected(true);
-      client.listAgents();
-    });
-
-    client.on('agentList', (data: any) => setAgents(data.agents));
-    client.on('agentCreated', (data: any) => {
-      client.connectAgent(data.agentId);
-    });
-    client.on('agentConnected', (data: any) => {
-      const agent = agents.find(a => a.id === data.agentId);
-      if (agent) setCurrentAgent(agent);
-      setMessages([]);
-    });
-    client.on('event:output.chat', (data: any) => {
-      setMessages(m => [...m, {type: 'chat', content: data.content}]);
-    });
-    client.on('event:output.reasoning', (data: any) => {
-      setMessages(m => [...m, {type: 'reasoning', content: data.content}]);
-    });
-    client.on('event:output.system', (data: any) => {
-      setMessages(m => [...m, {type: 'system', content: data.message, level: data.level}]);
-    });
-    client.on('event:input.received', (data: any) => {
-      setMessages(m => [...m, {type: 'input', content: data.message}]);
-    });
-    client.on('event:state.busy', (data: any) => {
-      setBusy(true);
-      setBusyMessage(data.message);
-    });
-    client.on('event:state.notBusy', () => {
-      setBusy(false);
-      setBusyMessage('');
-    });
-    client.on('event:state.idle', () => {
-      setBusy(false);
-      inputRef.current?.focus();
-    });
-    client.on('event:human.request', (data: any) => {
-      const response = prompt(data.request.message || 'Input required:');
-      client.sendHumanResponse(data.sequence, response);
-    });
-
-    return () => client.disconnect();
+    loadAgents();
+    loadAgentTypes();
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({behavior: 'smooth'});
+    if (!currentAgentId) return;
+    const interval = setInterval(() => loadEvents(), 100);
+    return () => clearInterval(interval);
+  }, [currentAgentId, position]);
+
+  const loadAgents = async () => {
+    try {
+      const agents = await agentRPCClient.listAgents({});
+      setAgents(agents);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadAgentTypes = async () => {
+    try {
+      const agentTypes = await agentRPCClient.getAgentTypes({});
+      setAgentTypes(agentTypes);
+    } finally {}
+  }
+
+  const loadEvents = async () => {
+    if (!currentAgentId) return;
+    const data = await agentRPCClient.getAgentEvents({ agentId: currentAgentId, fromPosition: position});
+    setEventsData(data);
+  };
+
+  useEffect(() => {
+    if (eventsData) {
+      const { events, position: newPosition } = eventsData;
+
+      if (newPosition > position) {
+        setPosition(newPosition);
+
+        events.forEach((event) => {
+          if (event.type === 'output.chat') {
+            setMessages(m => {
+              const last = m[m.length - 1];
+              if (last?.type === 'chat') {
+                return [...m.slice(0, -1), { ...last, content: last.content + event.content }];
+              }
+              return [...m, { type: 'chat', content: event.content }];
+            });
+          } else if (event.type === 'output.reasoning') {
+            setMessages(m => {
+              const last = m[m.length - 1];
+              if (last?.type === 'reasoning') {
+                return [...m.slice(0, -1), { ...last, content: last.content + event.content }];
+              }
+              return [...m, { type: 'reasoning', content: event.content }];
+            });
+          } else if (event.type === 'output.system') {
+            setMessages(m => [...m, { type: 'system', content: event.message, level: event.level }]);
+          } else if (event.type === 'input.received') {
+            setMessages(m => [...m, { type: 'input', content: event.message }]);
+          } else if (event.type === 'human.request') {
+            // Handled by waitingOn state
+          }
+        });
+      }
+    }
+  }, [eventsData, position, currentAgentId]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !currentAgent) return;
-    client.sendInput(input);
+    if (!input.trim() || !currentAgentId) return;
+    await agentRPCClient.sendInput({ agentId: currentAgentId, message: input});
     setInput('');
   };
 
-  const selectAgent = (agent: Agent) => {
-    client.connectAgent(agent.id);
+  const selectAgent = (agentId: string) => {
+    setCurrentAgentId(agentId);
+    setMessages([]);
+    setPosition(0);
   };
 
-  const createAgent = (type: string) => {
-    client.createAgent(type);
+  const createAgent = async (type: string) => {
+    await agentRPCClient.createAgent({ agentType: type, headless: false});
+    await loadAgents();
   };
 
-  if (!connected) {
-    return <div className="loading">Connecting...</div>;
+  const handleHumanResponse = async (response: HumanInterfaceResponse) => {
+    const waitingOn = eventsData?.waitingOn;
+    if (!waitingOn || !currentAgentId) return;
+
+    await agentRPCClient.sendHumanResponse({
+      agentId: currentAgentId,
+      requestId: waitingOn.id,
+      response
+    });
+  };
+
+  const currentAgent = agents.find(a => a.id === currentAgentId);
+  const busy = eventsData?.busyWith ? true : false;
+  const busyMessage = eventsData?.busyWith || '';
+  const waitingOn = eventsData?.waitingOn;
+
+  if (loading) {
+    return <div className="loading">Loading agents...</div>;
   }
 
   if (!currentAgent) {
@@ -101,7 +144,7 @@ export default function App() {
           <div className="agent-list">
             <h3>Running Agents</h3>
             {agents.map(a => (
-              <button key={a.id} onClick={() => selectAgent(a)} className="agent-btn">
+              <button key={a.id} onClick={() => selectAgent(a.id)} className="agent-btn">
                 {a.name} ({a.id.slice(0, 8)})
               </button>
             ))}
@@ -109,9 +152,11 @@ export default function App() {
         )}
         <div className="agent-list">
           <h3>Create New Agent</h3>
-          <button onClick={() => createAgent('interactiveCodeAgent')} className="agent-btn">
-            Interactive Code Agent
-          </button>
+          { agentTypes.map(t => (
+            <button key={t.type} onClick={() => createAgent(t.type)} className="agent-btn">
+              {t.name}
+            </button>
+          ))}
         </div>
       </div>
     );
@@ -123,7 +168,7 @@ export default function App() {
         <h1>TokenRing Coder</h1>
         <div className="agent-info">
           {currentAgent.name}
-          <button onClick={() => setCurrentAgent(null)} className="switch-btn">Switch</button>
+          <button onClick={() => setCurrentAgentId(null)} className="switch-btn">Switch</button>
         </div>
       </div>
       <div className="messages">
@@ -134,7 +179,7 @@ export default function App() {
           </div>
         ))}
         {busy && <div className="spinner">{busyMessage}</div>}
-        <div ref={messagesEndRef}/>
+        <div ref={messagesEndRef} />
       </div>
       <form onSubmit={handleSubmit} className="input-form">
         <input
@@ -143,11 +188,20 @@ export default function App() {
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Type your message..."
-          disabled={busy}
+          disabled={busy || !!waitingOn}
           autoFocus
         />
-        <button type="submit" disabled={busy || !input.trim()}>Send</button>
+        <button type="submit" disabled={busy || !input.trim() || !!waitingOn}>Send</button>
       </form>
+
+      {waitingOn && (
+        <div className="human-request-overlay">
+          <HumanRequestRenderer
+            request={waitingOn.request}
+            onResponse={handleHumanResponse}
+          />
+        </div>
+      )}
     </div>
   );
 }
