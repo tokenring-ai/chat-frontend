@@ -38,7 +38,9 @@ export default function ChatPage({ agentId }: ChatInterfaceProps) {
     messages
   }, setChatState] = useState<ChatState>({ idle: false, busyWith: "Connecting...", waitingOn: null, position: 0, messages: []});
   const [showFiles, setShowFiles] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const currentPage = location.pathname.endsWith('/files') ? 'files' : 'agent';
@@ -93,8 +95,18 @@ export default function ChatPage({ agentId }: ChatInterfaceProps) {
   }, [agentId]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (isAtBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages[messages.length - 1]?.content, isAtBottom, waitingOn, busyWith]);
+
+  const handleScroll = () => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const threshold = 50;
+    const atBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
+    setIsAtBottom(atBottom);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,7 +136,7 @@ export default function ChatPage({ agentId }: ChatInterfaceProps) {
         <Routes>
           <Route path="/" element={
             <>
-            <div className="flex-1 overflow-y-auto p-5 leading-relaxed">
+            <div ref={messagesContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-5 leading-relaxed">
         {messages.map((msg, i) => {
           const colorClass = msg.type === 'chat' ? 'text-accent' :
             msg.type === 'reasoning' ? 'text-warning' :
