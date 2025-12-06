@@ -1,35 +1,50 @@
 import { Plus, Moon, Sun, Settings, Trash2 } from 'lucide-react';
-import type { ResultOfRPCCall } from "@tokenring-ai/web-host/jsonrpc/createJsonRPCClient";
-import AgentRpcSchema from "@tokenring-ai/agent/rpc/schema";
+import {useNavigate} from "react-router-dom";
 import { useTheme } from '../hooks/useTheme.ts';
+import {agentRPCClient, useAgentList, useAgentTypes} from "../rpc.ts";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './ui/select.tsx';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './ui/dropdown-menu.tsx';
 
 interface TopBarProps {
-  agents: ResultOfRPCCall<typeof AgentRpcSchema, "listAgents">;
-  agentTypes: ResultOfRPCCall<typeof AgentRpcSchema, "getAgentTypes">;
+  agents: ReturnType<typeof useAgentList>;
+  agentTypes: ReturnType<typeof useAgentTypes>;
   currentAgentId: string | null;
-  onSelectAgent: (agentId: string) => void;
-  onCreateAgent: (type: string) => void;
-  onDeleteAgent: (agentId: string) => void;
 }
 
-export default function TopBar({ agents, agentTypes, currentAgentId, onSelectAgent, onCreateAgent, onDeleteAgent }: TopBarProps) {
+export default function TopBar({ agents, agentTypes, currentAgentId }: TopBarProps) {
+  const navigate = useNavigate();
+
   const [theme, setTheme] = useTheme();
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
+  const selectAgent = (agentId: string) => {
+    navigate(`/agent/${agentId}`);
+  };
+
+  const createAgent = async (type: string) => {
+    const { id } = await agentRPCClient.createAgent({ agentType: type, headless: false });
+    await agents.mutate();
+    navigate(`/agent/${id}`);
+  };
+
+  const deleteAgent = async (agentId: string) => {
+    await agentRPCClient.deleteAgent({ agentId });
+    await agents.mutate();
+    navigate('/');
+  };
+
   return (
     <div className="bg-secondary border-b border-default px-4 py-2 flex items-center gap-4 relative z-10">
       <h1 className="text-accent text-lg font-bold cursor-pointer" onClick={() => window.location.href = '/'}>TokenRing Coder</h1>
-      <Select value={currentAgentId || ''} onValueChange={onSelectAgent}>
+      <Select value={currentAgentId || ''} onValueChange={selectAgent}>
         <SelectTrigger className="w-96">
           <SelectValue placeholder="Select Agent..." />
         </SelectTrigger>
         <SelectContent>
-          {agents.map(a => (
+          {agents.data?.map(a => (
             <SelectItem key={a.id} value={a.id}>{a.name} ({a.id.slice(0, 8)})</SelectItem>
           ))}
         </SelectContent>
@@ -39,8 +54,8 @@ export default function TopBar({ agents, agentTypes, currentAgentId, onSelectAge
           <Plus size={14} /> New Agent
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          {agentTypes.map(t => (
-            <DropdownMenuItem key={t.type} onSelect={() => onCreateAgent(t.type)}>
+          {agentTypes.data?.map(t => (
+            <DropdownMenuItem key={t.type} onSelect={() => createAgent(t.type)}>
               {t.name}
             </DropdownMenuItem>
           ))}
@@ -49,7 +64,7 @@ export default function TopBar({ agents, agentTypes, currentAgentId, onSelectAge
       <div className="ml-auto flex items-center gap-2">
         {currentAgentId && (
           <button
-            onClick={() => onDeleteAgent(currentAgentId)}
+            onClick={() => deleteAgent(currentAgentId)}
             className="p-2 hover:bg-hover rounded cursor-pointer text-error"
             title="Delete current agent"
           >

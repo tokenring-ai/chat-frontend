@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import {HumanRequestSchema} from "@tokenring-ai/agent/AgentEvents";
+import React, { useEffect, useRef, useState } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import type { ResultOfRPCCall } from "@tokenring-ai/web-host/jsonrpc/createJsonRPCClient";
-import AgentRpcSchema from "@tokenring-ai/agent/rpc/schema";
 import { HumanInterfaceResponse } from '@tokenring-ai/agent/HumanInterfaceRequest';
 import HumanRequestRenderer from '../components/HumanRequest/HumanRequestRenderer.tsx';
-import FilesBrowser from '../components/FilesBrowser.tsx';
+import FileBrowser from './chat/FileBrowser.tsx';
 import Sidebar from '../components/Sidebar.tsx';
 import { agentRPCClient } from "../rpc.ts";
+import z from 'zod';
 
 type Message = {
   type: 'chat' | 'reasoning' | 'system' | 'input';
@@ -15,17 +15,28 @@ type Message = {
 };
 
 interface ChatInterfaceProps {
-  agent: ResultOfRPCCall<typeof AgentRpcSchema, "listAgents">[0];
-  onSwitchAgent: () => void;
+  agentId: string;
 }
 
-export default function ChatInterface({ agent, onSwitchAgent }: ChatInterfaceProps) {
+type ChatState = {
+  busyWith: string | null;
+  idle: boolean;
+  waitingOn: z.infer<typeof HumanRequestSchema> | null;
+  position: number;
+  messages: Message[];
+}
+
+export default function ChatPage({ agentId }: ChatInterfaceProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [position, setPosition] = useState(0);
-  const [eventsData, setEventsData] = useState<ResultOfRPCCall<typeof AgentRpcSchema, "getAgentEvents"> | null>(null);
+  const [{
+    idle,
+    busyWith,
+    waitingOn,
+    position,
+    messages
+  }, setChatState] = useState<ChatState>({ idle: false, busyWith: "Connecting...", waitingOn: null, position: 0, messages: []});
   const [showFiles, setShowFiles] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -33,48 +44,53 @@ export default function ChatInterface({ agent, onSwitchAgent }: ChatInterfacePro
   const currentPage = location.pathname.endsWith('/files') ? 'files' : 'agent';
 
   useEffect(() => {
-    const interval = setInterval(() => loadEvents(), 100);
-    return () => clearInterval(interval);
-  }, [agent.id, position]);
+    const abortController = new AbortController();
+    (async () => {
+      let prevMessages: Message[] = messages;
+      let fromPosition = position
 
-  const loadEvents = async () => {
-    const data = await agentRPCClient.getAgentEvents({ agentId: agent.id, fromPosition: position });
-    setEventsData(data);
-  };
-
-  useEffect(() => {
-    if (eventsData) {
-      const { events, position: newPosition } = eventsData;
-
-      if (newPosition > position) {
-        setPosition(newPosition);
-
-        events.forEach((event) => {
-          if (event.type === 'output.chat') {
-            setMessages(m => {
-              const last = m[m.length - 1];
+      while (!abortController.signal.aborted) {
+        for await (const eventsData of agentRPCClient.streamAgentEvents({
+          agentId: agentId,
+          fromPosition,
+        }, abortController.signal)) {
+          for (const event of eventsData.events) {
+            if (event.type === 'output.chat') {
+              const last = prevMessages[prevMessages.length - 1];
               if (last?.type === 'chat') {
-                return [...m.slice(0, -1), { ...last, content: last.content + event.content }];
+                last.content += event.content
+              } else {
+                prevMessages.push({type: 'chat', content: event.content});
               }
-              return [...m, { type: 'chat', content: event.content }];
-            });
-          } else if (event.type === 'output.reasoning') {
-            setMessages(m => {
-              const last = m[m.length - 1];
+            } else if (event.type === 'output.reasoning') {
+              const last = prevMessages[prevMessages.length - 1];
               if (last?.type === 'reasoning') {
-                return [...m.slice(0, -1), { ...last, content: last.content + event.content }];
+                last.content += event.content
+              } else {
+                prevMessages.push({type: 'reasoning', content: event.content});
               }
-              return [...m, { type: 'reasoning', content: event.content }];
-            });
-          } else if (event.type === 'output.system') {
-            setMessages(m => [...m, { type: 'system', content: event.message, level: event.level }]);
-          } else if (event.type === 'input.received') {
-            setMessages(m => [...m, { type: 'input', content: event.message }]);
+            } else if (event.type === 'output.system') {
+              prevMessages.push({type: 'system', content: event.message, level: event.level});
+            } else if (event.type === 'input.received') {
+              prevMessages.push({type: 'input', content: event.message});
+            }
           }
-        });
+
+          fromPosition = eventsData.position;
+
+          setChatState({
+            busyWith: eventsData.busyWith,
+            idle: eventsData.idle,
+            waitingOn: eventsData.waitingOn,
+            position: eventsData.position,
+            messages: eventsData.events.length > 0 ? [...prevMessages] : prevMessages
+          });
+        }
       }
-    }
-  }, [eventsData, position]);
+    })();
+
+    return () => abortController.abort();
+  }, [agentId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -83,33 +99,27 @@ export default function ChatInterface({ agent, onSwitchAgent }: ChatInterfacePro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
-    await agentRPCClient.sendInput({ agentId: agent.id, message: input });
+    await agentRPCClient.sendInput({ agentId: agentId, message: input });
     setInput('');
   };
 
   const handleCancel = async () => {
-    await agentRPCClient.abortAgent({ agentId: agent.id, reason: "User requested abort" });
+    await agentRPCClient.abortAgent({ agentId: agentId, reason: "User requested abort" });
   };
 
   const handleHumanResponse = async (response: HumanInterfaceResponse) => {
-    const waitingOn = eventsData?.waitingOn;
     if (!waitingOn) return;
 
     await agentRPCClient.sendHumanResponse({
-      agentId: agent.id,
+      agentId: agentId,
       requestId: waitingOn.id,
       response
     });
   };
 
-  const idle = eventsData?.idle ?? true;
-  const busy = eventsData?.busyWith ? true : false;
-  const busyMessage = eventsData?.busyWith || '';
-  const waitingOn = eventsData?.waitingOn;
-
   return (
     <div className="flex h-full">
-      <Sidebar currentPage={currentPage} onPageChange={(page) => navigate(page === 'agent' ? `/agent/${agent.id}` : `/agent/${agent.id}/files`)} />
+      <Sidebar currentPage={currentPage} onPageChange={(page) => navigate(page === 'agent' ? `/agent/${agentId}` : `/agent/${agentId}/files`)} />
       <div className="flex flex-col flex-1">
         <Routes>
           <Route path="/" element={
@@ -128,7 +138,7 @@ export default function ChatInterface({ agent, onSwitchAgent }: ChatInterfacePro
             </div>
           );
         })}
-              {busy && <div className="animate-pulse-slow text-warning">{busyMessage}</div>}
+              {busyWith && <div className="animate-pulse-slow text-warning">{busyWith}</div>}
               <div ref={messagesEndRef} />
             </div>
             <form onSubmit={handleSubmit} className="bg-secondary border-t border-default flex gap-2.5 py-[15px] px-5">
@@ -150,7 +160,7 @@ export default function ChatInterface({ agent, onSwitchAgent }: ChatInterfacePro
             </form>
             </>
           } />
-          <Route path="/files" element={<FilesBrowser agentId={agent.id} onClose={() => navigate(`/agent/${agent.id}`)} />} />
+          <Route path="/files" element={<FileBrowser agentId={agentId} onClose={() => navigate(`/agent/${agentId}`)} />} />
         </Routes>
 
       {waitingOn && (
@@ -162,7 +172,7 @@ export default function ChatInterface({ agent, onSwitchAgent }: ChatInterfacePro
         </div>
       )}
       </div>
-      {showFiles && <FilesBrowser agentId={agent.id} onClose={() => setShowFiles(false)} />}
+      {showFiles && <FileBrowser agentId={agentId} onClose={() => setShowFiles(false)} />}
     </div>
   );
 }
