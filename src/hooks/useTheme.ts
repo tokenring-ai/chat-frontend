@@ -9,9 +9,9 @@ export function useTheme() {
 
   useEffect(() => {
     if (theme === 'light') {
-      document.documentElement.classList.add('light');
+      document.documentElement.setAttribute('data-color-mode', 'light')
     } else {
-      document.documentElement.classList.remove('light');
+      document.documentElement.setAttribute('data-color-mode', 'dark')
     }
     localStorage.setItem('theme', theme);
   }, [theme]);

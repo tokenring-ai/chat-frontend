@@ -1,6 +1,8 @@
 import {Check, Download, Eye, EyeOff, File, Folder, Plus, Upload} from 'lucide-react';
 import React, {useRef, useState} from 'react';
+import MarkdownEditor from "../../components/editor/MarkdownEditor.tsx";
 import {filesystemRPCClient, useDirectoryListing, useFileContents, useSelectedFiles} from '../../rpc.ts';
+import CodeEditor from '../../components/editor/CodeEditor.tsx';
 
 interface FilesBrowserProps {
   agentId: string;
@@ -16,6 +18,7 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
   const [path, setPath] = useState('.');
   const [showHidden, setShowHidden] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [viewerFile, setViewerFile] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const directoryListing = useDirectoryListing({ path, showHidden });
@@ -37,6 +40,12 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
       }
     } catch (error) {
       console.error('Failed to read file:', error);
+    }
+  };
+
+  const handleFileDoubleClick = (file: string) => {
+    if (!file.endsWith('/')) {
+      setViewerFile(file);
     }
   };
 
@@ -140,6 +149,7 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
                 <div
                   key={i}
                   onClick={() => handleFileClick(file)}
+                  onDoubleClick={() => handleFileDoubleClick(file)}
                   className={`p-2 cursor-pointer hover:bg-tertiary text-sm flex items-center justify-between ${selectedFile === file ? 'bg-active' : ''} ${isDir ? 'text-warning' : 'text-primary'}`}
                 >
                   { isDir
@@ -180,14 +190,16 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
               );
             })}
           </div>
-          <div className="flex-1 overflow-y-auto p-4">
-            {fileContent.data ? (
-              <pre className="text-primary text-sm whitespace-pre-wrap break-words">{fileContent.data.content}</pre>
-            ) : (
-              <div className="text-muted text-sm">Select a file to view its contents</div>
-            )}
+          <div className="flex-1 overflow-y-auto">
+            {selectedFile && fileContent.data ?
+                selectedFile.endsWith('.md')
+                  ? <MarkdownEditor file={selectedFile} content={fileContent.data.content} onSave={() => fileContent.mutate()} />
+                  : <CodeEditor file={selectedFile} content={fileContent.data.content} onSave={() => fileContent.mutate()}/>
+              : <div className="p-4 text-muted text-sm">Select a file to view its contents. Double-click to open in editor.</div>
+            }
           </div>
         </div>
+
     </div>
   );
 }
