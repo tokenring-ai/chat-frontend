@@ -38,7 +38,7 @@ export default function TopBar({ agents, agentTypes, currentAgentId }: TopBarPro
 
   return (
     <div className="bg-secondary border-b border-default px-4 py-2 flex items-center gap-4 relative z-10">
-      <h1 className="text-accent text-lg font-bold cursor-pointer" onClick={() => window.location.href = '/'}>TokenRing Coder</h1>
+      <h1 className="text-accent text-lg font-bold cursor-pointer" onClick={() => navigate("/")}>TokenRing Coder</h1>
       <Select value={currentAgentId || ''} onValueChange={selectAgent}>
         <SelectTrigger className="w-96">
           <SelectValue placeholder="Select Agent..." />
