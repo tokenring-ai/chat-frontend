@@ -16,28 +16,28 @@
     "@radix-ui/react-select": "^2.2.6",
     "@uiw/react-md-editor": "^4.0.11",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.559.0",
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1",
+    "lucide-react": "^0.561.0",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "react-router-dom": "^7.10.1",
-    "swr": "^2.3.7",
+    "swr": "^2.3.8",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "@monaco-editor/react": "^4.7.0",
     "@tailwindcss/forms": "^0.5.10",
-    "@tailwindcss/postcss": "^4.1.17",
+    "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/typography": "^0.5.19",
     "@tokenring-ai/agent": "0.2.0",
     "@tokenring-ai/filesystem": "0.2.0",
     "@tokenring-ai/web-host": "0.2.0",
-    "@types/react": "^19.2.7",
+    "@types/react": "catalog:",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
-    "autoprefixer": "^10.4.22",
+    "autoprefixer": "^10.4.23",
     "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.17",
-    "typescript": "^5.9.3",
-    "vite": "7.2.7"
+    "tailwindcss": "^4.1.18",
+    "typescript": "catalog:",
+    "vite": "7.3.0"
   }
 }
