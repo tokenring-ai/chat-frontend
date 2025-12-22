@@ -9,9 +9,8 @@ import { agentRPCClient } from "../rpc.ts";
 import z from 'zod';
 
 type Message = {
-  type: 'chat' | 'reasoning' | 'system' | 'input';
-  content: string;
-  level?: 'info' | 'warning' | 'error';
+  type: 'output.chat' | 'output.reasoning' | 'output.info' | 'output.warning' | 'output.error' | 'input.received';
+  message: string;
 };
 
 interface ChatInterfaceProps {
@@ -24,6 +23,15 @@ type ChatState = {
   waitingOn: z.infer<typeof HumanRequestSchema> | null;
   position: number;
   messages: Message[];
+}
+
+const colorClasses = {
+  'output.chat': 'text-accent',
+  'output.reasoning': 'text-warning',
+  'input.received': 'text-input',
+  'output.warning': 'text-warning',
+  'output.error': 'text-error',
+  'output.info': 'text-code'
 }
 
 export default function ChatPage({ agentId }: ChatInterfaceProps) {
@@ -57,24 +65,22 @@ export default function ChatPage({ agentId }: ChatInterfaceProps) {
           fromPosition,
         }, abortController.signal)) {
           for (const event of eventsData.events) {
-            if (event.type === 'output.chat') {
-              const last = prevMessages[prevMessages.length - 1];
-              if (last?.type === 'chat') {
-                last.content += event.content
-              } else {
-                prevMessages.push({type: 'chat', content: event.content});
-              }
-            } else if (event.type === 'output.reasoning') {
-              const last = prevMessages[prevMessages.length - 1];
-              if (last?.type === 'reasoning') {
-                last.content += event.content
-              } else {
-                prevMessages.push({type: 'reasoning', content: event.content});
-              }
-            } else if (event.type === 'output.system') {
-              prevMessages.push({type: 'system', content: event.message, level: event.level});
-            } else if (event.type === 'input.received') {
-              prevMessages.push({type: 'input', content: event.message});
+            switch (event.type) {
+              case 'output.chat':
+              case 'output.reasoning':
+              case 'output.info':
+              case 'output.warning':
+              case 'output.error':
+                const last = prevMessages[prevMessages.length - 1];
+                if (last?.type === event.type) {
+                  last.message += event.message
+                } else {
+                  prevMessages.push({type: event.type, message: event.message});
+                }
+                break;
+              case 'input.received':
+                prevMessages.push({type: event.type, message: event.message});
+                break;
             }
           }
 
@@ -98,7 +104,7 @@ export default function ChatPage({ agentId }: ChatInterfaceProps) {
     if (isAtBottom) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages[messages.length - 1]?.content, isAtBottom, waitingOn, busyWith]);
+  }, [messages[messages.length - 1]?.message, isAtBottom, waitingOn, busyWith]);
 
   const handleScroll = () => {
     const container = messagesContainerRef.current;
@@ -137,23 +143,16 @@ export default function ChatPage({ agentId }: ChatInterfaceProps) {
           <Route path="/" element={
             <>
             <div ref={messagesContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-5 leading-relaxed">
-        {messages.map((msg, i) => {
-          const colorClass = msg.type === 'chat' ? 'text-accent' :
-            msg.type === 'reasoning' ? 'text-warning' :
-              msg.type === 'input' ? 'text-input' :
-                msg.level === 'warning' ? 'text-warning' :
-                  msg.level === 'error' ? 'text-error' : 'text-code';
-          return (
-            <div key={i} className={`mb-2 whitespace-pre-wrap break-words ${colorClass}`}>
-              {msg.type === 'input' && <span className="text-input mr-1">&gt; </span>}
-              {msg.content}
-            </div>
-          );
-        })}
+              {messages.map((msg, i) =>
+                <div key={i} className={`mb-2 whitespace-pre-wrap wrap-break-word ${colorClasses[msg.type]}`}>
+                  {msg.type === 'input.received' && <span className="text-input mr-1">&gt; </span>}
+                  {msg.message}
+                </div>
+              )}
               {busyWith && <div className="animate-pulse-slow text-warning">{busyWith}</div>}
               <div ref={messagesEndRef} />
             </div>
-            <form onSubmit={handleSubmit} className="bg-secondary border-t border-default flex gap-2.5 py-[15px] px-5">
+            <form onSubmit={handleSubmit} className="bg-secondary border-t border-default flex gap-2.5 py-3.75 px-5">
         <input
           ref={inputRef}
           type="text"
@@ -176,7 +175,7 @@ export default function ChatPage({ agentId }: ChatInterfaceProps) {
         </Routes>
 
       {waitingOn && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1000]">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-1000">
           <HumanRequestRenderer
             request={waitingOn.request}
             onResponse={handleHumanResponse}
