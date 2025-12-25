@@ -22,16 +22,17 @@ export function useWorkflows() {
   return useSWR("/workflow/listWorkflows", () => workflowRPCClient.listWorkflows({}), { refreshInterval: 1000 });
 }
 
-export function useDirectoryListing({ path, showHidden }: { path: string, showHidden?: boolean }) {
-  return useSWR(`/filesystem/listDirectory/${path}`, () => filesystemRPCClient.listDirectory({
-    path,
+export function useDirectoryListing(opts?: { path: string, showHidden?: boolean, agentId: string }) {
+  return useSWR(`/filesystem/listDirectory/${opts!.path}`, () => opts ? filesystemRPCClient.listDirectory({
+    path: opts!.path,
     recursive: false,
-    showHidden: showHidden ?? false
-  }), {refreshInterval: 1000});
+    showHidden: opts!.showHidden ?? false,
+    agentId: opts!.agentId
+  }) : null, {refreshInterval: 1000});
 }
 
-export function useFileContents(path: string | null) {
-  return useSWR(`/filesystem/getFileContents/${path}`, () => path ? filesystemRPCClient.readFile({ path }) : null);
+export function useFileContents(path: string | null, agentId: string | null) {
+  return useSWR(`/filesystem/getFileContents/${path}`, () => path && agentId? filesystemRPCClient.readFile({ path, agentId }) : null);
 }
 
 export function useSelectedFiles(agentId: string | null) {

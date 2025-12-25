@@ -8,9 +8,10 @@ interface FileViewerProps {
   file: string;
   content: string;
   onSave: () => void;
+  agentId: string;
 }
 
-export default function CodeEditor({ file, content, onSave }: FileViewerProps) {
+export default function CodeEditor({ file, content, onSave, agentId }: FileViewerProps) {
   const [editorContent, setEditorContent] = useState(content);
   const [saving, setSaving] = useState(false);
 
@@ -30,7 +31,7 @@ export default function CodeEditor({ file, content, onSave }: FileViewerProps) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await filesystemRPCClient.writeFile({ path: file, content: editorContent });
+      await filesystemRPCClient.writeFile({ path: file, content: editorContent, agentId });
       onSave();
     } catch (error) {
       console.error('Failed to save file:', error);

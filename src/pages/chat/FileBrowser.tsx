@@ -21,15 +21,15 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
   const [viewerFile, setViewerFile] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const directoryListing = useDirectoryListing({ path, showHidden });
+  const directoryListing = useDirectoryListing({ path, showHidden, agentId });
   const selectedFiles = useSelectedFiles(agentId);
-  const fileContent = useFileContents(selectedFile);
+  const fileContent = useFileContents(selectedFile, agentId);
 
   const handleFileClick = async (file: string) => {
     const isDir = file.endsWith('/');
     const fullPath = isDir ? file.slice(0, -1) : file;
     try {
-      const stat = await filesystemRPCClient.stat({ path: fullPath });
+      const stat = await filesystemRPCClient.stat({ path: fullPath, agentId });
       const stats = JSON.parse(stat.stats);
       
       if (stats.isDirectory) {
@@ -73,7 +73,7 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
     e.stopPropagation();
     const cleanFile = file.endsWith('/') ? file.slice(0, -1) : file;
     try {
-      const result = await filesystemRPCClient.readFile({ path: cleanFile });
+      const result = await filesystemRPCClient.readFile({ path: cleanFile, agentId });
       const blob = new Blob([result.content], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -105,7 +105,7 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
       try {
         const content = await file.text();
         const targetPath = path === '.' ? file.name : `${path}/${file.name}`;
-        await filesystemRPCClient.writeFile({ path: targetPath, content });
+        await filesystemRPCClient.writeFile({ path: targetPath, content, agentId });
       } catch (error) {
         console.error('Failed to upload file:', error);
       }
@@ -193,8 +193,8 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
           <div className="flex-1 overflow-y-auto">
             {selectedFile && fileContent.data ?
                 selectedFile.endsWith('.md')
-                  ? <MarkdownEditor file={selectedFile} content={fileContent.data.content} onSave={() => fileContent.mutate()} />
-                  : <CodeEditor file={selectedFile} content={fileContent.data.content} onSave={() => fileContent.mutate()}/>
+                  ? <MarkdownEditor file={selectedFile} content={fileContent.data.content} onSave={() => fileContent.mutate()} agentId={agentId}/>
+                  : <CodeEditor file={selectedFile} content={fileContent.data.content} onSave={() => fileContent.mutate()} agentId={agentId}/>
               : <div className="p-4 text-muted text-sm">Select a file to view its contents. Double-click to open in editor.</div>
             }
           </div>
