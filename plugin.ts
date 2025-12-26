@@ -1,16 +1,18 @@
-import { TokenRingPlugin } from "@tokenring-ai/app";
+import {TokenRingPlugin} from "@tokenring-ai/app";
 import {WebHostService} from "@tokenring-ai/web-host";
 import SPAResource from "@tokenring-ai/web-host/SPAResource";
 import fs from "fs";
 import path from "path";
-import TokenRingApp from "@tokenring-ai/app";
+import {z} from "zod";
 import packageJSON from "./package.json" with {type: "json"};
+
+const packageConfigSchema = z.object({});
 
 export default {
   name: packageJSON.name,
   version: packageJSON.version,
   description: packageJSON.description,
-  install(app: TokenRingApp) {
+  install(app, config) {
     const indexHTML = path.resolve(app.packageDirectory,"frontend/chat/index.html");
     if (! fs.existsSync(indexHTML)) {
       throw new Error(`Chat frontend not found at ${indexHTML}`);
@@ -25,4 +27,5 @@ export default {
       }));
     });
   },
-} satisfies TokenRingPlugin;
+  config: packageConfigSchema
+} satisfies TokenRingPlugin<typeof packageConfigSchema>;
