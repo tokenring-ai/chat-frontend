@@ -19,6 +19,7 @@ interface ChatInterfaceProps {
 
 type ChatState = {
   busyWith: string | null;
+  statusLine: string | null;
   idle: boolean;
   waitingOn: z.infer<typeof HumanRequestSchema> | null;
   position: number;
@@ -41,10 +42,11 @@ export default function ChatPage({ agentId }: ChatInterfaceProps) {
   const [{
     idle,
     busyWith,
+    statusLine,
     waitingOn,
     position,
     messages
-  }, setChatState] = useState<ChatState>({ idle: false, busyWith: "Connecting...", waitingOn: null, position: 0, messages: []});
+  }, setChatState] = useState<ChatState>({ idle: false, busyWith: "Connecting...", statusLine: null, waitingOn: null, position: 0, messages: []});
   const [showFiles, setShowFiles] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -90,6 +92,7 @@ export default function ChatPage({ agentId }: ChatInterfaceProps) {
             busyWith: eventsData.busyWith,
             idle: eventsData.idle,
             waitingOn: eventsData.waitingOn,
+            statusLine: eventsData.statusLine,
             position: eventsData.position,
             messages: eventsData.events.length > 0 ? [...prevMessages] : prevMessages
           });
@@ -104,7 +107,7 @@ export default function ChatPage({ agentId }: ChatInterfaceProps) {
     if (isAtBottom) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages[messages.length - 1]?.message, isAtBottom, waitingOn, busyWith]);
+  }, [messages[messages.length - 1]?.message, isAtBottom, waitingOn, busyWith, statusLine]);
 
   const handleScroll = () => {
     const container = messagesContainerRef.current;
@@ -152,6 +155,11 @@ export default function ChatPage({ agentId }: ChatInterfaceProps) {
               {busyWith && <div className="animate-pulse-slow text-warning">{busyWith}</div>}
               <div ref={messagesEndRef} />
             </div>
+            {statusLine && (
+              <div className="bg-secondary border-t border-default px-5 py-2 text-sm text-muted">
+                <span className="text-success mr-1">●</span> {statusLine}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="bg-secondary border-t border-default flex gap-2.5 py-3.75 px-5">
         <input
           ref={inputRef}
