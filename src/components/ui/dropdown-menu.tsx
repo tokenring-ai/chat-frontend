@@ -1,4 +1,4 @@
-import * as React from "react"
+import React from "react"
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
 import { cn } from "../../lib/utils.ts"
 
@@ -13,7 +13,7 @@ const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-tertiary border-default p-1 shadow-md",
+        "z-50 min-w-32 overflow-hidden rounded-md border bg-tertiary border-default p-1 shadow-md",
         className
       )}
       {...props}
