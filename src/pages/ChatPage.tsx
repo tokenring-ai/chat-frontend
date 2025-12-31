@@ -15,6 +15,8 @@ type Message = {
 
 interface ChatInterfaceProps {
   agentId: string;
+  sidebarOpen?: boolean;
+  onSidebarChange?: (open: boolean) => void;
 }
 
 type ChatState = {
@@ -35,7 +37,7 @@ const colorClasses = {
   'output.info': 'text-code'
 }
 
-export default function ChatPage({ agentId }: ChatInterfaceProps) {
+export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange }: ChatInterfaceProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [input, setInput] = useState('');
@@ -47,13 +49,13 @@ export default function ChatPage({ agentId }: ChatInterfaceProps) {
     position,
     messages
   }, setChatState] = useState<ChatState>({ idle: false, busyWith: "Connecting...", statusLine: null, waitingOn: null, position: 0, messages: []});
-  const [showFiles, setShowFiles] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const currentPage = location.pathname.endsWith('/files') ? 'files' : 'agent';
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -62,40 +64,47 @@ export default function ChatPage({ agentId }: ChatInterfaceProps) {
       let fromPosition = position
 
       while (!abortController.signal.aborted) {
-        for await (const eventsData of agentRPCClient.streamAgentEvents({
-          agentId: agentId,
-          fromPosition,
-        }, abortController.signal)) {
-          for (const event of eventsData.events) {
-            switch (event.type) {
-              case 'output.chat':
-              case 'output.reasoning':
-              case 'output.info':
-              case 'output.warning':
-              case 'output.error':
-                const last = prevMessages[prevMessages.length - 1];
-                if (last?.type === event.type) {
-                  last.message += event.message
-                } else {
+        try {
+          for await (const eventsData of agentRPCClient.streamAgentEvents({
+            agentId: agentId,
+            fromPosition,
+          }, abortController.signal)) {
+            for (const event of eventsData.events) {
+              switch (event.type) {
+                case 'output.chat':
+                case 'output.reasoning':
+                case 'output.info':
+                case 'output.warning':
+                case 'output.error':
+                  const last = prevMessages[prevMessages.length - 1];
+                  if (last?.type === event.type) {
+                    last.message += event.message
+                  } else {
+                    prevMessages.push({type: event.type, message: event.message});
+                  }
+                  break;
+                case 'input.received':
                   prevMessages.push({type: event.type, message: event.message});
-                }
-                break;
-              case 'input.received':
-                prevMessages.push({type: event.type, message: event.message});
-                break;
+                  break;
+              }
             }
+
+            fromPosition = eventsData.position;
+
+            setChatState({
+              busyWith: eventsData.busyWith,
+              idle: eventsData.idle,
+              waitingOn: eventsData.waitingOn,
+              statusLine: eventsData.statusLine,
+              position: eventsData.position,
+              messages: eventsData.events.length > 0 ? [...prevMessages] : prevMessages
+            });
           }
-
-          fromPosition = eventsData.position;
-
-          setChatState({
-            busyWith: eventsData.busyWith,
-            idle: eventsData.idle,
-            waitingOn: eventsData.waitingOn,
-            statusLine: eventsData.statusLine,
-            position: eventsData.position,
-            messages: eventsData.events.length > 0 ? [...prevMessages] : prevMessages
-          });
+        } catch (e) {
+          if (!abortController.signal.aborted) {
+            console.error("Stream error, retrying...", e);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
         }
       }
     })();
@@ -139,59 +148,107 @@ export default function ChatPage({ agentId }: ChatInterfaceProps) {
   };
 
   return (
-    <div className="flex h-full">
-      <Sidebar currentPage={currentPage} onPageChange={(page) => navigate(page === 'agent' ? `/agent/${agentId}` : `/agent/${agentId}/files`)} />
-      <div className="flex flex-col flex-1">
+    <div className="flex h-full relative overflow-hidden">
+      {/* Mobile sidebar overlay */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-30 transition-opacity duration-300"
+          onClick={() => onSidebarChange?.(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`
+        ${isMobile ? 'fixed inset-y-0 left-0 shadow-2xl' : 'relative'} 
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        transition-transform duration-300 ease-in-out z-40
+        ${isMobile ? 'w-64' : 'w-16'}
+        bg-sidebar flex flex-col items-center py-2 gap-2 h-full
+      `}>
+        <Sidebar
+          currentPage={currentPage}
+          onPageChange={(page) => {
+            navigate(page === 'agent' ? `/agent/${agentId}` : `/agent/${agentId}/files`);
+            onSidebarChange?.(false);
+          }}
+          isMobile={isMobile}
+          isSidebarOpen={sidebarOpen}
+        />
+      </div>
+
+      <div className="flex flex-col flex-1 min-w-0 bg-primary">
         <Routes>
           <Route path="/" element={
-            <>
-            <div ref={messagesContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-5 leading-relaxed">
-              {messages.map((msg, i) =>
-                <div key={i} className={`mb-2 whitespace-pre-wrap wrap-break-word ${colorClasses[msg.type]}`}>
-                  {msg.type === 'input.received' && <span className="text-input mr-1">&gt; </span>}
-                  {msg.message}
+            <div className="flex flex-col h-full">
+              <div 
+                ref={messagesContainerRef} 
+                onScroll={handleScroll} 
+                className="flex-1 overflow-y-auto p-4 sm:p-6 leading-relaxed flex flex-col gap-2"
+              >
+                {messages.map((msg, i) =>
+                  <div key={i} className={`whitespace-pre-wrap break-words ${colorClasses[msg.type]}`}>
+                    {msg.type === 'input.received' && <span className="text-input mr-1">&gt; </span>}
+                    {msg.message}
+                  </div>
+                )}
+                {busyWith && <div className="animate-pulse-slow text-warning mt-2 italic">{busyWith}</div>}
+                <div ref={messagesEndRef} className="h-4" />
+              </div>
+              
+              {statusLine && (
+                <div className="bg-secondary/50 border-t border-default px-4 py-1.5 text-xs text-muted truncate">
+                  <span className="text-success mr-1.5 inline-block w-2 h-2 rounded-full bg-green-500"></span> 
+                  {statusLine}
                 </div>
               )}
-              {busyWith && <div className="animate-pulse-slow text-warning">{busyWith}</div>}
-              <div ref={messagesEndRef} />
-            </div>
-            {statusLine && (
-              <div className="bg-secondary border-t border-default px-5 py-2 text-sm text-muted">
-                <span className="text-success mr-1">●</span> {statusLine}
+              
+              <div className="bg-secondary border-t border-default p-3 sm:p-4">
+                <form onSubmit={handleSubmit} className="flex gap-2 max-w-4xl mx-auto">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                    placeholder="Type your message..."
+                    disabled={!idle || !!waitingOn}
+                    autoFocus
+                    className="flex-1 bg-input border border-default text-primary text-sm outline-none px-4 py-2.5 focus:border-focus rounded-md transition-colors disabled:opacity-50"
+                  />
+                  {idle ? (
+                    <button 
+                      type="submit" 
+                      disabled={!input.trim() || !!waitingOn} 
+                      className="btn-primary text-white font-medium rounded-md px-4 sm:px-6 py-2.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Send
+                    </button>
+                  ) : (
+                    <button 
+                      type="button" 
+                      onClick={handleCancel} 
+                      className="btn-danger text-white font-medium rounded-md px-4 sm:px-6 py-2.5 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </form>
               </div>
-            )}
-            <form onSubmit={handleSubmit} className="bg-secondary border-t border-default flex gap-2.5 py-3.75 px-5">
-        <input
-          ref={inputRef}
-          type="text"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          placeholder="Type your message..."
-          disabled={!idle || !!waitingOn}
-          autoFocus
-          className="flex-1 bg-input border border-default text-primary text-sm outline-none p-2 focus:border-focus"
-        />
-        {idle ? (
-          <button type="submit" disabled={!input.trim() || !!waitingOn} className="btn-primary border-none rounded-sm text-white cursor-pointer text-sm py-2 px-5 hover:enabled:btn-primary disabled:cursor-not-allowed disabled:opacity-50">Send</button>
-          ) : (
-            <button type="button" onClick={handleCancel} className="btn-danger border-none rounded-sm text-white cursor-pointer text-sm py-2 px-5 hover:btn-danger">Cancel</button>
-          )}
-            </form>
-            </>
+            </div>
           } />
           <Route path="/files" element={<FileBrowser agentId={agentId} onClose={() => navigate(`/agent/${agentId}`)} />} />
         </Routes>
 
-      {waitingOn && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-1000">
-          <HumanRequestRenderer
-            request={waitingOn.request}
-            onResponse={handleHumanResponse}
-          />
-        </div>
-      )}
+        {waitingOn && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-2xl bg-secondary rounded-lg shadow-2xl border border-default overflow-hidden animate-in fade-in zoom-in duration-300">
+              <HumanRequestRenderer
+                request={waitingOn.request}
+                onResponse={handleHumanResponse}
+              />
+            </div>
+          </div>
+        )}
       </div>
-      {showFiles && <FileBrowser agentId={agentId} onClose={() => setShowFiles(false)} />}
     </div>
   );
 }

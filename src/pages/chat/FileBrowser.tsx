@@ -1,4 +1,4 @@
-import {Check, Download, Eye, EyeOff, File, Folder, Plus, Upload} from 'lucide-react';
+import {Check, Download, Eye, EyeOff, File, Folder, Plus, Upload, X, ArrowLeft } from 'lucide-react';
 import React, {useRef, useState} from 'react';
 import MarkdownEditor from "../../components/editor/MarkdownEditor.tsx";
 import {filesystemRPCClient, useDirectoryListing, useFileContents, useSelectedFiles} from '../../rpc.ts';
@@ -9,19 +9,13 @@ interface FilesBrowserProps {
   onClose: () => void;
 }
 
-const getFileIcon = (filename: string) => {
-  const ext = filename.split('.').pop()?.toLowerCase();
-  return <File size={16} />;
-};
-
 export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
   const [path, setPath] = useState('.');
-  const [showHidden, setShowHidden] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [viewerFile, setViewerFile] = useState<string | null>(null);
+  const [showHiddenFiles, setShowHiddenFiles] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const directoryListing = useDirectoryListing({ path, showHidden, agentId });
+  const directoryListing = useDirectoryListing({ path, showHidden: showHiddenFiles, agentId });
   const selectedFiles = useSelectedFiles(agentId);
   const fileContent = useFileContents(selectedFile, agentId);
 
@@ -40,12 +34,6 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
       }
     } catch (error) {
       console.error('Failed to read file:', error);
-    }
-  };
-
-  const handleFileDoubleClick = (file: string) => {
-    if (!file.endsWith('/')) {
-      setViewerFile(file);
     }
   };
 
@@ -116,17 +104,37 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
   };
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden">
-        <div className="flex items-center justify-between bg-secondary border-b border-default p-4">
-          <h2 className="text-accent text-lg font-bold">Files</h2>
-          <div className="flex gap-2">
-            <button onClick={() => setShowHidden(!showHidden)} className="btn-primary border-none rounded-sm text-white cursor-pointer text-xs py-1.5 px-3 hover:btn-primary flex items-center gap-1" title={showHidden ? "Hide hidden files" : "Show hidden files"}>
-              {showHidden ? <EyeOff size={14} /> : <Eye size={14} />} {showHidden ? 'Hide' : 'Show'}
-            </button>
-            <button onClick={() => fileInputRef.current?.click()} className="btn-primary border-none rounded-sm text-white cursor-pointer text-xs py-1.5 px-3 hover:btn-primary flex items-center gap-1">
-              <Upload size={14} /> Upload
-            </button>
-          </div>
+    <div className="flex flex-col h-full overflow-hidden bg-primary">
+      {/* Header */}
+      <div className="flex items-center justify-between bg-secondary border-b border-default h-14 px-3 sm:px-4 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-hover rounded-md text-primary sm:hidden"
+            aria-label="Back to chat"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <h2 className="text-accent text-base sm:text-lg font-bold">Files</h2>
+        </div>
+        
+        <div className="flex gap-1.5">
+          <button 
+            onClick={() => setShowHiddenFiles(!showHiddenFiles)} 
+            className="p-2 hover:bg-hover rounded-md text-primary flex items-center gap-1.5"
+            title={showHiddenFiles ? "Hide hidden files" : "Show hidden files"}
+          >
+            {showHiddenFiles ? <EyeOff size={18} /> : <Eye size={18} />}
+            <span className="hidden sm:inline text-xs font-medium">{showHiddenFiles ? 'Hide' : 'Show'} Hidden</span>
+          </button>
+          <button 
+            onClick={() => fileInputRef.current?.click()} 
+            className="p-2 hover:bg-hover rounded-md text-primary flex items-center gap-1.5"
+            title="Upload files"
+          >
+            <Upload size={18} />
+            <span className="hidden sm:inline text-xs font-medium">Upload</span>
+          </button>
           <input
             ref={fileInputRef}
             type="file"
@@ -135,71 +143,126 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
             className="hidden"
           />
         </div>
-        <div className="flex flex-1 overflow-hidden bg-primary">
-          <div className="w-1/3 border-r border-default overflow-y-auto">
-            <div className="p-2 border-b border-default text-info text-sm">{path === '.' ? '/' : path}</div>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden flex-col sm:flex-row">
+        {/* File Explorer Pane */}
+        <div className={`
+          flex flex-col border-default
+          ${selectedFile ? 'hidden sm:flex' : 'flex'} 
+          sm:w-1/3 sm:border-r h-full overflow-hidden
+        `}>
+          <div className="p-3 bg-tertiary/30 border-b border-default flex items-center justify-between">
+            <span className="text-info text-xs font-mono truncate">{path === '.' ? '/' : path}</span>
             {path !== '.' && (
-              <div onClick={goUp} className="p-2 text-warning cursor-pointer hover:bg-tertiary text-sm">.. (parent)</div>
+              <button 
+                onClick={goUp} 
+                className="text-warning text-xs font-bold hover:underline"
+              >
+                GO UP
+              </button>
             )}
+          </div>
+          
+          <div className="flex-1 overflow-y-auto">
             {directoryListing.data?.files.map((file, i) => {
               const isDir = file.endsWith('/');
-              const selectedCount = selectedFiles.data?.files.filter(path => path.startsWith(file)).length ?? 0;
+              const selectedCount = selectedFiles.data?.files.filter(p => p.startsWith(file)).length ?? 0;
               const isExactSelection = selectedFiles.data?.files.includes(file);
+              
               return (
                 <div
                   key={i}
                   onClick={() => handleFileClick(file)}
-                  onDoubleClick={() => handleFileDoubleClick(file)}
-                  className={`p-2 cursor-pointer hover:bg-tertiary text-sm flex items-center justify-between ${selectedFile === file ? 'bg-active' : ''} ${isDir ? 'text-warning' : 'text-primary'}`}
+                  className={`
+                    group px-3 py-2.5 cursor-pointer border-b border-default/50 flex items-center justify-between transition-colors
+                    ${selectedFile === file ? 'bg-active' : 'hover:bg-hover'} 
+                    ${isDir ? 'text-warning' : 'text-primary'}
+                  `}
                 >
-                  { isDir
-                    ? <div className={`flex items-center gap-2 ${selectedCount > 0 ? 'text-accent' : ''}`}>
-                        <Folder size={16} />
-                        <span>{file}{
-                          isExactSelection
-                            ? ' (Directory selected)'
-                            : selectedCount > 0
-                              ? ` (${selectedCount} selected)`
-                              : ''
-                        }</span>
-                      </div>
-                    : <div className={`flex items-center gap-2 ${selectedCount > 0 ? 'text-accent' : ''}`}>
-                        <File size={16} />
-                        <span>{file}</span>
-                      </div>
-                  }
-                    <div className="flex gap-1">
-                      {!isDir &&
-                        <button
-                          onClick={(e) => handleDownload(file, e)}
-                          className="p-1 hover:bg-hover rounded"
-                          title="Download file"
-                        >
-                          <Download size={14} />
-                        </button>
-                      }
-                      <button
-                        onClick={(e) => isExactSelection ? handleRemoveFile(file, e) : handleAddFile(file, e)}
-                        className="p-1 hover:bg-hover rounded"
-                        title={selectedCount > 0 ? "Remove from chat" : "Add to chat"}
-                      >
-                        {selectedCount > 0 ? <Check size={14} className="text-accent" /> : <Plus size={14} />}
-                      </button>
+                  <div className="flex items-center gap-3 min-w-0">
+                    {isDir ? <Folder size={18} /> : <File size={18} />}
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm truncate font-medium">{file}</span>
+                      {selectedCount > 0 && (
+                        <span className="text-[10px] text-accent font-bold">
+                          {isExactSelection ? 'SELECTED' : `${selectedCount} IN CHAT`}
+                        </span>
+                      )}
                     </div>
+                  </div>
+
+                  <div className="flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                    {!isDir && (
+                      <button
+                        onClick={(e) => handleDownload(file, e)}
+                        className="p-1.5 hover:bg-active rounded text-secondary hover:text-primary"
+                        title="Download"
+                      >
+                        <Download size={14} />
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => isExactSelection ? handleRemoveFile(file, e) : handleAddFile(file, e)}
+                      className="p-1.5 hover:bg-active rounded"
+                      title={isExactSelection ? "Remove from chat" : "Add to chat"}
+                    >
+                      {isExactSelection ? <X size={14} className="text-error" /> : <Plus size={14} className="text-accent" />}
+                    </button>
+                  </div>
                 </div>
               );
             })}
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            {selectedFile && fileContent.data ?
-                selectedFile.endsWith('.md')
-                  ? <MarkdownEditor file={selectedFile} content={fileContent.data.content} onSave={() => fileContent.mutate()} agentId={agentId}/>
-                  : <CodeEditor file={selectedFile} content={fileContent.data.content} onSave={() => fileContent.mutate()} agentId={agentId}/>
-              : <div className="p-4 text-muted text-sm">Select a file to view its contents. Double-click to open in editor.</div>
-            }
+            {(!directoryListing.data || directoryListing.data.files.length === 0) && (
+              <div className="p-8 text-center text-muted text-sm">
+                No files found in this directory.
+              </div>
+            )}
           </div>
         </div>
 
+        {/* File Preview/Editor Pane */}
+        <div className={`
+          flex-1 flex flex-col overflow-hidden bg-primary
+          ${selectedFile ? 'flex' : 'hidden sm:flex'}
+        `}>
+          {selectedFile && (
+            <div className="sm:hidden p-2 bg-secondary border-b border-default flex items-center">
+              <button 
+                onClick={() => setSelectedFile(null)}
+                className="flex items-center gap-1 text-xs font-bold text-info"
+              >
+                <ArrowLeft size={14} /> BACK TO LIST
+              </button>
+            </div>
+          )}
+          
+          <div className="flex-1 overflow-auto">
+            {selectedFile && fileContent.data ? (
+              selectedFile.endsWith('.md') ? (
+                <MarkdownEditor 
+                  file={selectedFile} 
+                  content={fileContent.data.content} 
+                  onSave={() => fileContent.mutate()} 
+                  agentId={agentId}
+                />
+              ) : (
+                <CodeEditor 
+                  file={selectedFile} 
+                  content={fileContent.data.content} 
+                  onSave={() => fileContent.mutate()} 
+                  agentId={agentId}
+                />
+              )
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-muted p-6 text-center">
+                <File size={48} className="mb-4 opacity-20" />
+                <p className="text-sm">Select a file from the explorer to view or edit its contents.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
