@@ -7,13 +7,12 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 
 interface TopBarProps {
   agents: ReturnType<typeof useAgentList>;
-  agentTypes: ReturnType<typeof useAgentTypes>;
   currentAgentId: string | null;
   onMenuClick?: () => void;
   isSidebarOpen?: boolean;
 }
 
-export default function TopBar({ agents, agentTypes, currentAgentId, onMenuClick, isSidebarOpen }: TopBarProps) {
+export default function TopBar({ agents, currentAgentId, onMenuClick, isSidebarOpen }: TopBarProps) {
   const navigate = useNavigate();
 
   const [theme, setTheme] = useTheme();
@@ -24,12 +23,6 @@ export default function TopBar({ agents, agentTypes, currentAgentId, onMenuClick
 
   const selectAgent = (agentId: string) => {
     navigate(`/agent/${agentId}`);
-  };
-
-  const createAgent = async (type: string) => {
-    const { id } = await agentRPCClient.createAgent({ agentType: type, headless: false });
-    await agents.mutate();
-    navigate(`/agent/${id}`);
   };
 
   const deleteAgent = async (agentId: string) => {
@@ -84,21 +77,6 @@ export default function TopBar({ agents, agentTypes, currentAgentId, onMenuClick
 
       {/* Right section: Actions */}
       <div className="flex items-center gap-0.5 sm:gap-1.5 flex-shrink-0">
-        {/* New Agent - Dropdown on desktop, plus icon only on very small screens */}
-        <DropdownMenu>
-          <DropdownMenuTrigger className="h-9 px-2 sm:px-3 bg-button-primary hover:bg-button-primary-hover text-white rounded-md cursor-pointer flex items-center gap-1">
-            <Plus size={18} />
-            <span className="hidden sm:inline text-xs font-medium">New Agent</span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            {agentTypes.data?.map(t => (
-              <DropdownMenuItem key={t.type} onSelect={() => createAgent(t.type)} className="cursor-pointer">
-                {t.name}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
         {/* Action icons - Grouped or hidden on mobile if too many */}
         <div className="flex items-center">
           {currentAgentId && (

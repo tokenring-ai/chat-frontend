@@ -6,6 +6,7 @@ import HumanRequestRenderer from '../components/HumanRequest/HumanRequestRendere
 import FileBrowser from './chat/FileBrowser.tsx';
 import Sidebar from '../components/Sidebar.tsx';
 import { agentRPCClient } from "../rpc.ts";
+import { Send, Square } from 'lucide-react';
 import z from 'zod';
 
 type Message = {
@@ -52,7 +53,7 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
   const [isAtBottom, setIsAtBottom] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const currentPage = location.pathname.endsWith('/files') ? 'files' : 'agent';
   const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
@@ -101,6 +102,7 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
             });
           }
         } catch (e) {
+          console.log(e);
           if (!abortController.signal.aborted) {
             console.error("Stream error, retrying...", e);
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -118,6 +120,14 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
     }
   }, [messages[messages.length - 1]?.message, isAtBottom, waitingOn, busyWith, statusLine]);
 
+  // Auto-grow textarea
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 200)}px`;
+    }
+  }, [input]);
+
   const handleScroll = () => {
     const container = messagesContainerRef.current;
     if (!container) return;
@@ -126,11 +136,19 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
     setIsAtBottom(atBottom);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-    await agentRPCClient.sendInput({ agentId: agentId, message: input });
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!input.trim() || !idle || !!waitingOn) return;
+    const message = input;
     setInput('');
+    await agentRPCClient.sendInput({ agentId: agentId, message });
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
   };
 
   const handleCancel = async () => {
@@ -202,36 +220,49 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
                 </div>
               )}
               
-              <div className="bg-secondary border-t border-default p-3 sm:p-4">
-                <form onSubmit={handleSubmit} className="flex gap-2 max-w-4xl mx-auto">
-                  <input
+              <div className="bg-primary border-t border-default p-3 sm:p-4">
+                <form onSubmit={handleSubmit} className="max-w-4xl mx-auto relative group">
+                  <textarea
                     ref={inputRef}
-                    type="text"
                     value={input}
                     onChange={e => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     placeholder="Type your message..."
                     disabled={!idle || !!waitingOn}
                     autoFocus
-                    className="flex-1 bg-input border border-default text-primary text-sm outline-none px-4 py-2.5 focus:border-focus rounded-md transition-colors disabled:opacity-50"
+                    rows={1}
+                    className="w-full bg-secondary border border-default text-primary text-sm outline-none px-4 py-3.5 pr-14 focus:border-focus rounded-xl transition-all disabled:opacity-50 resize-none min-h-[52px] max-h-[200px] shadow-sm group-focus-within:shadow-md group-focus-within:border-focus/50"
                   />
-                  {idle ? (
-                    <button 
-                      type="submit" 
-                      disabled={!input.trim() || !!waitingOn} 
-                      className="btn-primary text-white font-medium rounded-md px-4 sm:px-6 py-2.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Send
-                    </button>
-                  ) : (
-                    <button 
-                      type="button" 
-                      onClick={handleCancel} 
-                      className="btn-danger text-white font-medium rounded-md px-4 sm:px-6 py-2.5 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  )}
+                  <div className="absolute right-3 bottom-4 flex items-center justify-center">
+                    {idle ? (
+                      <button 
+                        type="submit" 
+                        disabled={!input.trim() || !!waitingOn} 
+                        className={`p-1.5 rounded-lg transition-all duration-200 ${
+                          input.trim() 
+                            ? 'bg-accent text-[#1e1e1e] scale-100 opacity-100 shadow-sm hover:scale-105 active:scale-95' 
+                            : 'bg-transparent text-muted opacity-40 scale-90 grayscale'
+                        }`}
+                        aria-label="Send message"
+                      >
+                        <Send className="w-5 h-5" />
+                      </button>
+                    ) : (
+                      <button 
+                        type="button" 
+                        onClick={handleCancel} 
+                        className="p-1.5 bg-error/20 text-error rounded-lg transition-all hover:bg-error/30 hover:scale-105 active:scale-95 border border-error/30"
+                        aria-label="Cancel"
+                      >
+                        <Square className="w-5 h-5 fill-current" />
+                      </button>
+                    )}
+                  </div>
                 </form>
+                <div className="max-w-4xl mx-auto mt-2 px-1 flex justify-between items-center text-[10px] text-muted uppercase tracking-wider font-semibold opacity-50">
+                  <span>Shift + Enter for new line</span>
+                  {idle ? <span>Ready</span> : <span>Agent Thinking...</span>}
+                </div>
               </div>
             </div>
           } />

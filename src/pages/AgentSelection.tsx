@@ -1,4 +1,4 @@
-import { Trash2, Play, Plus, Cpu, Workflow } from 'lucide-react';
+import { Trash2, Play, Plus, Cpu, User, Loader2, Pause } from 'lucide-react';
 import {useNavigate} from "react-router-dom";
 import {agentRPCClient, useAgentList, useAgentTypes, useWorkflows, workflowRPCClient} from "../rpc.ts";
 
@@ -45,8 +45,8 @@ export default function AgentSelection({ agents, agentTypes }: AgentSelectionPro
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Left Column: Active Agents */}
+      <div className="flex flex-col gap-8">
+        {/* Active Agents */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between px-2">
             <h2 className="text-warning text-sm font-bold uppercase tracking-wider flex items-center gap-2">
@@ -54,17 +54,22 @@ export default function AgentSelection({ agents, agentTypes }: AgentSelectionPro
             </h2>
             <span className="text-xs text-muted">{agents.data?.length || 0} running</span>
           </div>
-          
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {agents.data && agents.data.length > 0 ? (
               agents.data.map(a => (
                 <div key={a.id} className="group flex items-center gap-2 bg-secondary border border-default p-1 rounded-lg hover:border-accent/50 transition-all">
+                  <div className={`ml-3 ${a.idle ? 'text-muted' : 'text-warning'}`}>
+                    {a.idle ? <Pause size={18} /> : <Loader2 size={18} className="animate-spin" />}
+                  </div>
                   <button 
                     onClick={() => selectAgent(a.id)} 
                     className="flex-1 flex flex-col p-3 text-left cursor-pointer min-w-0"
                   >
                     <span className="text-primary font-bold truncate">{a.name}</span>
-                    <span className="text-[10px] text-muted font-mono">{a.id}</span>
+                    {a.statusMessage && (
+                      <span className="text-xs text-muted line-clamp-1 mt-0.5">{a.statusMessage}</span>
+                    )}
+                    <span className="text-[10px] text-muted font-mono mt-1">{a.id}</span>
                   </button>
                   <button 
                     onClick={() => deleteAgent(a.id)} 
@@ -76,65 +81,70 @@ export default function AgentSelection({ agents, agentTypes }: AgentSelectionPro
                 </div>
               ))
             ) : (
-              <div className="p-8 text-center border border-dashed border-default rounded-lg text-muted text-sm italic">
+              <div className="col-span-full p-8 text-center border border-dashed border-default rounded-lg text-muted text-sm italic">
                 No agents currently active.
               </div>
             )}
           </div>
         </div>
 
-        {/* Right Column: Workflows & Creation */}
-        <div className="flex flex-col gap-8">
-          {/* Workflows */}
-          <div className="flex flex-col gap-4">
-            <div className="px-2">
-              <h2 className="text-info text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-                <Workflow size={16} /> Workflows
-              </h2>
-            </div>
-            <div className="flex flex-col gap-2">
-              {workflows.data && workflows.data.length > 0 ? (
-                workflows.data.map(workflow => (
-                  <button 
-                    key={workflow.key} 
-                    onClick={() => spawnWorkflow(workflow.key)} 
-                    className="flex items-start gap-3 bg-secondary border border-default p-4 rounded-lg text-left hover:bg-hover hover:border-info/50 transition-all cursor-pointer"
-                  >
-                    <div className="mt-1 bg-info/10 p-2 rounded text-info">
-                      <Play size={16} fill="currentColor" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-primary font-bold text-sm">{workflow.name}</div>
-                      <div className="text-xs text-muted line-clamp-2 mt-1">{workflow.description}</div>
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <div className="p-4 text-center border border-dashed border-default rounded-lg text-muted text-sm">
-                  No workflows available.
-                </div>
-              )}
-            </div>
+        {/* Workflows */}
+        <div className="flex flex-col gap-4">
+          <div className="px-2">
+            <h2 className="text-info text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+              <Play size={16} /> Workflows
+            </h2>
           </div>
-
-          {/* New Agent Types */}
-          <div className="flex flex-col gap-4">
-            <div className="px-2">
-              <h2 className="text-accent text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-                <Plus size={16} /> New Instance
-              </h2>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {agentTypes.data?.map(t => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {workflows.data && workflows.data.length > 0 ? (
+              workflows.data.map(workflow => (
                 <button 
-                  key={t.type} 
-                  onClick={() => createAgent(t.type)} 
-                  className="bg-tertiary border border-default p-3 rounded-lg text-sm font-medium hover:bg-hover hover:border-accent/50 transition-all cursor-pointer text-center truncate"
+                  key={workflow.key} 
+                  onClick={() => spawnWorkflow(workflow.key)} 
+                  className="flex items-center gap-3 bg-secondary border border-default p-4 rounded-lg text-left hover:bg-hover hover:border-info/50 transition-all cursor-pointer"
                 >
-                  {t.name}
+                  <div className="bg-info/10 p-2 rounded text-info">
+                    <Play size={20} fill="currentColor" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-primary font-bold text-sm">{workflow.name}</div>
+                    <div className="text-xs text-muted line-clamp-2 mt-1">{workflow.description}</div>
+                  </div>
                 </button>
-              ))}
-            </div>
+              ))
+            ) : (
+              <div className="col-span-full p-4 text-center border border-dashed border-default rounded-lg text-muted text-sm">
+                No workflows available.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* New Agent Types */}
+        <div className="flex flex-col gap-4">
+          <div className="px-2">
+            <h2 className="text-accent text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+              <User size={16} /> New Agent
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {agentTypes.data?.map(t => (
+              <button 
+                key={t.type} 
+                onClick={() => createAgent(t.type)} 
+                className="flex items-center gap-3 bg-tertiary border border-default p-4 rounded-lg text-left hover:bg-hover hover:border-accent/50 transition-all cursor-pointer"
+              >
+                <div className="bg-accent/10 p-2 rounded text-accent">
+                  <User size={20} fill="currentColor" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-primary font-bold text-sm">{t.name}</div>
+                  {t.description && (
+                    <div className="text-xs text-muted line-clamp-2 mt-1">{t.description}</div>
+                  )}
+                </div>
+              </button>
+            ))}
           </div>
         </div>
       </div>

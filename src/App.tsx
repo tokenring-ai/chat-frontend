@@ -17,18 +17,10 @@ export default function App() {
     return <div className="flex items-center justify-center h-screen text-lg">Loading agents...</div>;
   }
 
-  const isMobile = () => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth < 768;
-    }
-    return false;
-  };
-
   return (
     <div className="flex flex-col h-screen">
       <TopBar
         agents={agents}
-        agentTypes={agentTypes}
         currentAgentId={location.pathname.startsWith('/agent/') ? location.pathname.split('/')[2] : null}
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
         isSidebarOpen={sidebarOpen}

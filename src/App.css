@@ -19,6 +19,8 @@
     --text-warning: #dcdcaa;
     --button-primary: #0e639c;
     --button-primary-hover: #1177bb;
+    --error: #f48771;
+    --success: #89d185;
   }
 
   .light {
@@ -39,6 +41,8 @@
     --text-warning: #795e26;
     --button-primary: #007acc;
     --button-primary-hover: #005a9e;
+    --error: #a31515;
+    --success: #098658;
   }
 
   body {
@@ -70,6 +74,7 @@
 .bg-active { background-color: var(--bg-active); }
 .bg-sidebar { background-color: var(--bg-sidebar); }
 .bg-input { background-color: var(--bg-input); }
+.bg-accent { background-color: var(--text-accent); }
 .border-default { border-color: var(--border); }
 .border-focus { border-color: var(--border-focus); }
 .text-primary { color: var(--text-primary); }
@@ -79,8 +84,10 @@
 .text-info { color: var(--text-info); }
 .text-warning { color: var(--text-warning); }
 .text-input { color: #4fc1ff; }
-.text-error { color: #f48771; }
+.text-error { color: var(--error); }
+.text-success { color: var(--success); }
 .text-code { color: #569cd6; }
+.bg-error { background-color: var(--error); }
 .btn-primary { background-color: var(--button-primary); }
 .btn-primary:hover { background-color: var(--button-primary-hover); }
 .btn-danger { background-color: #d16969; }
