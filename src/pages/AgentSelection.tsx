@@ -1,4 +1,4 @@
-import { Trash2, Play, Plus, Cpu, User, Loader2, Pause } from 'lucide-react';
+import { Trash2, Play, Cpu, User, Loader2, Pause } from 'lucide-react';
 import {useNavigate} from "react-router-dom";
 import {agentRPCClient, useAgentList, useAgentTypes, useWorkflows, workflowRPCClient} from "../rpc.ts";
 

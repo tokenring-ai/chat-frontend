@@ -1,4 +1,4 @@
-import {Check, Download, Eye, EyeOff, File, Folder, Plus, Upload, X, ArrowLeft } from 'lucide-react';
+import {Download, Eye, EyeOff, File, Folder, Plus, Upload, X, ArrowLeft } from 'lucide-react';
 import React, {useRef, useState} from 'react';
 import MarkdownEditor from "../../components/editor/MarkdownEditor.tsx";
 import {filesystemRPCClient, useDirectoryListing, useFileContents, useSelectedFiles} from '../../rpc.ts';
