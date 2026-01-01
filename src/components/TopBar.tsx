@@ -1,9 +1,8 @@
-import { Plus, Moon, Sun, Settings, Trash2, Menu, X } from 'lucide-react';
+import { Moon, Sun, Settings, Trash2, Menu, X } from 'lucide-react';
 import {useNavigate} from "react-router-dom";
 import { useTheme } from '../hooks/useTheme.ts';
-import {agentRPCClient, useAgentList, useAgentTypes} from "../rpc.ts";
+import {agentRPCClient, useAgentList} from "../rpc.ts";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './ui/select.tsx';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './ui/dropdown-menu.tsx';
 
 interface TopBarProps {
   agents: ReturnType<typeof useAgentList>;
@@ -33,7 +32,7 @@ export default function TopBar({ agents, currentAgentId, onMenuClick, isSidebarO
   };
 
   return (
-    <div className="topbar-container bg-secondary border-b border-default px-2 py-2 flex items-center justify-between gap-1 sm:gap-4 relative z-10 h-14 sm:h-12">
+    <div className="topbar-container bg-secondary border-b border-default px-2 py-2 flex items-center justify-between gap-1 sm:gap-4 relative z-[60] h-14 sm:h-12 w-full">
       {/* Left section: Menu + Logo */}
       <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
         {onMenuClick && (
@@ -47,10 +46,11 @@ export default function TopBar({ agents, currentAgentId, onMenuClick, isSidebarO
         )}
         
         <h1 
-          className="text-accent text-sm sm:text-lg font-bold cursor-pointer flex-shrink-0 truncate max-w-[80px] xs:max-w-[120px] sm:max-w-none" 
+          className="text-accent text-sm sm:text-lg font-bold cursor-pointer flex-shrink-0 truncate max-w-[80px] xs:max-w-[120px] sm:max-w-none"
           onClick={() => navigate("/")}
         >
-          TokenRing
+          <span className="hidden md:inline">TokenRing</span>
+          <span className="inline md:hidden">TR</span>
         </h1>
       </div>
       

@@ -42,27 +42,49 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
   const navigate = useNavigate();
   const location = useLocation();
   const [input, setInput] = useState('');
-  const [{
+  const [chatState, setChatState] = useState<ChatState>({ 
+    idle: false, 
+    busyWith: "Connecting...", 
+    statusLine: null, 
+    waitingOn: null, 
+    position: 0, 
+    messages: []
+  });
+  
+  const {
     idle,
     busyWith,
     statusLine,
     waitingOn,
-    position,
     messages
-  }, setChatState] = useState<ChatState>({ idle: false, busyWith: "Connecting...", statusLine: null, waitingOn: null, position: 0, messages: []});
+  } = chatState;
+
   const [isAtBottom, setIsAtBottom] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Track previous state to detect actual changes
+  const prevMessagesLengthRef = useRef(0);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isScrollingRef = useRef(false);
 
   const currentPage = location.pathname.endsWith('/files') ? 'files' : 'agent';
   const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
 
+  // Track state in a ref to avoid closure staleness in the stream loop
+  const chatStateRef = useRef(chatState);
+  useEffect(() => {
+    chatStateRef.current = chatState;
+  }, [chatState]);
+
   useEffect(() => {
     const abortController = new AbortController();
+    
     (async () => {
-      let prevMessages: Message[] = messages;
-      let fromPosition = position
+      // Start from the current position if we have one
+      let fromPosition = chatStateRef.current.position;
+      let currentMessages = [...chatStateRef.current.messages];
 
       while (!abortController.signal.aborted) {
         try {
@@ -70,6 +92,9 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
             agentId: agentId,
             fromPosition,
           }, abortController.signal)) {
+            
+            let messagesChanged = false;
+            
             for (const event of eventsData.events) {
               switch (event.type) {
                 case 'output.chat':
@@ -77,48 +102,83 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
                 case 'output.info':
                 case 'output.warning':
                 case 'output.error':
-                  const last = prevMessages[prevMessages.length - 1];
+                  const last = currentMessages[currentMessages.length - 1];
                   if (last?.type === event.type) {
-                    last.message += event.message
+                    last.message += event.message;
                   } else {
-                    prevMessages.push({type: event.type, message: event.message});
+                    currentMessages.push({type: event.type, message: event.message});
                   }
+                  messagesChanged = true;
                   break;
                 case 'input.received':
-                  prevMessages.push({type: event.type, message: event.message});
+                  currentMessages.push({type: event.type, message: event.message});
+                  messagesChanged = true;
                   break;
               }
             }
 
             fromPosition = eventsData.position;
 
-            setChatState({
+            setChatState(prev => ({
+              ...prev,
               busyWith: eventsData.busyWith,
               idle: eventsData.idle,
               waitingOn: eventsData.waitingOn,
               statusLine: eventsData.statusLine,
               position: eventsData.position,
-              messages: eventsData.events.length > 0 ? [...prevMessages] : prevMessages
-            });
+              messages: messagesChanged ? [...currentMessages] : prev.messages
+            }));
           }
         } catch (e) {
-          console.log(e);
           if (!abortController.signal.aborted) {
             console.error("Stream error, retrying...", e);
             await new Promise(resolve => setTimeout(resolve, 1000));
+            // When retrying, refresh fromPosition from current ref state
+            fromPosition = chatStateRef.current.position;
+            currentMessages = [...chatStateRef.current.messages];
           }
         }
       }
     })();
 
-    return () => abortController.abort();
-  }, [agentId]);
+    return () => {
+      abortController.abort();
+    };
+  }, [agentId]); // Only restart when agentId changes
 
+  // Improved scrolling logic
   useEffect(() => {
-    if (isAtBottom) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesContainerRef.current;
+    const endRef = messagesEndRef.current;
+    
+    if (!container || !endRef || isScrollingRef.current) return;
+
+    const currentMessagesLength = messages.length;
+    const messagesAdded = currentMessagesLength > prevMessagesLengthRef.current;
+    
+    if (isAtBottom && messagesAdded) {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      
+      isScrollingRef.current = true;
+      
+      scrollTimeoutRef.current = setTimeout(() => {
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+        isScrollingRef.current = false;
+      }, 0);
     }
-  }, [messages[messages.length - 1]?.message, isAtBottom, waitingOn, busyWith, statusLine]);
+    
+    prevMessagesLengthRef.current = currentMessagesLength;
+    
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, [messages.length, isAtBottom]);
 
   // Auto-grow textarea
   useEffect(() => {
@@ -167,17 +227,17 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
 
   return (
     <div className="flex h-full relative overflow-hidden">
-      {/* Mobile sidebar overlay */}
+      {/* Mobile sidebar overlay - offset to keep TopBar clickable */}
       {isMobile && sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-30 transition-opacity duration-300"
+          className="fixed inset-0 top-14 bg-black/60 z-30 transition-opacity duration-300"
           onClick={() => onSidebarChange?.(false)}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - offset to keep TopBar visible */}
       <div className={`
-        ${isMobile ? 'fixed inset-y-0 left-0 shadow-2xl' : 'relative'} 
+        ${isMobile ? 'fixed inset-y-0 top-14 left-0 shadow-2xl' : 'relative'} 
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         transition-transform duration-300 ease-in-out z-40
         ${isMobile ? 'w-64' : 'w-16'}
@@ -197,7 +257,7 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
       <div className="flex flex-col flex-1 min-w-0 bg-primary">
         <Routes>
           <Route path="/" element={
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-full overflow-hidden">
               <div 
                 ref={messagesContainerRef} 
                 onScroll={handleScroll} 
@@ -270,7 +330,7 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
         </Routes>
 
         {waitingOn && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
             <div className="w-full max-w-2xl bg-secondary rounded-lg shadow-2xl border border-default overflow-hidden animate-in fade-in zoom-in duration-300">
               <HumanRequestRenderer
                 request={waitingOn.request}

@@ -17,15 +17,17 @@ export default function App() {
     return <div className="flex items-center justify-center h-screen text-lg">Loading agents...</div>;
   }
 
+  const currentAgentId = location.pathname.startsWith('/agent/') ? location.pathname.split('/')[2] : null;
+
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-[100dvh] w-screen overflow-hidden bg-primary">
       <TopBar
         agents={agents}
-        currentAgentId={location.pathname.startsWith('/agent/') ? location.pathname.split('/')[2] : null}
+        currentAgentId={currentAgentId}
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
         isSidebarOpen={sidebarOpen}
       />
-      <div className="flex-1 overflow-auto">
+      <main className="flex-1 min-h-0 relative overflow-hidden">
         <Routes>
           <Route path="/agent/:agentId/*" Component={() => <ChatPage agentId={useParams().agentId!} sidebarOpen={sidebarOpen} onSidebarChange={setSidebarOpen} />} />
           <Route path="/" element={
@@ -35,7 +37,7 @@ export default function App() {
             />
           } />
         </Routes>
-      </div>
+      </main>
     </div>
   );
 }
