@@ -32,7 +32,7 @@ export default function TopBar({ agents, currentAgentId, onMenuClick, isSidebarO
   };
 
   return (
-    <div className="topbar-container bg-secondary border-b border-default px-2 py-2 flex items-center justify-between gap-1 sm:gap-4 relative z-[60] h-14 sm:h-12 w-full">
+    <div className="topbar-container bg-secondary border-b border-default px-2 py-2 flex items-center justify-between gap-1 sm:gap-4 relative z-[60] flex-shrink-0 w-full">
       {/* Left section: Menu + Logo */}
       <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
         {onMenuClick && (

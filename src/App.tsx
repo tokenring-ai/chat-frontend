@@ -20,7 +20,7 @@ export default function App() {
   const currentAgentId = location.pathname.startsWith('/agent/') ? location.pathname.split('/')[2] : null;
 
   return (
-    <div className="flex flex-col h-[100dvh] w-screen overflow-hidden bg-primary">
+    <div className="flex flex-col h-full w-full overflow-hidden bg-primary">
       <TopBar
         agents={agents}
         currentAgentId={currentAgentId}
