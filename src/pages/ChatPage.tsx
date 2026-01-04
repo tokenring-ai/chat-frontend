@@ -329,16 +329,11 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
           <Route path="/files" element={<FileBrowser agentId={agentId} onClose={() => navigate(`/agent/${agentId}`)} />} />
         </Routes>
 
-        {waitingOn && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
-            <div className="w-full max-w-2xl bg-secondary rounded-lg shadow-2xl border border-default overflow-hidden animate-in fade-in zoom-in duration-300">
-              <HumanRequestRenderer
+        {waitingOn && <HumanRequestRenderer
                 request={waitingOn.request}
                 onResponse={handleHumanResponse}
               />
-            </div>
-          </div>
-        )}
+        }
       </div>
     </div>
   );
