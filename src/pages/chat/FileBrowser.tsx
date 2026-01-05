@@ -61,8 +61,8 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
     e.stopPropagation();
     const cleanFile = file.endsWith('/') ? file.slice(0, -1) : file;
     try {
-      const result = await filesystemRPCClient.readFile({ path: cleanFile, agentId });
-      const blob = new Blob([result.content], { type: 'text/plain' });
+      const result = await filesystemRPCClient.readTextFile({ path: cleanFile, agentId });
+      const blob = new Blob([result.content ?? ""], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -242,14 +242,14 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
               selectedFile.endsWith('.md') ? (
                 <MarkdownEditor 
                   file={selectedFile} 
-                  content={fileContent.data.content} 
+                  content={fileContent.data.content ?? ""}
                   onSave={() => fileContent.mutate()} 
                   agentId={agentId}
                 />
               ) : (
                 <CodeEditor 
                   file={selectedFile} 
-                  content={fileContent.data.content} 
+                  content={fileContent.data.content ?? ""}
                   onSave={() => fileContent.mutate()} 
                   agentId={agentId}
                 />

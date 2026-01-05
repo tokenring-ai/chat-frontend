@@ -5,13 +5,17 @@ import { HumanInterfaceResponse } from '@tokenring-ai/agent/HumanInterfaceReques
 import HumanRequestRenderer from '../components/HumanRequest/HumanRequestRenderer.tsx';
 import FileBrowser from './chat/FileBrowser.tsx';
 import Sidebar from '../components/Sidebar.tsx';
+import ArtifactViewer from '../components/ArtifactViewer.tsx';
 import { agentRPCClient } from "../rpc.ts";
 import { Send, Square } from 'lucide-react';
 import z from 'zod';
 
 type Message = {
-  type: 'output.chat' | 'output.reasoning' | 'output.info' | 'output.warning' | 'output.error' | 'input.received';
-  message: string;
+  type: 'output.chat' | 'output.reasoning' | 'output.info' | 'output.warning' | 'output.error' | 'input.received' | 'output.artifact';
+  message?: string;
+  name?: string;
+  mimeType?: string;
+  body?: string;
 };
 
 interface ChatInterfaceProps {
@@ -112,6 +116,15 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
                   break;
                 case 'input.received':
                   currentMessages.push({type: event.type, message: event.message});
+                  messagesChanged = true;
+                  break;
+                case 'output.artifact':
+                  currentMessages.push({
+                    type: event.type,
+                    name: event.name,
+                    mimeType: event.mimeType,
+                    body: event.body
+                  });
                   messagesChanged = true;
                   break;
               }
@@ -263,12 +276,17 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
                 onScroll={handleScroll} 
                 className="flex-1 overflow-y-auto p-4 sm:p-6 leading-relaxed flex flex-col gap-2"
               >
-                {messages.map((msg, i) =>
-                  <div key={i} className={`whitespace-pre-wrap break-words ${colorClasses[msg.type]}`}>
-                    {msg.type === 'input.received' && <span className="text-input mr-1">&gt; </span>}
-                    {msg.message}
-                  </div>
-                )}
+                {messages.map((msg, i) => {
+                  if (msg.type === 'output.artifact') {
+                    return <ArtifactViewer key={i} name={msg.name!} mimeType={msg.mimeType!} body={msg.body!} />;
+                  }
+                  return (
+                    <div key={i} className={`whitespace-pre-wrap break-words ${colorClasses[msg.type]}`}>
+                      {msg.type === 'input.received' && <span className="text-input mr-1">&gt; </span>}
+                      {msg.message}
+                    </div>
+                  );
+                })}
                 {busyWith && <div className="animate-pulse-slow text-warning mt-2 italic">{busyWith}</div>}
                 <div ref={messagesEndRef} className="h-4" />
               </div>

@@ -32,7 +32,7 @@ export function useDirectoryListing(opts?: { path: string, showHidden?: boolean,
 }
 
 export function useFileContents(path: string | null, agentId: string | null) {
-  return useSWR(`/filesystem/getFileContents/${path}`, () => path && agentId? filesystemRPCClient.readFile({ path, agentId }) : null);
+  return useSWR(`/filesystem/getFileContents/${path}`, () => path && agentId? filesystemRPCClient.readTextFile({ path, agentId }) : null);
 }
 
 export function useSelectedFiles(agentId: string | null) {
