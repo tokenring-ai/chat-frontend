@@ -1,7 +1,9 @@
 import {HumanRequestSchema} from "@tokenring-ai/agent/AgentEvents";
 import React, { useEffect, useRef, useState } from 'react';
+import ReactMarkdown from "react-markdown";
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { HumanInterfaceResponse } from '@tokenring-ai/agent/HumanInterfaceRequest';
+import remarkGfm from "remark-gfm";
 import HumanRequestRenderer from '../components/HumanRequest/HumanRequestRenderer.tsx';
 import FileBrowser from './chat/FileBrowser.tsx';
 import Sidebar from '../components/Sidebar.tsx';
@@ -34,12 +36,11 @@ type ChatState = {
 }
 
 const colorClasses = {
-  'output.chat': 'text-accent',
-  'output.reasoning': 'text-warning',
+  'output.chat': 'text-chat',
   'input.received': 'text-input',
   'output.warning': 'text-warning',
   'output.error': 'text-error',
-  'output.info': 'text-code'
+  'output.info': 'text-info'
 }
 
 export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange }: ChatInterfaceProps) {
@@ -279,6 +280,18 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
                 {messages.map((msg, i) => {
                   if (msg.type === 'output.artifact') {
                     return <ArtifactViewer key={i} name={msg.name!} mimeType={msg.mimeType!} body={msg.body!} />;
+                  }
+                  if (msg.type === 'output.reasoning') {
+                    return <ArtifactViewer key={i} name="Thinking Trace" mimeType="text/markdown" body={ msg.message! } />;
+                  }
+                  if (msg.type === 'output.chat') {
+                    return (
+                      <div className="prose prose-sm max-w-none dark:prose-invert">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {msg.message}
+                        </ReactMarkdown>
+                      </div>
+                    );
                   }
                   return (
                     <div key={i} className={`whitespace-pre-wrap break-words ${colorClasses[msg.type]}`}>

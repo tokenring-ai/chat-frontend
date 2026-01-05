@@ -5,48 +5,55 @@
 
 @layer base {
   :root {
-    --bg-primary: #1e1e1e;
-    --bg-secondary: #252526;
-    --bg-tertiary: #2d2d30;
-    --bg-hover: #2a2d2e;
-    --bg-active: #5d5d5d;
-    --bg-sidebar: #333333;
-    --bg-input: #3c3c3c;
-    --border: #3e3e42;
-    --border-focus: #007acc;
-    --text-primary: #d4d4d4;
-    --text-secondary: #cccccc;
-    --text-muted: #858585;
-    --text-accent: #4ec9b0;
-    --text-info: #9cdcfe;
-    --text-warning: #dcdcaa;
-    --button-primary: #0e639c;
-    --button-primary-hover: #1177bb;
-    --error: #f48771;
-    --success: #89d185;
+   --bg-primary: #ffffff;
+   --bg-secondary: #f3f3f3;
+   --bg-tertiary: #e8e8e8;
+   --bg-hover: #e0e0e0;
+   --bg-active: #ffffff;
+   --bg-sidebar: #f0f0f0;
+   --bg-input: #ffffff;
+   --border: #d4d4d4;
+   --border-focus: #007acc;
+   --text-primary: #1e1e1e;
+   --text-secondary: #333333;
+   --text-muted: #6e6e6e;
+   --text-chat: #000000;
+   --text-warning: #e6870b;
+   --text-error: #e60b0b;
+   --text-info: #0066cc;
+   --text-reasoning: #a373a3;
+   --text-code: #0037f9;
+   --text-input: #4c4c4c;
+   --button-primary: #007acc;
+   --button-primary-hover: #005a9e;
+   --error: #a31515;
+   --success: #098658;
   }
 
-  .light {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f3f3f3;
-    --bg-tertiary: #e8e8e8;
-    --bg-hover: #e0e0e0;
-    --bg-active: #ffffff;
-    --bg-sidebar: #f0f0f0;
-    --bg-input: #ffffff;
-    --border: #d4d4d4;
-    --border-focus: #007acc;
-    --text-primary: #1e1e1e;
-    --text-secondary: #333333;
-    --text-muted: #6e6e6e;
-    --text-accent: #0e8a74;
-    --text-info: #0066cc;
-    --text-warning: #795e26;
-    --button-primary: #007acc;
-    --button-primary-hover: #005a9e;
-    --error: #a31515;
-    --success: #098658;
+ html[data-color-mode=dark] {
+   --bg-primary: #1e1e1e;
+   --bg-secondary: #252526;
+   --bg-tertiary: #2d2d30;
+   --bg-hover: #2a2d2e;
+   --bg-active: #5d5d5d;
+   --bg-sidebar: #333333;
+   --bg-input: #3c3c3c;
+   --border: #3e3e42;
+   --border-focus: #007acc;
+   --text-primary: #d4d4d4;
+   --text-secondary: #cccccc;
+   --text-muted: #858585;
+   --text-accent: #4ec9b0;
+   --text-info: #9cdcfe;
+   --text-warning: #dcdcaa;
+   --text-code: #569cd6;
+   --text-input: #4fc1ff;
+   --button-primary: #0e639c;
+   --button-primary-hover: #1177bb;
+   --error: #f48771;
+   --success: #89d185;
   }
+
 
   html {
     position: fixed;
@@ -97,10 +104,10 @@
 .text-accent { color: var(--text-accent); }
 .text-info { color: var(--text-info); }
 .text-warning { color: var(--text-warning); }
-.text-input { color: #4fc1ff; }
+.text-input { color: var(--text-input); }
 .text-error { color: var(--error); }
 .text-success { color: var(--success); }
-.text-code { color: #569cd6; }
+.text-code { color: var(--text-code); }
 .bg-error { background-color: var(--error); }
 .btn-primary { background-color: var(--button-primary); }
 .btn-primary:hover { background-color: var(--button-primary-hover); }
@@ -111,7 +118,7 @@
  --font-mono: Monaco, monospace;
 }
 
-/* 
+/*
  * Custom Breakpoints
  * xs: 480px - Extra small screens
  * sm: 640px - Small screens (Tailwind default)
@@ -135,7 +142,7 @@
     -webkit-text-size-adjust: 100%;
     height: 100dvh;
   }
-  
+
   body {
     overflow: hidden;
     height: 100%;
@@ -143,17 +150,17 @@
     position: relative;
     overscroll-behavior: none;
   }
-  
+
   /* Touch-friendly interactive elements - specific classes only */
   .touch-target {
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   /* Responsive typography */
   .text-xs-mobile { font-size: 0.75rem; }
   .text-sm-mobile { font-size: 0.875rem; }
-  
+
   /* Responsive spacing */
   .p-2-mobile { padding: 0.5rem; }
   .p-3-mobile { padding: 0.75rem; }
