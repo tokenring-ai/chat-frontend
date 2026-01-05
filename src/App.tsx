@@ -1,5 +1,5 @@
 import { Routes, Route, useLocation, useParams } from 'react-router-dom';
-import './App.css';
+import './index.css';
 import {useAgentList, useAgentTypes} from "./rpc.ts";
 import AgentSelection from './pages/AgentSelection.tsx';
 import ChatPage from './pages/ChatPage.tsx';

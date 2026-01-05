@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where([data-color-mode=dark], [data-color-mode=dark] *));
 
 @layer base {
   :root {
