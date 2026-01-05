@@ -7,7 +7,10 @@ export function useTheme() {
   const [theme, setThemeState] = useState<'light' | 'dark'>(() => {
     // Only read from localStorage once during initialization
     const stored = typeof window !== 'undefined' ? localStorage.getItem('theme') : null;
-    if (stored === 'light' || stored === 'dark') return stored;
+    if (stored === 'light' || stored === 'dark') {
+      document.documentElement.setAttribute('data-color-mode', stored);
+      return stored;
+    }
     return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   });
 

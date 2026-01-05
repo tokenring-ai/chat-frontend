@@ -36,8 +36,8 @@ type ChatState = {
 }
 
 const colorClasses = {
-  'output.chat': 'text-chat',
-  'input.received': 'text-input',
+  'output.chat': 'text-primary',
+  'input.received': 'text-accent',
   'output.warning': 'text-warning',
   'output.error': 'text-error',
   'output.info': 'text-info'
@@ -275,7 +275,7 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
               <div 
                 ref={messagesContainerRef} 
                 onScroll={handleScroll} 
-                className="flex-1 overflow-y-auto p-4 sm:p-6 leading-relaxed flex flex-col gap-2"
+                className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 max-w-6xl mx-auto w-full"
               >
                 {messages.map((msg, i) => {
                   if (msg.type === 'output.artifact') {
@@ -286,33 +286,52 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
                   }
                   if (msg.type === 'output.chat') {
                     return (
-                      <div className="prose prose-sm max-w-none dark:prose-invert">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      <div key={i} className="bg-message rounded-xl p-4 shadow-sm">
+                        <div className="prose prose-sm max-w-none dark:prose-invert">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {msg.message}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+                    );
+                  }
+                  if (msg.type === 'input.received') {
+                    return (
+                      <div key={i} className="bg-message-user rounded-xl p-4 shadow-sm ml-auto max-w-[85%]">
+                        <div className={`whitespace-pre-wrap break-words ${colorClasses[msg.type]}`}>
                           {msg.message}
-                        </ReactMarkdown>
+                        </div>
                       </div>
                     );
                   }
                   return (
-                    <div key={i} className={`whitespace-pre-wrap break-words ${colorClasses[msg.type]}`}>
-                      {msg.type === 'input.received' && <span className="text-input mr-1">&gt; </span>}
+                    <div key={i} className={`whitespace-pre-wrap break-words px-4 py-2 rounded-lg ${colorClasses[msg.type]}`}>
                       {msg.message}
                     </div>
                   );
                 })}
-                {busyWith && <div className="animate-pulse-slow text-warning mt-2 italic">{busyWith}</div>}
+                {busyWith && (
+                  <div className="flex items-center gap-2 text-tertiary px-4 py-2">
+                    <div className="flex gap-1">
+                      <span className="w-2 h-2 bg-accent rounded-full animate-pulse" style={{animationDelay: '0ms'}}></span>
+                      <span className="w-2 h-2 bg-accent rounded-full animate-pulse" style={{animationDelay: '150ms'}}></span>
+                      <span className="w-2 h-2 bg-accent rounded-full animate-pulse" style={{animationDelay: '300ms'}}></span>
+                    </div>
+                    <span className="text-sm">{busyWith}</span>
+                  </div>
+                )}
                 <div ref={messagesEndRef} className="h-4" />
               </div>
               
               {statusLine && (
-                <div className="bg-secondary/50 border-t border-default px-4 py-1.5 text-xs text-muted truncate">
-                  <span className="text-success mr-1.5 inline-block w-2 h-2 rounded-full bg-green-500"></span> 
+                <div className="bg-secondary border-t border-primary px-6 py-2 text-xs text-tertiary flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-success"></span> 
                   {statusLine}
                 </div>
               )}
               
-              <div className="bg-primary border-t border-default p-3 sm:p-4">
-                <form onSubmit={handleSubmit} className="max-w-4xl mx-auto relative group">
+              <div className="bg-primary border-t border-primary p-4">
+                <form onSubmit={handleSubmit} className="max-w-4xl mx-auto relative">
                   <textarea
                     ref={inputRef}
                     value={input}
@@ -322,37 +341,37 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
                     disabled={!idle || !!waitingOn}
                     autoFocus
                     rows={1}
-                    className="w-full bg-secondary border border-default text-primary text-sm outline-none px-4 py-3.5 pr-14 focus:border-focus rounded-xl transition-all disabled:opacity-50 resize-none min-h-[52px] max-h-[200px] shadow-sm group-focus-within:shadow-md group-focus-within:border-focus/50"
+                    className="w-full bg-input border border-primary text-primary text-sm outline-none px-4 py-3 pr-12 focus:border-focus rounded-xl transition-all disabled:opacity-50 resize-none min-h-[48px] max-h-[200px] shadow-sm focus:shadow-md"
                   />
-                  <div className="absolute right-3 bottom-4 flex items-center justify-center">
+                  <div className="absolute right-2 bottom-2">
                     {idle ? (
                       <button 
                         type="submit" 
                         disabled={!input.trim() || !!waitingOn} 
-                        className={`p-1.5 rounded-lg transition-all duration-200 ${
+                        className={`p-2 rounded-lg transition-all ${
                           input.trim() 
-                            ? 'bg-accent text-[#1e1e1e] scale-100 opacity-100 shadow-sm hover:scale-105 active:scale-95' 
-                            : 'bg-transparent text-muted opacity-40 scale-90 grayscale'
+                            ? 'bg-accent text-inverse hover:bg-accent-hover shadow-sm' 
+                            : 'bg-tertiary text-muted opacity-50 cursor-not-allowed'
                         }`}
                         aria-label="Send message"
                       >
-                        <Send className="w-5 h-5" />
+                        <Send className="w-4 h-4" />
                       </button>
                     ) : (
                       <button 
                         type="button" 
                         onClick={handleCancel} 
-                        className="p-1.5 bg-error/20 text-error rounded-lg transition-all hover:bg-error/30 hover:scale-105 active:scale-95 border border-error/30"
+                        className="p-2 bg-error text-inverse rounded-lg transition-all hover:opacity-90 shadow-sm"
                         aria-label="Cancel"
                       >
-                        <Square className="w-5 h-5 fill-current" />
+                        <Square className="w-4 h-4 fill-current" />
                       </button>
                     )}
                   </div>
                 </form>
-                <div className="max-w-4xl mx-auto mt-2 px-1 flex justify-between items-center text-[10px] text-muted uppercase tracking-wider font-semibold opacity-50">
+                <div className="max-w-4xl mx-auto mt-2 px-1 flex justify-between items-center text-[10px] text-muted uppercase tracking-wider font-semibold">
                   <span>Shift + Enter for new line</span>
-                  {idle ? <span>Ready</span> : <span>Agent Thinking...</span>}
+                  {idle ? <span className="text-success">Ready</span> : <span className="text-warning">Thinking...</span>}
                 </div>
               </div>
             </div>

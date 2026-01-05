@@ -32,33 +32,60 @@ export default function TopBar({ agents, currentAgentId, onMenuClick, isSidebarO
   };
 
   return (
-    <div className="topbar-container bg-secondary border-b border-default px-2 py-2 flex items-center justify-between gap-1 sm:gap-4 relative z-[60] flex-shrink-0 w-full">
-      {/* Left section: Menu + Logo */}
-      <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
+    <div className="bg-secondary border-b border-primary px-4 py-3 relative z-[60] flex-shrink-0 w-full shadow-sm grid grid-cols-[auto_1fr_auto] items-center gap-x-4 gap-y-3 min-[500px]:flex-row">
+      {/* Logo Section */}
+      <div className="flex items-center gap-3 flex-shrink-0 col-start-1">
         {onMenuClick && (
           <button
             onClick={onMenuClick}
-            className="md:hidden p-2 hover:bg-hover rounded-md cursor-pointer text-primary flex items-center justify-center min-w-[40px] min-h-[40px]"
+            className="md:hidden p-2 hover:bg-hover rounded-lg cursor-pointer text-primary flex items-center justify-center transition-colors"
             aria-label={isSidebarOpen ? 'Close menu' : 'Open menu'}
           >
             {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         )}
-        
-        <h1 
-          className="text-accent text-sm sm:text-lg font-bold cursor-pointer flex-shrink-0 truncate max-w-[80px] xs:max-w-[120px] sm:max-w-none"
+
+        <h1
+          className="text-accent text-xl font-bold cursor-pointer flex-shrink-0 hover:opacity-80 transition-opacity"
           onClick={() => navigate("/")}
         >
-          <span className="hidden md:inline">TokenRing</span>
-          <span className="inline md:hidden">TR</span>
+          TokenRing
         </h1>
       </div>
-      
-      {/* Middle section: Agent selector - Always visible, flexible width */}
-      <div className="flex-1 flex justify-center min-w-0 px-1">
-        <div className="w-full max-w-[180px] xs:max-w-[240px] sm:max-w-md">
+
+      {/* Action Buttons - Placed after logo on mobile (row 1, col 3), but after selector on desktop */}
+      <div className="flex items-center gap-2 flex-shrink-0 col-start-3 min-[500px]:order-3">
+        {currentAgentId && (
+          <button
+            onClick={() => deleteAgent(currentAgentId)}
+            className="p-2 hover:bg-hover rounded-lg cursor-pointer text-error flex items-center justify-center transition-colors"
+            title="Delete agent"
+          >
+            <Trash2 size={18} />
+          </button>
+        )}
+
+        <button
+          onClick={toggleTheme}
+          className="p-2 hover:bg-hover rounded-lg cursor-pointer text-primary flex items-center justify-center transition-colors"
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+
+        <button
+          className="sm:flex p-2 hover:bg-hover rounded-lg cursor-pointer text-primary items-center justify-center transition-colors"
+          title="Settings"
+        >
+          <Settings size={18} />
+        </button>
+      </div>
+
+      {/* Agent selector - Full width on second row for mobile, middle column for desktop */}
+      <div className="col-span-3 min-[500px]:col-span-1 min-[500px]:flex-1 flex justify-center min-w-0 min-[500px]:px-2 min-[500px]:order-2">
+        <div className="w-full min-[500px]:max-w-xs">
           <Select value={currentAgentId || ''} onValueChange={selectAgent}>
-            <SelectTrigger className="h-9 w-full bg-tertiary border-default">
+            <SelectTrigger className="h-10 w-full bg-input border-primary shadow-sm hover:border-hover transition-colors">
               <SelectValue placeholder="Select Agent" className="truncate" />
             </SelectTrigger>
             <SelectContent>
@@ -72,37 +99,6 @@ export default function TopBar({ agents, currentAgentId, onMenuClick, isSidebarO
               )}
             </SelectContent>
           </Select>
-        </div>
-      </div>
-
-      {/* Right section: Actions */}
-      <div className="flex items-center gap-0.5 sm:gap-1.5 flex-shrink-0">
-        {/* Action icons - Grouped or hidden on mobile if too many */}
-        <div className="flex items-center">
-          {currentAgentId && (
-            <button
-              onClick={() => deleteAgent(currentAgentId)}
-              className="p-2 hover:bg-hover rounded-md cursor-pointer text-error flex items-center justify-center min-w-[36px]"
-              title="Delete agent"
-            >
-              <Trash2 size={18} />
-            </button>
-          )}
-          
-          <button
-            onClick={toggleTheme}
-            className="p-2 hover:bg-hover rounded-md cursor-pointer text-primary flex items-center justify-center min-w-[36px]"
-            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-
-          <button
-            className="hidden xs:flex p-2 hover:bg-hover rounded-md cursor-pointer text-primary items-center justify-center min-w-[36px]"
-            title="Settings"
-          >
-            <Settings size={18} />
-          </button>
         </div>
       </div>
     </div>

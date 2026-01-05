@@ -23,12 +23,12 @@ const NavItem = React.memo(({ page, icon: Icon, label, isActive, isMobile, onCli
     return (
       <button
         onClick={() => onClick(page)}
-        className={`w-[90%] h-12 flex items-center gap-4 px-4 rounded-lg transition-colors cursor-pointer ${
-          isActive ? 'bg-active text-accent' : 'hover:bg-hover text-secondary'
+        className={`w-[90%] h-12 flex items-center gap-4 px-4 rounded-xl transition-all cursor-pointer ${
+          isActive ? 'bg-accent text-inverse shadow-sm' : 'hover:bg-hover text-secondary'
         }`}
       >
-        <Icon size={24} />
-        <span className="text-base font-medium">{label}</span>
+        <Icon size={22} />
+        <span className="text-base font-semibold">{label}</span>
       </button>
     );
   }
@@ -36,13 +36,13 @@ const NavItem = React.memo(({ page, icon: Icon, label, isActive, isMobile, onCli
   return (
     <button
       onClick={() => onClick(page)}
-      className={`w-12 h-12 flex flex-col items-center justify-center rounded-md transition-colors cursor-pointer ${
-        isActive ? 'bg-active text-accent' : 'hover:bg-hover text-secondary'
+      className={`w-12 h-12 flex flex-col items-center justify-center rounded-xl transition-all cursor-pointer ${
+        isActive ? 'bg-accent text-inverse shadow-sm' : 'hover:bg-hover text-secondary'
       }`}
       title={label}
     >
       <Icon size={20} />
-      <span className="text-[10px] mt-1 uppercase font-bold tracking-wider">{label}</span>
+      <span className="text-[9px] mt-0.5 uppercase font-bold tracking-wider">{label}</span>
     </button>
   );
 });

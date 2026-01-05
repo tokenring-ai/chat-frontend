@@ -37,43 +37,43 @@ export default function AgentSelection({ agents, agentTypes }: AgentSelectionPro
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-6 sm:py-12 px-4 sm:px-6 h-full overflow-y-auto">
-      <div className="mb-10 text-center sm:text-left">
-        <h1 className="text-accent text-3xl sm:text-5xl font-extrabold mb-3 tracking-tight">TokenRing</h1>
-        <p className="text-muted text-base sm:text-lg max-w-2xl">
-          Multi-agent orchestration and development platform.
+    <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 h-full overflow-y-auto">
+      <div className="mb-12 text-center">
+        <h1 className="text-accent text-5xl font-extrabold mb-4 tracking-tight">TokenRing</h1>
+        <p className="text-secondary text-lg max-w-2xl mx-auto">
+          Multi-agent orchestration and development platform
         </p>
       </div>
 
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-10">
         {/* Active Agents */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between px-2">
             <h2 className="text-warning text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-              <Cpu size={16} /> Active Agents
+              <Cpu size={18} /> Active Agents
             </h2>
-            <span className="text-xs text-muted">{agents.data?.length || 0} running</span>
+            <span className="text-xs text-tertiary bg-tertiary px-3 py-1 rounded-full">{agents.data?.length || 0} running</span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {agents.data && agents.data.length > 0 ? (
               agents.data.map(a => (
-                <div key={a.id} className="group flex items-center gap-2 bg-secondary border border-default p-1 rounded-lg hover:border-accent/50 transition-all">
-                  <div className={`ml-3 ${a.idle ? 'text-muted' : 'text-warning'}`}>
-                    {a.idle ? <Pause size={18} /> : <Loader2 size={18} className="animate-spin" />}
+                <div key={a.id} className="group flex items-center gap-3 bg-secondary border border-primary p-4 rounded-xl hover:border-accent hover:shadow-md transition-all">
+                  <div className={`${a.idle ? 'text-tertiary' : 'text-warning'}`}>
+                    {a.idle ? <Pause size={20} /> : <Loader2 size={20} className="animate-spin" />}
                   </div>
                   <button 
                     onClick={() => selectAgent(a.id)} 
-                    className="flex-1 flex flex-col p-3 text-left cursor-pointer min-w-0"
+                    className="flex-1 flex flex-col text-left cursor-pointer min-w-0"
                   >
                     <span className="text-primary font-bold truncate">{a.name}</span>
                     {a.statusMessage && (
-                      <span className="text-xs text-muted line-clamp-1 mt-0.5">{a.statusMessage}</span>
+                      <span className="text-xs text-tertiary line-clamp-1 mt-1">{a.statusMessage}</span>
                     )}
                     <span className="text-[10px] text-muted font-mono mt-1">{a.id}</span>
                   </button>
                   <button 
                     onClick={() => deleteAgent(a.id)} 
-                    className="p-3 text-muted hover:text-error transition-colors mr-1"
+                    className="p-2 text-tertiary hover:text-error hover:bg-hover rounded-lg transition-colors"
                     title="Delete agent"
                   >
                     <Trash2 size={18} />
@@ -81,8 +81,8 @@ export default function AgentSelection({ agents, agentTypes }: AgentSelectionPro
                 </div>
               ))
             ) : (
-              <div className="col-span-full p-8 text-center border border-dashed border-default rounded-lg text-muted text-sm italic">
-                No agents currently active.
+              <div className="col-span-full p-10 text-center border-2 border-dashed border-secondary rounded-xl text-tertiary text-sm">
+                No agents currently active
               </div>
             )}
           </div>
@@ -92,7 +92,7 @@ export default function AgentSelection({ agents, agentTypes }: AgentSelectionPro
         <div className="flex flex-col gap-4">
           <div className="px-2">
             <h2 className="text-info text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-              <Play size={16} /> Workflows
+              <Play size={18} /> Workflows
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -101,20 +101,20 @@ export default function AgentSelection({ agents, agentTypes }: AgentSelectionPro
                 <button 
                   key={workflow.key} 
                   onClick={() => spawnWorkflow(workflow.key)} 
-                  className="flex items-center gap-3 bg-secondary border border-default p-4 rounded-lg text-left hover:bg-hover hover:border-info/50 transition-all cursor-pointer"
+                  className="flex items-center gap-4 bg-secondary border border-primary p-5 rounded-xl text-left hover:bg-hover hover:border-info hover:shadow-md transition-all cursor-pointer"
                 >
-                  <div className="bg-info/10 p-2 rounded text-info">
-                    <Play size={20} fill="currentColor" />
+                  <div className="bg-info/10 p-3 rounded-lg text-info">
+                    <Play size={22} fill="currentColor" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-primary font-bold text-sm">{workflow.name}</div>
-                    <div className="text-xs text-muted line-clamp-2 mt-1">{workflow.description}</div>
+                    <div className="text-primary font-bold">{workflow.name}</div>
+                    <div className="text-xs text-tertiary line-clamp-2 mt-1">{workflow.description}</div>
                   </div>
                 </button>
               ))
             ) : (
-              <div className="col-span-full p-4 text-center border border-dashed border-default rounded-lg text-muted text-sm">
-                No workflows available.
+              <div className="col-span-full p-6 text-center border border-dashed border-secondary rounded-xl text-tertiary text-sm">
+                No workflows available
               </div>
             )}
           </div>
@@ -124,7 +124,7 @@ export default function AgentSelection({ agents, agentTypes }: AgentSelectionPro
         <div className="flex flex-col gap-4">
           <div className="px-2">
             <h2 className="text-accent text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-              <User size={16} /> New Agent
+              <User size={18} /> New Agent
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -132,15 +132,15 @@ export default function AgentSelection({ agents, agentTypes }: AgentSelectionPro
               <button 
                 key={t.type} 
                 onClick={() => createAgent(t.type)} 
-                className="flex items-center gap-3 bg-tertiary border border-default p-4 rounded-lg text-left hover:bg-hover hover:border-accent/50 transition-all cursor-pointer"
+                className="flex items-center gap-4 bg-tertiary border border-primary p-5 rounded-xl text-left hover:bg-hover hover:border-accent hover:shadow-md transition-all cursor-pointer"
               >
-                <div className="bg-accent/10 p-2 rounded text-accent">
-                  <User size={20} fill="currentColor" />
+                <div className="bg-accent/10 p-3 rounded-lg text-accent">
+                  <User size={22} fill="currentColor" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-primary font-bold text-sm">{t.name}</div>
+                  <div className="text-primary font-bold">{t.name}</div>
                   {t.description && (
-                    <div className="text-xs text-muted line-clamp-2 mt-1">{t.description}</div>
+                    <div className="text-xs text-tertiary line-clamp-2 mt-1">{t.description}</div>
                   )}
                 </div>
               </button>

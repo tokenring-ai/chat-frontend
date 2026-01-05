@@ -31,24 +31,24 @@ export default function ArtifactViewer({ name, mimeType, body }: ArtifactViewerP
 
   const ArtifactComponent = artifactComponentMap[mimeType] ?? TextArtifact;
   return (
-    <div className="border border-border rounded bg-secondary my-2">
+    <div className="border border-primary rounded-xl bg-artifact my-2 shadow-sm">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center gap-2 p-3 hover:bg-hover transition-colors text-left cursor-pointer"
+        className="w-full flex items-center gap-3 p-4 hover:bg-hover transition-colors text-left cursor-pointer"
       >
-        {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-        <span className="font-medium">{name}</span>
-        <span className="text-muted text-sm ml-auto">{mimeType}</span>
+        {isExpanded ? <ChevronDown size={18} className="text-accent" /> : <ChevronRight size={18} className="text-accent" />}
+        <span className="font-semibold text-primary">{name}</span>
+        <span className="text-tertiary text-xs ml-auto">{mimeType}</span>
         <button
           onClick={handleDownload}
-          className="p-1 hover:bg-secondary rounded transition-colors text-muted hover:text-foreground"
+          className="p-2 hover:bg-tertiary rounded-lg transition-colors text-secondary hover:text-primary"
           title="Download artifact"
         >
           <Download size={16} />
         </button>
       </button>
       {isExpanded && (
-        <div className="border-t border-border p-3 overflow-x-auto">
+        <div className="border-t border-primary p-4 overflow-x-auto bg-code">
           <ArtifactComponent name={name } mimeType={mimeType} body={body} />
         </div>
       )}
