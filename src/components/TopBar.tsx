@@ -32,7 +32,7 @@ export default function TopBar({ agents, currentAgentId, onMenuClick, isSidebarO
   };
 
   return (
-    <div className="bg-secondary border-b border-primary px-4 py-3 relative z-[60] flex-shrink-0 w-full shadow-sm grid grid-cols-[auto_1fr_auto] items-center gap-x-4 gap-y-3 min-[500px]:flex-row">
+    <div className="bg-secondary border-b border-primary px-4 py-3 relative z-[60] flex-shrink-0 w-full shadow-sm grid grid-cols-[auto_1fr_auto] items-center gap-x-4 gap-y-3 md:flex-row">
       {/* Logo Section */}
       <div className="flex items-center gap-3 flex-shrink-0 col-start-1">
         {onMenuClick && (

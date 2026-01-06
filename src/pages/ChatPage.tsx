@@ -10,15 +10,10 @@ import Sidebar from '../components/Sidebar.tsx';
 import ArtifactViewer from '../components/ArtifactViewer.tsx';
 import { agentRPCClient } from "../rpc.ts";
 import { Send, Square } from 'lucide-react';
-import z from 'zod';
+import { useAgentEventState } from '../hooks/useAgentEventState.ts';
+import { useAgentExecutionState } from '../hooks/useAgentExecutionState.ts';
 
-type Message = {
-  type: 'output.chat' | 'output.reasoning' | 'output.info' | 'output.warning' | 'output.error' | 'input.received' | 'output.artifact';
-  message?: string;
-  name?: string;
-  mimeType?: string;
-  body?: string;
-};
+
 
 interface ChatInterfaceProps {
   agentId: string;
@@ -26,14 +21,7 @@ interface ChatInterfaceProps {
   onSidebarChange?: (open: boolean) => void;
 }
 
-type ChatState = {
-  busyWith: string | null;
-  statusLine: string | null;
-  idle: boolean;
-  waitingOn: z.infer<typeof HumanRequestSchema> | null;
-  position: number;
-  messages: Message[];
-}
+
 
 const colorClasses = {
   'output.chat': 'text-primary',
@@ -47,22 +35,11 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
   const navigate = useNavigate();
   const location = useLocation();
   const [input, setInput] = useState('');
-  const [chatState, setChatState] = useState<ChatState>({ 
-    idle: false, 
-    busyWith: "Connecting...", 
-    statusLine: null, 
-    waitingOn: null, 
-    position: 0, 
-    messages: []
-  });
   
-  const {
-    idle,
-    busyWith,
-    statusLine,
-    waitingOn,
-    messages
-  } = chatState;
+  const { messages } = useAgentEventState(agentId);
+  const { idle, busyWith, statusLine, waitingOn } = useAgentExecutionState(agentId);
+
+  console.log('Waiting on:', waitingOn);
 
   const [isAtBottom, setIsAtBottom] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -76,89 +53,6 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
 
   const currentPage = location.pathname.endsWith('/files') ? 'files' : 'agent';
   const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
-
-  // Track state in a ref to avoid closure staleness in the stream loop
-  const chatStateRef = useRef(chatState);
-  useEffect(() => {
-    chatStateRef.current = chatState;
-  }, [chatState]);
-
-  useEffect(() => {
-    const abortController = new AbortController();
-    
-    (async () => {
-      // Start from the current position if we have one
-      let fromPosition = chatStateRef.current.position;
-      let currentMessages = [...chatStateRef.current.messages];
-
-      while (!abortController.signal.aborted) {
-        try {
-          for await (const eventsData of agentRPCClient.streamAgentEvents({
-            agentId: agentId,
-            fromPosition,
-          }, abortController.signal)) {
-            
-            let messagesChanged = false;
-            
-            for (const event of eventsData.events) {
-              switch (event.type) {
-                case 'output.chat':
-                case 'output.reasoning':
-                case 'output.info':
-                case 'output.warning':
-                case 'output.error':
-                  const last = currentMessages[currentMessages.length - 1];
-                  if (last?.type === event.type) {
-                    last.message += event.message;
-                  } else {
-                    currentMessages.push({type: event.type, message: event.message});
-                  }
-                  messagesChanged = true;
-                  break;
-                case 'input.received':
-                  currentMessages.push({type: event.type, message: event.message});
-                  messagesChanged = true;
-                  break;
-                case 'output.artifact':
-                  currentMessages.push({
-                    type: event.type,
-                    name: event.name,
-                    mimeType: event.mimeType,
-                    body: event.body
-                  });
-                  messagesChanged = true;
-                  break;
-              }
-            }
-
-            fromPosition = eventsData.position;
-
-            setChatState(prev => ({
-              ...prev,
-              busyWith: eventsData.busyWith,
-              idle: eventsData.idle,
-              waitingOn: eventsData.waitingOn,
-              statusLine: eventsData.statusLine,
-              position: eventsData.position,
-              messages: messagesChanged ? [...currentMessages] : prev.messages
-            }));
-          }
-        } catch (e) {
-          if (!abortController.signal.aborted) {
-            console.error("Stream error, retrying...", e);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            // When retrying, refresh fromPosition from current ref state
-            fromPosition = chatStateRef.current.position;
-            currentMessages = [...chatStateRef.current.messages];
-          }
-        }
-      }
-    })();
-
-    return () => {
-      abortController.abort();
-    };
-  }, [agentId]); // Only restart when agentId changes
 
   // Improved scrolling logic
   useEffect(() => {
@@ -240,21 +134,12 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
   };
 
   return (
-    <div className="flex h-full relative overflow-hidden">
-      {/* Mobile sidebar overlay - offset to keep TopBar clickable */}
-      {isMobile && sidebarOpen && (
-        <div
-          className="fixed inset-0 top-14 bg-black/60 z-30 transition-opacity duration-300"
-          onClick={() => onSidebarChange?.(false)}
-        />
-      )}
-
+    <div className="flex h-full relative">
       {/* Sidebar - offset to keep TopBar visible */}
       <div className={`
         ${isMobile ? 'fixed inset-y-0 top-14 left-0 shadow-2xl' : 'relative'} 
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         transition-transform duration-300 ease-in-out z-40
-        ${isMobile ? 'w-64' : 'w-16'}
         bg-sidebar flex flex-col items-center py-2 gap-2 h-full
       `}>
         <Sidebar

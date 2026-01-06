@@ -19,7 +19,7 @@ interface NavItemProps {
 
 // Move NavItem outside to prevent remounting on each parent render
 const NavItem = React.memo(({ page, icon: Icon, label, isActive, isMobile, onClick }: NavItemProps) => {
-  if (isMobile) {
+  if (false && isMobile) {
     return (
       <button
         onClick={() => onClick(page)}
@@ -36,13 +36,15 @@ const NavItem = React.memo(({ page, icon: Icon, label, isActive, isMobile, onCli
   return (
     <button
       onClick={() => onClick(page)}
-      className={`w-12 h-12 flex flex-col items-center justify-center rounded-xl transition-all cursor-pointer ${
-        isActive ? 'bg-accent text-inverse shadow-sm' : 'hover:bg-hover text-secondary'
-      }`}
+      className={`flex flex-row p-2 gap-2 md:flex-col items-center justify-center rounded-xl transition-all cursor-pointer min-w
+       ${ isActive
+        ? 'sm:bg-accent sm:text-inverse sm:shadow-sm text-accent'
+        : 'hover:bg-hover text-secondary'}
+      `}
       title={label}
     >
       <Icon size={20} />
-      <span className="text-[9px] mt-0.5 uppercase font-bold tracking-wider">{label}</span>
+      <span className="text-xs mt-0.5 uppercase font-bold tracking-wider">{label}</span>
     </button>
   );
 });
@@ -53,7 +55,7 @@ function Sidebar({ currentPage, onPageChange, isMobile = false, isSidebarOpen = 
   }, [onPageChange]);
 
   return (
-    <div className={`flex flex-col items-center py-4 gap-2 w-full ${isMobile ? 'h-full bg-sidebar' : ''}`}>
+    <div className={`flex flex-col items-center p-4 gap-2 w-full ${isMobile ? 'h-full bg-sidebar' : ''}`}>
       <NavItem 
         page="agent" 
         icon={MessageSquare} 

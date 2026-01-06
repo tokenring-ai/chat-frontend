@@ -20,14 +20,14 @@ export default function App() {
   const currentAgentId = location.pathname.startsWith('/agent/') ? location.pathname.split('/')[2] : null;
 
   return (
-    <div className="flex flex-col h-full w-full overflow-hidden bg-primary">
+    <div className="flex flex-col h-full w-fullmbg-primary">
       <TopBar
         agents={agents}
         currentAgentId={currentAgentId}
         onMenuClick={() => setSidebarOpen(!sidebarOpen)}
         isSidebarOpen={sidebarOpen}
       />
-      <main className="flex-1 min-h-0 relative overflow-hidden">
+      <main className="flex-1 min-h-0 relative">
         <Routes>
           <Route path="/agent/:agentId/*" Component={() => <ChatPage agentId={useParams().agentId!} sidebarOpen={sidebarOpen} onSidebarChange={setSidebarOpen} />} />
           <Route path="/" element={
