@@ -1,18 +1,20 @@
+import {OutputArtifactSchema} from "@tokenring-ai/agent/AgentEvents";
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import {z} from "zod";
 
 interface MarkdownArtifactProps {
-  name: string;
-  mimeType: string;
-  body: string;
+  artifact: z.output<typeof OutputArtifactSchema>;
+  decodedBody: string | Buffer;
 }
 
-export default function MarkdownArtifact({ body }: MarkdownArtifactProps) {
+export default function MarkdownArtifact({ artifact, decodedBody }: MarkdownArtifactProps) {
+  const textBody = typeof decodedBody === "string" ? decodedBody : decodedBody.toString("utf-8");
   return (
-    <div className="prose prose-sm max-w-none dark:prose-invert">
+    <div className="prose prose-xs max-w-none dark:prose-invert">
       <ReactMarkdown remarkPlugins={[remarkGfm]}>
-        {body}
+        {textBody}
       </ReactMarkdown>
     </div>
   );

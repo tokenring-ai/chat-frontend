@@ -1,4 +1,3 @@
-import {HumanRequestSchema} from "@tokenring-ai/agent/AgentEvents";
 import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from "react-markdown";
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
@@ -21,14 +20,14 @@ interface ChatInterfaceProps {
   onSidebarChange?: (open: boolean) => void;
 }
 
-
-
 const colorClasses = {
   'output.chat': 'text-primary',
   'input.received': 'text-accent',
   'output.warning': 'text-warning',
   'output.error': 'text-error',
-  'output.info': 'text-info'
+  'output.info': 'text-info',
+  'agent.created': 'text-success',
+  'agent.stopped': 'text-tertiary',
 }
 
 export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange }: ChatInterfaceProps) {
@@ -39,12 +38,9 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
   const { messages } = useAgentEventState(agentId);
   const { idle, busyWith, statusLine, waitingOn } = useAgentExecutionState(agentId);
 
-  console.log('Waiting on:', waitingOn);
-
   const [isAtBottom, setIsAtBottom] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
   
   // Track previous state to detect actual changes
   const prevMessagesLengthRef = useRef(0);
@@ -87,14 +83,6 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
       }
     };
   }, [messages.length, isAtBottom]);
-
-  // Auto-grow textarea
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.style.height = 'auto';
-      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 200)}px`;
-    }
-  }, [input]);
 
   const handleScroll = () => {
     const container = messagesContainerRef.current;
@@ -163,37 +151,50 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
                 className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 max-w-6xl mx-auto w-full"
               >
                 {messages.map((msg, i) => {
-                  if (msg.type === 'output.artifact') {
-                    return <ArtifactViewer key={i} name={msg.name!} mimeType={msg.mimeType!} body={msg.body!} />;
-                  }
-                  if (msg.type === 'output.reasoning') {
-                    return <ArtifactViewer key={i} name="Thinking Trace" mimeType="text/markdown" body={ msg.message! } />;
-                  }
-                  if (msg.type === 'output.chat') {
-                    return (
-                      <div key={i} className="bg-message rounded-xl p-4 shadow-sm">
-                        <div className="prose prose-sm max-w-none dark:prose-invert">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  switch (msg.type) {
+                    case 'output.artifact':
+                      return <ArtifactViewer key={i} artifact={msg} />;
+
+                    case 'output.reasoning':
+                      return <ArtifactViewer key={i} artifact={{
+                        type: "output.artifact",
+                        name: "Thinking Trace",
+                        mimeType: "text/markdown",
+                        encoding: "text",
+                        body: msg.message,
+                        timestamp: msg.timestamp
+                      }}/>;
+
+                    case 'output.chat':
+                      return (
+                        <div key={i} className="bg-message rounded-xl p-4 shadow-sm">
+                          <div className="prose prose-xs max-w-none dark:prose-invert">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {msg.message}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                      );
+
+                    case 'input.received':
+                      return (
+                        <div key={i} className="bg-message-user rounded-xl p-4 shadow-sm ml-auto max-w-[85%]">
+                          <div className={`whitespace-pre-wrap wrap-break-word ${colorClasses[msg.type]}`}>
                             {msg.message}
-                          </ReactMarkdown>
+                          </div>
                         </div>
-                      </div>
-                    );
+                      );
+
+                    default:
+                      if (colorClasses.hasOwnProperty(msg.type)) {
+                        return (
+                          <div key={i}
+                               className={`whitespace-pre-wrap wrap-break-word px-4 py-2 rounded-lg ${colorClasses[msg.type as keyof typeof colorClasses]}`}>
+                            {(msg as any).message as any}
+                          </div>
+                        );
+                      }
                   }
-                  if (msg.type === 'input.received') {
-                    return (
-                      <div key={i} className="bg-message-user rounded-xl p-4 shadow-sm ml-auto max-w-[85%]">
-                        <div className={`whitespace-pre-wrap break-words ${colorClasses[msg.type]}`}>
-                          {msg.message}
-                        </div>
-                      </div>
-                    );
-                  }
-                  return (
-                    <div key={i} className={`whitespace-pre-wrap break-words px-4 py-2 rounded-lg ${colorClasses[msg.type]}`}>
-                      {msg.message}
-                    </div>
-                  );
                 })}
                 {busyWith && (
                   <div className="flex items-center gap-2 text-tertiary px-4 py-2">
@@ -202,7 +203,7 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
                       <span className="w-2 h-2 bg-accent rounded-full animate-pulse" style={{animationDelay: '150ms'}}></span>
                       <span className="w-2 h-2 bg-accent rounded-full animate-pulse" style={{animationDelay: '300ms'}}></span>
                     </div>
-                    <span className="text-sm">{busyWith}</span>
+                    <span className="text-xs">{busyWith}</span>
                   </div>
                 )}
                 <div ref={messagesEndRef} className="h-4" />
@@ -214,11 +215,10 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
                   {statusLine}
                 </div>
               )}
-              
+
               <div className="bg-primary border-t border-primary p-4">
-                <form onSubmit={handleSubmit} className="max-w-4xl mx-auto relative">
+                <form onSubmit={handleSubmit} className="max-w-4xl mx-auto flex border border-primary rounded-xl bg-input shadow-sm px-4 py-3">
                   <textarea
-                    ref={inputRef}
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
@@ -226,9 +226,9 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
                     disabled={!idle || !!waitingOn}
                     autoFocus
                     rows={1}
-                    className="w-full bg-input border border-primary text-primary text-sm outline-none px-4 py-3 pr-12 focus:border-focus rounded-xl transition-all disabled:opacity-50 resize-none min-h-[48px] max-h-[200px] shadow-sm focus:shadow-md"
+                    className="w-full text-primary text-xs transition-all disabled:opacity-50 resize-none field-sizing-content self-center outline-none focus:outline-none"
                   />
-                  <div className="absolute right-2 bottom-2">
+                  <div className="self-end">
                     {idle ? (
                       <button 
                         type="submit" 

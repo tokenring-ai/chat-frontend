@@ -9,6 +9,12 @@ interface FilesBrowserProps {
   onClose: () => void;
 }
 
+// Helper to extract just the filename from a path
+const getBasename = (filePath: string): string => {
+  const cleanPath = filePath.endsWith('/') ? filePath.slice(0, -1) : filePath;
+  return cleanPath.split('/').pop() || filePath;
+};
+
 export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
   const [path, setPath] = useState('.');
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -18,6 +24,22 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
   const directoryListing = useDirectoryListing({ path, showHidden: showHiddenFiles, agentId });
   const selectedFiles = useSelectedFiles(agentId);
   const fileContent = useFileContents(selectedFile, agentId);
+
+  // Check if we're in a subdirectory (can go up)
+  const canGoUp = path !== '.';
+
+  // Sort files: directories first, then files, all alphabetically
+  const sortedFiles = React.useMemo(() => {
+    if (!directoryListing.data?.files) return [];
+    const files = [...directoryListing.data.files];
+    return files.sort((a, b) => {
+      const isDirA = a.endsWith('/');
+      const isDirB = b.endsWith('/');
+      if (isDirA && !isDirB) return -1;
+      if (!isDirA && isDirB) return 1;
+      return a.localeCompare(b);
+    });
+  }, [directoryListing.data?.files]);
 
   const handleFileClick = async (file: string) => {
     const isDir = file.endsWith('/');
@@ -35,6 +57,17 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
     } catch (error) {
       console.error('Failed to read file:', error);
     }
+  };
+
+  const handleGoUp = async () => {
+    if (path === '.') return;
+    const parts = path.split('/').filter(Boolean);
+    if (parts.length === 1) {
+      setPath('.');
+    } else {
+      setPath(parts.slice(0, -1).join('/'));
+    }
+    setSelectedFile(null);
   };
 
   const handleAddFile = async (file: string, e: React.MouseEvent) => {
@@ -74,17 +107,6 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
     }
   };
 
-  const goUp = () => {
-    if (path === '.') return;
-    const parts = path.split('/').filter(Boolean);
-    if (parts.length === 1) {
-      setPath('.');
-    } else {
-      setPath(parts.slice(0, -1).join('/'));
-    }
-    setSelectedFile(null);
-  };
-
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -115,7 +137,7 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
           >
             <ArrowLeft size={20} />
           </button>
-          <h2 className="text-accent text-base sm:text-lg font-bold">Files</h2>
+          <h2 className="text-accent text-sm sm:text-base font-bold">Files</h2>
         </div>
         
         <div className="flex gap-1.5">
@@ -125,7 +147,7 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
             title={showHiddenFiles ? "Hide hidden files" : "Show hidden files"}
           >
             {showHiddenFiles ? <EyeOff size={18} /> : <Eye size={18} />}
-            <span className="hidden sm:inline text-xs font-medium">{showHiddenFiles ? 'Hide' : 'Show'} Hidden</span>
+            <span className="hidden sm:inline text-[10px] font-medium">{showHiddenFiles ? 'Hide' : 'Show'} Hidden</span>
           </button>
           <button 
             onClick={() => fileInputRef.current?.click()} 
@@ -133,7 +155,7 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
             title="Upload files"
           >
             <Upload size={18} />
-            <span className="hidden sm:inline text-xs font-medium">Upload</span>
+            <span className="hidden sm:inline text-[10px] font-medium">Upload</span>
           </button>
           <input
             ref={fileInputRef}
@@ -153,20 +175,27 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
           sm:w-1/3 sm:border-r h-full overflow-hidden
         `}>
           <div className="p-3 bg-tertiary/30 border-b border-default flex items-center justify-between">
-            <span className="text-info text-xs font-mono truncate">{path === '.' ? '/' : path}</span>
-            {path !== '.' && (
-              <button 
-                onClick={goUp} 
-                className="text-warning text-xs font-bold hover:underline"
-              >
-                GO UP
-              </button>
-            )}
+            <span className="text-info text-[10px] font-mono truncate">{path === '.' ? '/' : path}</span>
           </div>
           
           <div className="flex-1 overflow-y-auto">
-            {directoryListing.data?.files.map((file, i) => {
+            {canGoUp && (
+              <div
+                onClick={handleGoUp}
+                className="group px-3 py-2.5 cursor-pointer border-b border-default/50 flex items-center justify-between transition-colors hover:bg-hover text-warning"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <Folder size={18} />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[13px] truncate font-medium">..</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {sortedFiles.map((file, i) => {
               const isDir = file.endsWith('/');
+              const displayName = getBasename(file);
               const selectedCount = selectedFiles.data?.files.filter(p => p.startsWith(file)).length ?? 0;
               const isExactSelection = selectedFiles.data?.files.includes(file);
               
@@ -183,7 +212,7 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
                   <div className="flex items-center gap-3 min-w-0">
                     {isDir ? <Folder size={18} /> : <File size={18} />}
                     <div className="flex flex-col min-w-0">
-                      <span className="text-sm truncate font-medium">{file}</span>
+                      <span className="text-[13px] truncate font-medium">{displayName}</span>
                       {selectedCount > 0 && (
                         <span className="text-[10px] text-accent font-bold">
                           {isExactSelection ? 'SELECTED' : `${selectedCount} IN CHAT`}
@@ -230,7 +259,7 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
             <div className="sm:hidden p-2 bg-secondary border-b border-default flex items-center">
               <button 
                 onClick={() => setSelectedFile(null)}
-                className="flex items-center gap-1 text-xs font-bold text-info"
+                className="flex items-center gap-1 text-[10px] font-bold text-info"
               >
                 <ArrowLeft size={14} /> BACK TO LIST
               </button>
@@ -257,7 +286,7 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-muted p-6 text-center">
                 <File size={48} className="mb-4 opacity-20" />
-                <p className="text-sm">Select a file from the explorer to view or edit its contents.</p>
+                <p className="text-[13px]">Select a file from the explorer to view or edit its contents.</p>
               </div>
             )}
           </div>

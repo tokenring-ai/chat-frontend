@@ -1,18 +1,11 @@
+import {AgentEventEnvelope} from "@tokenring-ai/agent/AgentEvents";
 import { useState, useEffect, useRef } from 'react';
 import { agentRPCClient } from '../rpc.ts';
 
-type Message = {
-  type: 'output.chat' | 'output.reasoning' | 'output.info' | 'output.warning' | 'output.error' | 'input.received' | 'output.artifact';
-  message?: string;
-  name?: string;
-  mimeType?: string;
-  body?: string;
-};
-
 export function useAgentEventState(agentId: string) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<AgentEventEnvelope[]>([]);
   const [position, setPosition] = useState(0);
-  const stateRef = useRef({ messages: [] as Message[], position: 0 });
+  const stateRef = useRef({ messages: [] as AgentEventEnvelope[], position: 0 });
 
   useEffect(() => {
     stateRef.current = { messages, position };
@@ -24,6 +17,16 @@ export function useAgentEventState(agentId: string) {
     (async () => {
       let fromPosition = stateRef.current.position;
       let currentMessages = [...stateRef.current.messages];
+
+      function mergeMessage(msg: AgentEventEnvelope) {
+        const last = currentMessages[currentMessages.length - 1];
+        if ("message" in msg && last?.type === msg.type) {
+          last.message += msg.message;
+          last.timestamp = msg.timestamp;
+        } else {
+          currentMessages.push(msg);
+        }
+      }
 
       while (!abortController.signal.aborted) {
         try {
@@ -41,25 +44,30 @@ export function useAgentEventState(agentId: string) {
                 case 'output.info':
                 case 'output.warning':
                 case 'output.error':
-                  const last = currentMessages[currentMessages.length - 1];
-                  if (last?.type === event.type) {
-                    last.message += event.message;
-                  } else {
-                    currentMessages.push({type: event.type, message: event.message});
-                  }
+                  mergeMessage(event);
                   messagesChanged = true;
                   break;
                 case 'input.received':
-                  currentMessages.push({type: event.type, message: event.message});
+                case 'output.artifact':
+                case 'agent.created':
+                case 'agent.stopped':
+                  currentMessages.push(event)
                   messagesChanged = true;
                   break;
-                case 'output.artifact':
-                  currentMessages.push({
-                    type: event.type,
-                    name: event.name,
-                    mimeType: event.mimeType,
-                    body: event.body
-                  });
+                case 'input.handled':
+                  if (event.status === 'error') {
+                    mergeMessage({
+                      type: 'output.error',
+                      message: event.message + "\n",
+                      timestamp: event.timestamp
+                    });
+                  } else if (event.status === 'cancelled') {
+                    mergeMessage({
+                      type: 'output.info',
+                      message: event.message + "\n",
+                      timestamp: event.timestamp
+                    });
+                  }
                   messagesChanged = true;
                   break;
               }
