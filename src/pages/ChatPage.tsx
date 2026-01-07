@@ -166,9 +166,9 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
                       }}/>;
 
                     case 'output.chat':
-                      return (
+                      return msg.message.trim() && (
                         <div key={i} className="bg-message rounded-xl p-4 shadow-sm">
-                          <div className="prose prose-xs max-w-none dark:prose-invert">
+                          <div className="prose prose-sm max-w-none dark:prose-invert">
                             <ReactMarkdown remarkPlugins={[remarkGfm]}>
                               {msg.message}
                             </ReactMarkdown>
@@ -189,7 +189,7 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
                       if (colorClasses.hasOwnProperty(msg.type)) {
                         return (
                           <div key={i}
-                               className={`whitespace-pre-wrap wrap-break-word px-4 py-2 rounded-lg ${colorClasses[msg.type as keyof typeof colorClasses]}`}>
+                               className={`whitespace-pre-wrap wrap-break-word px-4 py-2 border rounded-lg mr-auto max-w-[85%] ${colorClasses[msg.type as keyof typeof colorClasses]}`}>
                             {(msg as any).message as any}
                           </div>
                         );
