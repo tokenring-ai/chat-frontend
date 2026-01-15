@@ -167,20 +167,30 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
 
                     case 'output.chat':
                       return msg.message.trim() && (
-                        <div key={i} className="bg-message rounded-xl p-4 shadow-sm">
-                          <div className="prose prose-sm max-w-none dark:prose-invert">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {msg.message}
-                            </ReactMarkdown>
+                        <div key={i}>
+                          <div className="bg-message rounded-xl p-4 shadow-sm">
+                            <div className="prose prose-sm max-w-none dark:prose-invert">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {msg.message}
+                              </ReactMarkdown>
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted mt-1 px-4">
+                            {msg.type} &middot; {new Date(msg.timestamp).toLocaleTimeString()}
                           </div>
                         </div>
                       );
 
                     case 'input.received':
                       return (
-                        <div key={i} className="bg-message-user rounded-xl p-4 shadow-sm ml-auto max-w-[85%]">
-                          <div className={`whitespace-pre-wrap wrap-break-word ${colorClasses[msg.type]}`}>
-                            {msg.message}
+                        <div key={i} className="ml-auto max-w-[85%]">
+                          <div className="bg-message-user rounded-xl p-4 shadow-sm">
+                            <div className={`whitespace-pre-wrap wrap-break-word ${colorClasses[msg.type]}`}>
+                              {msg.message}
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted mt-1 px-4 text-right">
+                            {msg.type} &middot; {new Date(msg.timestamp).toLocaleTimeString()}
                           </div>
                         </div>
                       );
@@ -188,9 +198,13 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
                     default:
                       if (colorClasses.hasOwnProperty(msg.type)) {
                         return (
-                          <div key={i}
-                               className={`whitespace-pre-wrap wrap-break-word px-4 py-2 border rounded-lg mr-auto max-w-[85%] ${colorClasses[msg.type as keyof typeof colorClasses]}`}>
-                            {(msg as any).message as any}
+                          <div key={i} className="mr-auto max-w-[85%]">
+                            <div className={`whitespace-pre-wrap wrap-break-word px-4 py-2 border rounded-lg ${colorClasses[msg.type as keyof typeof colorClasses]}`}>
+                              {(msg as any).message as any}
+                            </div>
+                            <div className="text-xs text-muted mt-1 px-4">
+                              {msg.type} &middot; {new Date(msg.timestamp).toLocaleTimeString()}
+                            </div>
                           </div>
                         );
                       }

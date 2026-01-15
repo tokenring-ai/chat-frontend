@@ -41,9 +41,6 @@ export function useAgentEventState(agentId: string) {
               switch (event.type) {
                 case 'output.chat':
                 case 'output.reasoning':
-                case 'output.info':
-                case 'output.warning':
-                case 'output.error':
                   mergeMessage(event);
                   messagesChanged = true;
                   break;
@@ -51,6 +48,9 @@ export function useAgentEventState(agentId: string) {
                 case 'output.artifact':
                 case 'agent.created':
                 case 'agent.stopped':
+                case 'output.info':
+                case 'output.warning':
+                case 'output.error':
                   currentMessages.push(event)
                   messagesChanged = true;
                   break;
