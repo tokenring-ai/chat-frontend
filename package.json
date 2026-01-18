@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "watch-build": "vite build --watch",
+    "watch-build": "vite build --watch --minify false",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
@@ -19,6 +19,7 @@
     "@radix-ui/react-select": "^2.2.6",
     "@uiw/react-md-editor": "^4.0.11",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.27.0",
     "lucide-react": "^0.562.0",
     "react": "catalog:",
     "react-dom": "catalog:",
