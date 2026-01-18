@@ -1,7 +1,6 @@
-import {OutputArtifactSchema} from "@tokenring-ai/agent/AgentEvents";
+import {type Artifact} from "@tokenring-ai/agent/AgentEvents";
 import {ChevronDown, ChevronRight, Download} from 'lucide-react';
 import React, {useMemo, useState} from 'react';
-import {z} from "zod";
 import DiffArtifact from "./artifact/DiffArtifact.tsx";
 import MarkdownArtifact from "./artifact/MarkdownArtifact.tsx";
 import TextArtifact from "./artifact/TextArtifact.tsx";
@@ -12,7 +11,7 @@ const artifactComponentMap: Record<string, any> = {
 }
 
 interface ArtifactViewerProps {
-  artifact: z.output<typeof OutputArtifactSchema>;
+  artifact: Artifact;
 }
 
 export default function ArtifactViewer({ artifact }: ArtifactViewerProps) {

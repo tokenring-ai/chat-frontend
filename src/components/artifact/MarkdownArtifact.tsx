@@ -1,11 +1,10 @@
-import {OutputArtifactSchema} from "@tokenring-ai/agent/AgentEvents";
+import {type Artifact} from "@tokenring-ai/agent/AgentEvents";
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import {z} from "zod";
 
 interface MarkdownArtifactProps {
-  artifact: z.output<typeof OutputArtifactSchema>;
+  artifact: Artifact;
   decodedBody: string | Buffer;
 }
 

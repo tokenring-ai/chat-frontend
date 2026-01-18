@@ -1,9 +1,9 @@
+import type {QuestionResponse} from "@tokenring-ai/agent/AgentEvents";
 import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from "react-markdown";
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { HumanInterfaceResponse } from '@tokenring-ai/agent/HumanInterfaceRequest';
 import remarkGfm from "remark-gfm";
-import HumanRequestRenderer from '../components/HumanRequest/HumanRequestRenderer.tsx';
+import ImmediateRequest from "../components/question/ImmediateRequest.tsx";
 import FileBrowser from './chat/FileBrowser.tsx';
 import Sidebar from '../components/Sidebar.tsx';
 import ArtifactViewer from '../components/ArtifactViewer.tsx';
@@ -111,12 +111,12 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
     await agentRPCClient.abortAgent({ agentId: agentId, reason: "User requested abort" });
   };
 
-  const handleHumanResponse = async (response: HumanInterfaceResponse) => {
+  const handleQuestionResponse = async (response: QuestionResponse) => {
     if (!waitingOn) return;
 
-    await agentRPCClient.sendHumanResponse({
+    await agentRPCClient.sendQuestionResponse({
       agentId: agentId,
-      requestId: waitingOn.id,
+      requestId: waitingOn.requestId,
       response
     });
   };
@@ -278,9 +278,9 @@ export default function ChatPage({ agentId, sidebarOpen = false, onSidebarChange
           <Route path="/files" element={<FileBrowser agentId={agentId} onClose={() => navigate(`/agent/${agentId}`)} />} />
         </Routes>
 
-        {waitingOn && <HumanRequestRenderer
-                request={waitingOn.request}
-                onResponse={handleHumanResponse}
+        {waitingOn && <ImmediateRequest
+                agentId={agentId}
+                request={waitingOn}
               />
         }
       </div>
