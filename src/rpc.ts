@@ -14,6 +14,14 @@ export const chatRPCClient = createJsonRPCClient(baseURL, ChatRpcSchema);
 export const filesystemRPCClient = createJsonRPCClient(baseURL, FileSystemRpcSchema);
 export const workflowRPCClient = createJsonRPCClient(baseURL, WorkflowRpcSchema);
 
+export function useAvailableCommands(agentId: string) {
+  return useSWR(`/agent/getAvailableCommands/${agentId}`, () => agentId ? agentRPCClient.getAvailableCommands({ agentId }) : null);
+}
+
+export function useCommandHistory(agentId: string) {
+  return useSWR(`/agent/getCommandHistory/${agentId}`, () => agentId ? agentRPCClient.getCommandHistory({ agentId }) : null);
+}
+
 export function useAgentList() {
   return useSWR("/agent/listAgents", () => agentRPCClient.listAgents({}), { refreshInterval: 1000 });
 }

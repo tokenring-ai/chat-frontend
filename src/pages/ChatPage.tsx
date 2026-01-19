@@ -10,9 +10,9 @@ import ModelSelector from '../components/ModelSelector.tsx';
 import { useAgentEventState } from '../hooks/useAgentEventState.ts';
 import { useAgentExecutionState } from '../hooks/useAgentExecutionState.ts';
 import { useSidebar } from '../components/SidebarContext.tsx';
-import { agentRPCClient, useAgent, useModel } from "../rpc.ts";
+import {agentRPCClient, useAgent, useAvailableCommands, useCommandHistory, useModel} from "../rpc.ts";
 
-const COMMANDS = ['/model', '/clear', '/agent', '/logs'];
+
 
 const getIcon = (msg: AgentEventEnvelope) => {
   switch (msg.type) {
@@ -87,7 +87,6 @@ const getContentColor = (msg: AgentEventEnvelope) => {
 };
 
 const MessageComponent = ({ msg }: { msg: AgentEventEnvelope }) => {
-
   const containerVariants = {
     hidden: { opacity: 0, x: -4 },
     visible: {
@@ -186,14 +185,18 @@ const MessageComponent = ({ msg }: { msg: AgentEventEnvelope }) => {
 export default function ChatPage({ agentId }: { agentId: string }) {
   const [input, setInput] = useState('');
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const { toggleMobileSidebar } = useSidebar();
   const agent = useAgent(agentId);
   const { messages } = useAgentEventState(agentId);
   const { idle, busyWith, statusLine, waitingOn } = useAgentExecutionState(agentId);
+  const commandHistory = useCommandHistory(agentId);
+  const availableCommands = useAvailableCommands(agentId);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true); // Track state without triggering re-renders
+
 
   // 1. Monitor user scroll intent
   const handleScroll = () => {
@@ -239,6 +242,7 @@ export default function ChatPage({ agentId }: { agentId: string }) {
     const message = input;
     setInput('');
     await agentRPCClient.sendInput({ agentId: agentId, message });
+    await commandHistory.mutate([...commandHistory.data!, message]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -335,14 +339,16 @@ export default function ChatPage({ agentId }: { agentId: string }) {
                 />
 
                 <AnimatePresence>
-                  {input.startsWith('/') && (
+                  {input.startsWith('/') && availableCommands.data && availableCommands.data.length > 0 && (
                     <motion.div
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 5 }}
                       className="absolute bottom-full left-0 right-0 mb-2 flex flex-wrap gap-2 p-3 bg-zinc-900/80 border border-zinc-800 rounded-md shadow-lg z-20"
                     >
-                      {COMMANDS.map((cmd) => (
+                      {availableCommands.data
+                        .filter(cmd => cmd.toLowerCase().startsWith(input.slice(1).toLowerCase()))
+                        .map((cmd) => (
                         <button
                           key={cmd}
                           onClick={() => setInput(cmd + ' ')}
@@ -369,9 +375,45 @@ export default function ChatPage({ agentId }: { agentId: string }) {
                   <button className="p-1.5 sm:p-1 text-zinc-400 hover:text-zinc-200 transition-colors bg-zinc-800 sm:bg-transparent rounded sm:rounded-none" title="Attach Context">
                     <Paperclip className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                   </button>
+                  <button 
+                    className="p-1 text-zinc-400 hover:text-zinc-200 transition-colors" 
+                    title="Command History"
+                    onClick={() => setShowHistory(!showHistory)}
+                  >
+                    <History className="w-4 h-4 sm:w-3.5 sm:h-3.5"/>
+                  </button>
                 </div>
               </div>
             </div>
+
+            <AnimatePresence>
+              {showHistory && commandHistory.data && commandHistory.data.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute bottom-full left-6 right-6 mb-2 p-3 bg-zinc-900/95 border border-zinc-800 rounded-md shadow-lg z-30 max-h-64 overflow-y-auto"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-zinc-400 font-mono uppercase">Command History</span>
+                    <button onClick={() => setShowHistory(false)} className="text-zinc-500 hover:text-zinc-300">
+                      ×
+                    </button>
+                  </div>
+                  <div className="space-y-1">
+                    {commandHistory.data.slice().reverse().map((cmd, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => { setInput(cmd); setShowHistory(false); }}
+                        className="w-full text-left text-xs font-mono bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded text-zinc-300 transition-colors"
+                      >
+                        {cmd}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="h-6 bg-zinc-900/30 flex items-center justify-between px-2 select-none">
