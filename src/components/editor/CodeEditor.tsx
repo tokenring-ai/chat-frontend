@@ -7,13 +7,17 @@ import {filesystemRPCClient} from '../../rpc.ts';
 interface FileViewerProps {
   file: string;
   content: string;
-  onSave: () => void;
-  agentId: string;
+  onContentChange?: (content: string) => void;
 }
 
-export default function CodeEditor({ file, content, onSave, agentId }: FileViewerProps) {
+export default function CodeEditor({ file, content, onContentChange }: FileViewerProps) {
   const [editorContent, setEditorContent] = useState(content);
-  const [saving, setSaving] = useState(false);
+
+  const handleContentChange = (value: string | undefined) => {
+    const newContent = value || '';
+    setEditorContent(newContent);
+    onContentChange?.(newContent);
+  };
 
   const getLanguage = (filename: string) => {
     const ext = filename.split('.').pop()?.toLowerCase();
@@ -28,44 +32,17 @@ export default function CodeEditor({ file, content, onSave, agentId }: FileViewe
     return langMap[ext || ''] || 'plaintext';
   };
 
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await filesystemRPCClient.writeFile({ path: file, content: editorContent, agentId });
-      onSave();
-    } catch (error) {
-      console.error('Failed to save file:', error);
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const [theme] = useTheme();
 
   return (
       <div className="flex flex-col h-full">
-        <div className="flex items-center justify-between p-4">
-          <h2 className="text-accent text-md font-bold">{file}</h2>
-          <div className="flex gap-2">
-            <button
-              onClick={handleSave}
-              disabled={saving || editorContent === content}
-              className={`border-none rounded-sm text-xs py-1.5 px-3 flex items-center gap-1 ${
-                editorContent === content
-                  ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                  : 'btn-primary text-white cursor-pointer hover:btn-primary'
-              }`}
-            >
-              <Save size={14}/> {saving ? 'Saving...' : 'Save'}
-            </button>
-          </div>
-        </div>
         <div className="flex-1 overflow-hidden">
           <Editor
             height="100%"
             language={getLanguage(file)}
             value={editorContent}
-            onChange={(value) => setEditorContent(value || '')}
+            onChange={handleContentChange}
             theme={ theme === "light" ? "vs-light" : "vs-dark"}
             options={{
               minimap: { enabled: true },

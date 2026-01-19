@@ -128,7 +128,7 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
   return (
     <div className="flex flex-col h-full overflow-hidden bg-primary">
       {/* Header */}
-      <div className="flex items-center justify-between bg-secondary border-b border-default h-14 px-3 sm:px-4 flex-shrink-0">
+      <div className="flex items-center justify-between bg-secondary border-b border-default h-14 px-3 sm:px-4 shrink-0">
         <div className="flex items-center gap-2">
           <button 
             onClick={onClose}
@@ -269,18 +269,15 @@ export default function FileBrowser({ agentId, onClose }: FilesBrowserProps) {
           <div className="flex-1 overflow-auto">
             {selectedFile && fileContent.data ? (
               selectedFile.endsWith('.md') ? (
-                <MarkdownEditor 
-                  file={selectedFile} 
+                <MarkdownEditor
                   content={fileContent.data.content ?? ""}
-                  onSave={() => fileContent.mutate()} 
-                  agentId={agentId}
+                  onContentChange={(newContent) => fileContent.mutate({ content: newContent })}
                 />
               ) : (
                 <CodeEditor 
                   file={selectedFile} 
                   content={fileContent.data.content ?? ""}
-                  onSave={() => fileContent.mutate()} 
-                  agentId={agentId}
+                  onContentChange={(newContent) => fileContent.mutate({ content: newContent })}
                 />
               )
             ) : (

@@ -1,7 +1,7 @@
 import type { AgentEventEnvelope } from "@tokenring-ai/agent/AgentEvents";
 import { AnimatePresence, motion } from 'framer-motion';
 import { Bot, ChevronDown, FileCode, History, Info, Paperclip, Send, Square, Zap } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import ArtifactViewer from '../components/ArtifactViewer.tsx';
@@ -10,7 +10,8 @@ import ModelSelector from '../components/ModelSelector.tsx';
 import { useAgentEventState } from '../hooks/useAgentEventState.ts';
 import { useAgentExecutionState } from '../hooks/useAgentExecutionState.ts';
 import { useSidebar } from '../components/SidebarContext.tsx';
-import {agentRPCClient, useAgent, useAvailableCommands, useCommandHistory, useModel} from "../rpc.ts";
+import { agentRPCClient, useAgent, useAvailableCommands, useCommandHistory } from "../rpc.ts";
+import FileBrowserOverlay from '../components/ui/FileBrowserOverlay.tsx';
 
 
 
@@ -112,32 +113,11 @@ const MessageComponent = ({ msg }: { msg: AgentEventEnvelope }) => {
         <div className={getContentColor(msg)}>
           {msg.type === 'output.artifact' ? (
             <ArtifactViewer artifact={msg} />
-          ) : msg.type === 'output.reasoning' && typeof msg.message === 'string' ? (
-            <div className="space-y-2">
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
-                p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
-                code: ({ node, inline, ...props }: any) =>
-                  inline
-                    ? <code className="bg-zinc-800 px-1 rounded text-zinc-200" {...props} />
-                    : <code className="block bg-zinc-900 p-2 rounded border border-zinc-800 text-zinc-300 my-2 overflow-x-auto" {...props} />
-              }}>
+          ) : msg.type === 'output.reasoning' ? (
+            <div className="prose prose-zinc-300 prose-invert prose-sm max-w-none">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {msg.message}
               </ReactMarkdown>
-            </div>
-          ) : msg.type === 'output.reasoning' && Array.isArray(msg.message) ? (
-            <div className="space-y-2">
-              {msg.message.map((item: any, idx: number) => (
-                <div key={idx}>
-                  {item.title && <div className="text-zinc-300 font-medium mb-1">{item.title}</div>}
-                  {item.items && (
-                    <ul className="list-disc list-outside ml-4 space-y-1 text-zinc-400">
-                      {item.items.map((subitem: string, subidx: number) => (
-                        <li key={subidx}>{subitem}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
             </div>
           ) : msg.type === 'question.response' ? (
             <div className="max-w-none text-sm">
@@ -160,14 +140,8 @@ const MessageComponent = ({ msg }: { msg: AgentEventEnvelope }) => {
               {' '}{msg.message}
             </div>
           ) : ('message' in msg) ? (
-            <div className="max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
-                p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
-                code: ({ node, inline, ...props }: any) =>
-                  inline
-                    ? <code className="bg-zinc-800 px-1 rounded text-zinc-200" {...props} />
-                    : <code className="block bg-zinc-900 p-2 rounded border border-zinc-800 text-zinc-300 my-2 overflow-x-auto" {...props} />
-              }}>
+            <div className="space-y-2 prose prose-zinc-300 prose-invert prose-sm max-w-none">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {msg.message}
               </ReactMarkdown>
             </div>
@@ -186,6 +160,7 @@ export default function ChatPage({ agentId }: { agentId: string }) {
   const [input, setInput] = useState('');
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showFileBrowser, setShowFileBrowser] = useState(false);
   const { toggleMobileSidebar } = useSidebar();
   const agent = useAgent(agentId);
   const { messages } = useAgentEventState(agentId);
@@ -196,6 +171,19 @@ export default function ChatPage({ agentId }: { agentId: string }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true); // Track state without triggering re-renders
+
+  const filteredAvailableCommands = useMemo(() => {
+    let ret: string[] = [];
+    if (input.startsWith('/') && availableCommands.data) {
+      ret = availableCommands.data.filter(cmd => cmd.toLowerCase().startsWith(input.slice(1).toLowerCase())).sort();
+      if (ret.length === 0) {
+        ret = ['help']
+      } if (ret.length < 4) {
+        ret.push(...ret.map(cmd => `help ${cmd}`));
+      }
+    }
+    return ret;
+  }, [availableCommands.data, input]);
 
 
   // 1. Monitor user scroll intent
@@ -251,6 +239,8 @@ export default function ChatPage({ agentId }: { agentId: string }) {
       handleSubmit();
     }
   };
+
+
 
   return (
     <div className="h-full flex flex-col">
@@ -339,22 +329,20 @@ export default function ChatPage({ agentId }: { agentId: string }) {
                 />
 
                 <AnimatePresence>
-                  {input.startsWith('/') && availableCommands.data && availableCommands.data.length > 0 && (
+                  {filteredAvailableCommands.length > 0 && (
                     <motion.div
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 5 }}
                       className="absolute bottom-full left-0 right-0 mb-2 flex flex-wrap gap-2 p-3 bg-zinc-900/80 border border-zinc-800 rounded-md shadow-lg z-20"
                     >
-                      {availableCommands.data
-                        .filter(cmd => cmd.toLowerCase().startsWith(input.slice(1).toLowerCase()))
-                        .map((cmd) => (
+                      {filteredAvailableCommands.map((cmd) => (
                         <button
                           key={cmd}
-                          onClick={() => setInput(cmd + ' ')}
+                          onClick={() => { setInput(`/${cmd} `) }}
                           className="text-[10px] font-mono bg-zinc-800 hover:bg-zinc-700 px-2 py-1 rounded text-indigo-400 transition-colors cursor-pointer"
                         >
-                          {cmd}
+                          /{cmd}
                         </button>
                       ))}
                     </motion.div>
@@ -372,15 +360,19 @@ export default function ChatPage({ agentId }: { agentId: string }) {
                       <Square className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     </button>
                   )}
-                  <button className="p-1.5 sm:p-1 text-zinc-400 hover:text-zinc-200 transition-colors bg-zinc-800 sm:bg-transparent rounded sm:rounded-none" title="Attach Context">
+                  <button
+                    className="p-1.5 sm:p-1 text-zinc-400 hover:text-zinc-200 transition-colors bg-zinc-800 sm:bg-transparent rounded sm:rounded-none"
+                    title="Attach Context"
+                    onClick={() => setShowFileBrowser(true)}
+                  >
                     <Paperclip className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                   </button>
-                  <button 
-                    className="p-1 text-zinc-400 hover:text-zinc-200 transition-colors" 
+                  <button
+                    className="p-1 text-zinc-400 hover:text-zinc-200 transition-colors"
                     title="Command History"
                     onClick={() => setShowHistory(!showHistory)}
                   >
-                    <History className="w-4 h-4 sm:w-3.5 sm:h-3.5"/>
+                    <History className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                   </button>
                 </div>
               </div>
@@ -428,6 +420,12 @@ export default function ChatPage({ agentId }: { agentId: string }) {
         </footer>
 
         {waitingOn && <ImmediateRequest agentId={agentId} request={waitingOn} />}
+
+        <FileBrowserOverlay
+          agentId={agentId}
+          isOpen={showFileBrowser}
+          onClose={() => setShowFileBrowser(false)}
+        />
       </div>
     </div>
   );
