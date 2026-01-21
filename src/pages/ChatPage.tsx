@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 import ArtifactViewer from '../components/ArtifactViewer.tsx';
 import ImmediateRequest from "../components/question/ImmediateRequest.tsx";
 import ModelSelector from '../components/ModelSelector.tsx';
+import ToolSelector from '../components/ToolSelector.tsx';
 import { useAgentEventState } from '../hooks/useAgentEventState.ts';
 import { useAgentExecutionState } from '../hooks/useAgentExecutionState.ts';
 import { useSidebar } from '../components/SidebarContext.tsx';
@@ -260,6 +261,7 @@ export default function ChatPage({ agentId }: { agentId: string }) {
 
         <div className="flex items-center gap-3">
           <ModelSelector agentId={agentId} />
+          <ToolSelector agentId={agentId} />
         </div>
       </header>
       <div className="flex flex-col flex-1 overflow-hidden">

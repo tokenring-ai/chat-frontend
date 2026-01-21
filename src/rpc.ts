@@ -62,3 +62,23 @@ export function useSelectedFiles(agentId: string | null) {
 export function useChatModelsByProvider() {
   return useSWR(`/ai-client/chatModelsByProvider`, () => aiRPCClient.listChatModelsByProvider({}), { refreshInterval: 5000 });
 }
+
+export function useAvailableTools(agentId: string) {
+  return useSWR(`/chat/getAvailableTools`, () => chatRPCClient.getAvailableTools({}), { refreshInterval: 5000 });
+}
+
+export function useEnabledTools(agentId: string) {
+  return useSWR(`/chat/getEnabledTools/${agentId}`, () => agentId ? chatRPCClient.getEnabledTools({ agentId }) : null, { refreshInterval: 5000 });
+}
+
+export function useEnableTool(agentId: string) {
+  return useSWR(`/chat/enableTools/${agentId}`, () => agentId ? chatRPCClient.enableTools({ agentId, tools: [] }) : null, { refreshInterval: 5000 });
+}
+
+export function useDisableTool(agentId: string) {
+  return useSWR(`/chat/disableTools/${agentId}`, () => agentId ? chatRPCClient.disableTools({ agentId, tools: [] }) : null, { refreshInterval: 5000 });
+}
+
+export function useSetEnabledTools(agentId: string) {
+  return useSWR(`/chat/setEnabledTools/${agentId}`, () => agentId ? chatRPCClient.setEnabledTools({ agentId, tools: [] }) : null, { refreshInterval: 5000 });
+}
