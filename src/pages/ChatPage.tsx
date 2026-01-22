@@ -106,7 +106,7 @@ const MessageComponent = ({ msg }: { msg: AgentEventEnvelope }) => {
       className={`group flex items-start gap-4 px-6 py-2 transition-colors border-l-2 ${msg.type === 'input.received' ? 'bg-purple-800/20 border-purple-500/50' : 'hover:bg-zinc-700/30 border-transparent hover:border-zinc-600'
         }`}
     >
-      <div className="h-lh items-center shrink-0 w-6 flex justify-center">
+      <div className="prose prose-sm h-lh items-center shrink-0 w-6 flex justify-center">
         {getIcon(msg)}
       </div>
 

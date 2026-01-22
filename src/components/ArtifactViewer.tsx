@@ -1,6 +1,6 @@
-import {type Artifact} from "@tokenring-ai/agent/AgentEvents";
-import {ChevronDown, ChevronRight, Download} from 'lucide-react';
-import React, {useMemo, useState} from 'react';
+import { type Artifact } from "@tokenring-ai/agent/AgentEvents";
+import { ChevronDown, ChevronRight, Download } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
 import DiffArtifact from "./artifact/DiffArtifact.tsx";
 import MarkdownArtifact from "./artifact/MarkdownArtifact.tsx";
 import TextArtifact from "./artifact/TextArtifact.tsx";
@@ -36,27 +36,30 @@ export default function ArtifactViewer({ artifact }: ArtifactViewerProps) {
 
   const ArtifactComponent = artifactComponentMap[artifact.mimeType] ?? TextArtifact;
   return (
-    <div className="border border-primary rounded-xl bg-artifact my-2 shadow-sm">
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center gap-3 p-4 hover:bg-hover transition-colors text-left cursor-pointer"
-      >
-        {isExpanded ? <ChevronDown size={18} className="text-accent" /> : <ChevronRight size={18} className="text-accent" />}
+    <div className="space-y-2 bg-artifact shadow-sm flex-col gap-2 prose-sm">
+      <div>Artifact</div>
+      <div className="border border-primary rounded-xl w-full hover:bg-hover">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center gap-3 p-2  transition-colors text-left cursor-pointer"
+        >
+          {isExpanded ? <ChevronDown size={18} className="text-accent" /> : <ChevronRight size={18} className="text-accent" />}
         <span className="font-semibold text-primary">{artifact.name}</span>
         <span className="text-tertiary text-xs ml-auto">{artifact.mimeType}</span>
         <button
           onClick={handleDownload}
-          className="p-2 hover:bg-tertiary rounded-lg transition-colors text-secondary hover:text-primary"
+          className="p-1 hover:bg-tertiary rounded-lg transition-colors text-secondary hover:text-primary"
           title="Download artifact"
         >
           <Download size={16} />
         </button>
       </button>
       {isExpanded && (
-        <div className="border-t border-primary p-4 overflow-x-auto bg-code">
+        <div className="p-2">
           <ArtifactComponent artifact={artifact} decodedBody={decodedBody} />
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -31,7 +31,7 @@ export function useAgent(agentId: string) {
 }
 
 export function useModel(agentId: string) {
-  return useSWR(`/chat/model/${agentId}`, () => agentId ? chatRPCClient.getModel({ agentId }) : null, { refreshInterval: 1000 });
+  return useSWR(`/chat/model/${agentId}`, () => agentId ? chatRPCClient.getModel({ agentId }) : null, { refreshInterval: 15000 });
 }
 
 export function useAgentTypes() {
@@ -39,7 +39,7 @@ export function useAgentTypes() {
 }
 
 export function useWorkflows() {
-  return useSWR("/workflow/listWorkflows", () => workflowRPCClient.listWorkflows({}), { refreshInterval: 1000 });
+  return useSWR("/workflow/listWorkflows", () => workflowRPCClient.listWorkflows({}));
 }
 
 export function useDirectoryListing(opts?: { path: string, showHidden?: boolean, agentId: string }) {
@@ -48,7 +48,7 @@ export function useDirectoryListing(opts?: { path: string, showHidden?: boolean,
     recursive: false,
     showHidden: opts!.showHidden ?? false,
     agentId: opts!.agentId
-  }) : null, {refreshInterval: 1000});
+  }) : null, {refreshInterval: 5000});
 }
 
 export function useFileContents(path: string | null, agentId: string | null) {
@@ -60,25 +60,13 @@ export function useSelectedFiles(agentId: string | null) {
 }
 
 export function useChatModelsByProvider() {
-  return useSWR(`/ai-client/chatModelsByProvider`, () => aiRPCClient.listChatModelsByProvider({}), { refreshInterval: 5000 });
+  return useSWR(`/ai-client/chatModelsByProvider`, () => aiRPCClient.listChatModelsByProvider({}));
 }
 
 export function useAvailableTools(agentId: string) {
-  return useSWR(`/chat/getAvailableTools`, () => chatRPCClient.getAvailableTools({}), { refreshInterval: 5000 });
+  return useSWR(`/chat/getAvailableTools`, () => chatRPCClient.getAvailableTools({}));
 }
 
 export function useEnabledTools(agentId: string) {
   return useSWR(`/chat/getEnabledTools/${agentId}`, () => agentId ? chatRPCClient.getEnabledTools({ agentId }) : null, { refreshInterval: 5000 });
-}
-
-export function useEnableTool(agentId: string) {
-  return useSWR(`/chat/enableTools/${agentId}`, () => agentId ? chatRPCClient.enableTools({ agentId, tools: [] }) : null, { refreshInterval: 5000 });
-}
-
-export function useDisableTool(agentId: string) {
-  return useSWR(`/chat/disableTools/${agentId}`, () => agentId ? chatRPCClient.disableTools({ agentId, tools: [] }) : null, { refreshInterval: 5000 });
-}
-
-export function useSetEnabledTools(agentId: string) {
-  return useSWR(`/chat/setEnabledTools/${agentId}`, () => agentId ? chatRPCClient.setEnabledTools({ agentId, tools: [] }) : null, { refreshInterval: 5000 });
 }
