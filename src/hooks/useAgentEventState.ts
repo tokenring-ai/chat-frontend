@@ -51,6 +51,10 @@ export function useAgentEventState(agentId: string) {
                 case 'output.info':
                 case 'output.warning':
                 case 'output.error':
+                case 'question.request':
+                case 'question.response':
+                case 'reset':
+                case 'abort':
                   currentMessages.push(event)
                   messagesChanged = true;
                   break;
@@ -67,6 +71,8 @@ export function useAgentEventState(agentId: string) {
                       message: event.message + "\n",
                       timestamp: event.timestamp
                     });
+                  } else {
+                    currentMessages.push(event);
                   }
                   messagesChanged = true;
                   break;

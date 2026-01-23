@@ -1,7 +1,8 @@
 import { Trash2, Play, Cpu, User, Loader2, Pause, Zap } from 'lucide-react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useNavigate as useNavigateRouter } from "react-router-dom";
 import { agentRPCClient, useAgentList, useAgentTypes, useWorkflows, workflowRPCClient } from "../rpc.ts";
 import { useSidebar } from "../components/SidebarContext.tsx";
+import { useState } from "react";
 
 interface AgentSelectionProps {
   agents: ReturnType<typeof useAgentList>;
@@ -9,33 +10,58 @@ interface AgentSelectionProps {
   workflows: ReturnType<typeof useWorkflows>;
 }
 
+interface AgentItem {
+  id: string;
+  name: string;
+  idle: boolean;
+  statusMessage?: string;
+}
+
 export default function AgentSelection({ agents, agentTypes, workflows }: AgentSelectionProps) {
   const navigate = useNavigate();
   const { toggleMobileSidebar } = useSidebar();
+  const [deletingAgentId, setDeletingAgentId] = useState<string | null>(null);
+  const [creatingAgentType, setCreatingAgentType] = useState<string | null>(null);
+  const [spawningWorkflow, setSpawningWorkflow] = useState<string | null>(null);
 
   const selectAgent = (agentId: string) => {
     navigate(`/agent/${agentId}`);
   };
 
   const createAgent = async (type: string) => {
-    const { id } = await agentRPCClient.createAgent({ agentType: type, headless: false });
-    await agents.mutate();
-    navigate(`/agent/${id}`);
+    setCreatingAgentType(type);
+    try {
+      const { id } = await agentRPCClient.createAgent({ agentType: type, headless: false });
+      await agents.mutate();
+      navigate(`/agent/${id}`);
+    } finally {
+      setCreatingAgentType(null);
+    }
   };
 
   const spawnWorkflow = async (workflowName: string) => {
-    const { id } = await workflowRPCClient.spawnWorkflow({
-      workflowName,
-      headless: false
-    });
-    await agents.mutate();
-    navigate(`/agent/${id}`);
+    setSpawningWorkflow(workflowName);
+    try {
+      const { id } = await workflowRPCClient.spawnWorkflow({
+        workflowName,
+        headless: false
+      });
+      await agents.mutate();
+      navigate(`/agent/${id}`);
+    } finally {
+      setSpawningWorkflow(null);
+    }
   };
 
   const deleteAgent = async (agentId: string) => {
     if (!window.confirm('Are you sure you want to delete this agent?')) return;
-    await agentRPCClient.deleteAgent({ agentId });
-    await agents.mutate();
+    setDeletingAgentId(agentId);
+    try {
+      await agentRPCClient.deleteAgent({ agentId });
+      await agents.mutate();
+    } finally {
+      setDeletingAgentId(null);
+    }
   };
 
   return (
@@ -43,7 +69,8 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
       <header className="h-14 border-b border-zinc-900 flex items-center px-6 bg-[#050505] z-10 shrink-0 md:hidden">
         <button
           onClick={toggleMobileSidebar}
-          className="w-8 h-8 rounded-lg bg-linear-to-br from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/10 active:scale-95 transition-transform"
+          className="md:hidden w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/10 active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+          aria-label="Toggle sidebar menu"
         >
           <Zap className="w-4 h-4 text-white" fill="currentColor" />
         </button>
@@ -76,7 +103,7 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {agents.data && agents.data.length > 0 ? (
-                  agents.data.map(a => (
+                  agents.data.map((a: AgentItem) => (
                     <div key={a.id} className="group flex items-center gap-3 bg-zinc-900/20 border border-zinc-800 p-4 rounded-xl hover:border-amber-600/50 hover:bg-zinc-900/30 transition-all">
                       <div className={`${a.idle ? 'text-zinc-600' : 'text-amber-500'}`}>
                         {a.idle ? <Pause size={20} /> : <Loader2 size={20} className="animate-spin" />}
@@ -84,6 +111,7 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
                       <button
                         onClick={() => selectAgent(a.id)}
                         className="flex-1 flex flex-col text-left cursor-pointer min-w-0"
+                        aria-label={`Select agent ${a.name}`}
                       >
                         <span className="text-zinc-100 font-bold truncate">{a.name}</span>
                         {a.statusMessage && (
@@ -93,10 +121,12 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
                       </button>
                       <button
                         onClick={() => deleteAgent(a.id)}
-                        className="p-2 text-zinc-600 hover:text-red-400 hover:bg-zinc-900/50 rounded-lg transition-colors"
+                        disabled={deletingAgentId === a.id}
+                        className="p-2 text-zinc-600 hover:text-red-400 hover:bg-zinc-900/50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
                         title="Delete agent"
+                        aria-label={`Delete agent ${a.name}`}
                       >
-                        <Trash2 size={18} />
+                        {deletingAgentId === a.id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
                       </button>
                     </div>
                   ))
@@ -121,10 +151,12 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
                     <button
                       key={workflow.key}
                       onClick={() => spawnWorkflow(workflow.key)}
-                      className="flex items-center gap-4 bg-zinc-900/20 border border-zinc-800 p-5 rounded-xl text-left hover:bg-zinc-900/30 hover:border-cyan-600/50 transition-all cursor-pointer"
+                      disabled={spawningWorkflow === workflow.key}
+                      className="flex items-center gap-4 bg-zinc-900/20 border border-zinc-800 p-5 rounded-xl text-left hover:bg-zinc-900/30 hover:border-cyan-600/50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+                      aria-label={`Spawn workflow: ${workflow.name}`}
                     >
                       <div className="bg-cyan-500/10 p-3 rounded-lg text-cyan-500">
-                        <Play size={22} fill="currentColor" />
+                        {spawningWorkflow === workflow.key ? <Loader2 size={22} className="animate-spin" /> : <Play size={22} fill="currentColor" />}
                       </div>
                       <div className="min-w-0">
                         <div className="text-zinc-100 font-bold">{workflow.name}</div>
@@ -152,10 +184,12 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
                   <button
                     key={t.type}
                     onClick={() => createAgent(t.type)}
-                    className="flex items-center gap-4 bg-zinc-900/20 border border-zinc-800 p-5 rounded-xl text-left hover:bg-zinc-900/30 hover:border-purple-400/50 transition-all cursor-pointer"
+                    disabled={creatingAgentType === t.type}
+                    className="flex items-center gap-4 bg-zinc-900/20 border border-zinc-800 p-5 rounded-xl text-left hover:bg-zinc-900/30 hover:border-purple-400/50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+                    aria-label={`Create new agent of type: ${t.name}`}
                   >
                     <div className="bg-purple-400/10 p-3 rounded-lg text-purple-400">
-                      <User size={22} fill="currentColor" />
+                      {creatingAgentType === t.type ? <Loader2 size={22} className="animate-spin" /> : <User size={22} fill="currentColor" />}
                     </div>
                     <div className="min-w-0">
                       <div className="text-zinc-100 font-bold">{t.name}</div>
@@ -174,7 +208,7 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
       <footer className="shrink-0 border-t border-zinc-900 bg-zinc-900/30 py-6 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto flex items-center justify-between text-xs text-zinc-500">
           <span>© 2025 TokenRing AI. All rights reserved.</span>
-          <a href="https://tokenring.ai" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-zinc-300 transition-colors">
+          <a href="https://tokenring.ai" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-zinc-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]">
             tokenring.ai
           </a>
         </div>
