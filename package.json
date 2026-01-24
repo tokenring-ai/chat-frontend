@@ -20,6 +20,7 @@
     "@uiw/react-md-editor": "^4.0.11",
     "clsx": "^2.1.1",
     "framer-motion": "^12.27.0",
+    "react-icons": "^5.5.0",
     "lucide-react": "^0.562.0",
     "react": "catalog:",
     "react-dom": "catalog:",

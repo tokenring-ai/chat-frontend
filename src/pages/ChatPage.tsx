@@ -1,217 +1,29 @@
-import type {AgentEventEnvelope} from "@tokenring-ai/agent/AgentEvents";
-import {AnimatePresence, motion} from 'framer-motion';
-import {Bot, Check, ChevronDown, Copy, FileCode, History, Info, Moon, Paperclip, Send, Square, Sun, Zap} from 'lucide-react';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import ArtifactViewer from '../components/ArtifactViewer.tsx';
-import ModelSelector from '../components/ModelSelector.tsx';
-import InlineQuestion from '../components/question/InlineQuestion.tsx';
-import {useSidebar} from '../components/SidebarContext.tsx';
-import ToolSelector from '../components/ToolSelector.tsx';
+import { useEffect, useMemo, useState } from 'react';
+import { ToastContainer, toastManager } from '../components/ui/Toast.tsx';
+import { useAgentEventState } from '../hooks/useAgentEventState.ts';
+import { useAgentExecutionState } from '../hooks/useAgentExecutionState.ts';
+import { agentRPCClient, useAvailableCommands, useCommandHistory } from '../rpc.ts';
+import ChatHeader from '../components/chat/ChatHeader.tsx';
+import ChatFooter from '../components/chat/ChatFooter.tsx';
+import MessageList from '../components/chat/MessageList.tsx';
+import AutoScrollContainer from '../components/chat/AutoScrollContainer.tsx';
 import FileBrowserOverlay from '../components/ui/FileBrowserOverlay.tsx';
-import {ToastContainer, toastManager} from '../components/ui/Toast.tsx';
-import {useAgentEventState} from '../hooks/useAgentEventState.ts';
-import {useAgentExecutionState} from '../hooks/useAgentExecutionState.ts';
-import {agentRPCClient, useAgent, useAvailableCommands, useCommandHistory} from "../rpc.ts";
-import { useTheme } from "../hooks/useTheme.ts";
-
-const getIcon = (msg: AgentEventEnvelope) => {
-  switch (msg.type) {
-    case 'agent.created':
-      return <div className="w-[1em] h-[1em] rounded-full bg-emerald-500" />;
-    case 'agent.stopped':
-      return <div className="w-[1em] h-[1em] rounded-full bg-red-500" />;
-    case 'output.info':
-      return <Info className="w-[1em] text-blue-500/70 align-baseline" />;
-    case 'output.warning':
-      return <Info className="w-[1em] text-yellow-500/70 align-baseline" />;
-    case 'output.error':
-      return <Info className="w-[1em] text-red-500/70 align-baseline" />;
-    case 'output.artifact':
-      return <FileCode className="w-[1em] text-zinc-600 align-baseline" />;
-    case 'output.chat':
-      return <Bot className="w-[1em] text-zinc-500 align-baseline" />;
-    case 'output.reasoning':
-      return <Zap className="w-[1em] text-amber-500 align-baseline" />;
-    case 'input.received':
-      return <span className="text-indigo-500 font-bold">&gt;</span>;
-    case 'input.handled':
-      return <span className="text-green-500 font-bold">✓</span>;
-    case 'question.request':
-      return <span className="text-cyan-500 font-bold">?</span>;
-    case 'question.response':
-      return <span className="text-cyan-500 font-bold">!</span>;
-    case 'reset':
-      return <span className="text-purple-500 font-bold">↺</span>;
-    case 'abort':
-      return <Square className="w-[1em] text-red-500 align-baseline" />;
-    default: {
-      const foo: never = msg;
-    }
-  }
-};
-
-const getContentColor = (msg: AgentEventEnvelope) => {
-  switch (msg.type) {
-    case 'agent.created':
-      return 'text-emerald-400 font-medium';
-    case 'agent.stopped':
-      return 'text-red-400 font-medium';
-    case 'input.received':
-      return 'text-zinc-100 font-medium';
-    case 'input.handled':
-      return 'text-green-400 font-medium';
-    case 'output.chat':
-      return 'text-zinc-300';
-    case 'output.reasoning':
-      return 'text-zinc-300 leading-relaxed';
-    case 'output.warning':
-      return 'text-yellow-400';
-    case 'output.error':
-      return 'text-red-400';
-    case 'question.request':
-      return 'text-cyan-300';
-    case 'question.response':
-      return 'text-cyan-400';
-    case 'reset':
-      return 'text-purple-400';
-    case 'abort':
-      return 'text-red-400 font-medium';
-    case 'output.artifact':
-      return 'text-blue-400';
-    case 'output.info':
-      return 'text-zinc-400';
-    default: {
-      const foo: never = msg;
-    }
-  }
-};
-
-const MessageComponent = ({ msg, agentId, hasResponse }: { msg: AgentEventEnvelope; agentId: string; hasResponse: boolean }) => {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    if ('message' in msg && msg.message) {
-      await navigator.clipboard.writeText(msg.message);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0, x: -4 },
-    visible: {
-      opacity: 1,
-      x: 0,
-      transition: { duration: 0.2, ease: 'easeOut' as any },
-    },
-  };
-
-  return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className={`group relative flex items-start gap-4 px-6 py-2 transition-colors border-l-2 ${msg.type === 'input.received' ? 'bg-purple-800/20 border-purple-500/50' : 'hover:bg-zinc-700/30 border-transparent hover:border-zinc-600'
-        }`}
-    >
-      <div className="prose prose-sm h-lh items-center shrink-0 w-6 flex justify-center">
-        {getIcon(msg)}
-      </div>
-
-      <div className="flex-1 space-y-2 overflow-hidden">
-        <div className={getContentColor(msg)}>
-          {msg.type === 'output.artifact' ? (
-            <ArtifactViewer artifact={msg} />
-          ) : msg.type === 'output.reasoning' ? (
-            <div className="prose prose-zinc-300 prose-invert prose-sm max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {msg.message}
-              </ReactMarkdown>
-            </div>
-          ) : msg.type === 'question.request' ? (
-            <div className="max-w-none text-sm">
-              {'message' in msg && (
-                <div className="space-y-2 prose prose-zinc-300 prose-invert prose-sm max-w-none">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {msg.message}
-                  </ReactMarkdown>
-                </div>
-              )}
-            </div>
-          ) : msg.type === 'question.response' ? (
-            <div className="max-w-none text-sm bg-zinc-900 px-2 py-1 rounded text-zinc-200">
-              Response: {JSON.stringify(msg.result)}
-            </div>
-          ) : msg.type === 'reset' ? (
-            <div className="max-w-none text-sm">
-              Reset: {msg.what.join(', ')}
-            </div>
-          ) : msg.type === 'abort' ? (
-            <div className="max-w-none text-sm">
-              Aborted{msg.reason && <span>: {msg.reason}</span>}
-            </div>
-          ) : msg.type === 'input.handled' ? (
-            <div className="max-w-none text-sm">
-              [{msg.status}] {msg.message}
-            </div>
-          ) : ('message' in msg) ? (
-            <div className="space-y-2 prose prose-zinc-300 prose-invert prose-sm max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {msg.message}
-              </ReactMarkdown>
-            </div>
-          ) : null}
-        </div>
-
-        {/* Render inline question for question.request messages that haven't been answered yet */}
-        {msg.type === 'question.request' && !hasResponse && (
-          <InlineQuestion request={msg} agentId={agentId} />
-        )}
-      </div>
-
-      {/* Copy button - visible on hover */}
-      {'message' in msg && msg.message && (
-        <button
-          onClick={handleCopy}
-          className="absolute right-12 top-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-zinc-800 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
-          title={copied ? 'Copied!' : 'Copy message'}
-          aria-label={copied ? 'Message copied to clipboard' : 'Copy message to clipboard'}
-        >
-          {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-zinc-400" />}
-        </button>
-      )}
-
-      <span className="text-[10px] text-zinc-400 font-mono opacity-0 group-hover:opacity-100 transition-opacity select-none pt-1">
-        {new Date(msg.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-      </span>
-    </motion.div>
-  );
-};
 
 export default function ChatPage({ agentId }: { agentId: string }) {
   const [input, setInput] = useState('');
-  const [showScrollButton, setShowScrollButton] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showFileBrowser, setShowFileBrowser] = useState(false);
   const [inputError, setInputError] = useState(false);
-  const [toasts, setToasts] = useState<Array<{ id: string; message: string; type: 'success' | 'error' | 'info' | 'warning' }>>([]);
-  const { toggleMobileSidebar } = useSidebar();
-  const agent = useAgent(agentId);
+  const [toasts, setToasts] = useState<any[]>([]);
+  
   const { messages } = useAgentEventState(agentId);
   const { idle, busyWith, statusLine, waitingOn } = useAgentExecutionState(agentId);
   const commandHistory = useCommandHistory(agentId);
   const availableCommands = useAvailableCommands(agentId);
-  const [theme, setTheme] = useTheme();
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const isAtBottomRef = useRef(true); // Track state without triggering re-renders
-
-  // Subscribe to toast manager
   useEffect(() => {
-    return toastManager.subscribe(setToasts);
+    const unsubscribe = toastManager.subscribe(setToasts);
+    return unsubscribe;
   }, []);
 
   const filteredAvailableCommands = useMemo(() => {
@@ -219,67 +31,16 @@ export default function ChatPage({ agentId }: { agentId: string }) {
     if (input.startsWith('/') && availableCommands.data) {
       ret = availableCommands.data.filter(cmd => cmd.toLowerCase().startsWith(input.slice(1).toLowerCase())).sort();
       if (ret.length === 0) {
-        ret = ['help']
-      } if (ret.length < 4) {
+        ret = ['help'];
+      } else if (ret.length < 4) {
         ret.push(...ret.map(cmd => `help ${cmd}`));
       }
     }
     return ret;
   }, [availableCommands.data, input]);
 
-  // Track which questions have been answered
-  const answeredQuestions = useMemo(() => {
-    const answered = new Set<string>();
-    for (const msg of messages) {
-      if (msg.type === 'question.response') {
-        answered.add(msg.requestId);
-      }
-    }
-    return answered;
-  }, [messages]);
-
-  // 1. Monitor user scroll intent
-  const handleScroll = () => {
-    if (!scrollRef.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-
-    // Is the user currently within 20px of the bottom?
-    const atBottom = scrollHeight - scrollTop - clientHeight < 20;
-    isAtBottomRef.current = atBottom;
-    setShowScrollButton(!atBottom);
-  };
-
-  // 2. Observe content height changes specifically
-  useEffect(() => {
-    if (!contentRef.current || !scrollRef.current) return;
-
-    const resizeObserver = new ResizeObserver(() => {
-      // This fires whenever the message list grows (new messages or markdown streaming)
-      if (isAtBottomRef.current && scrollRef.current) {
-        scrollRef.current.scrollTo({
-          top: scrollRef.current.scrollHeight,
-          behavior: 'instant'
-        });
-      }
-    });
-
-    resizeObserver.observe(contentRef.current);
-    return () => resizeObserver.disconnect();
-  }, []);
-
-  const scrollToBottom = () => {
-    isAtBottomRef.current = true;
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: 'smooth'
-    });
-    setShowScrollButton(false);
-  };
-
-  const handleSubmit = async (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const handleSubmit = async () => {
     if (!input.trim()) {
-      // Show visual feedback for empty input
       setInputError(true);
       setTimeout(() => setInputError(false), 1000);
       return;
@@ -288,260 +49,36 @@ export default function ChatPage({ agentId }: { agentId: string }) {
     const message = input;
     setInput('');
     setInputError(false);
-    await agentRPCClient.sendInput({ agentId: agentId, message });
+    await agentRPCClient.sendInput({ agentId, message });
     await commandHistory.mutate([...commandHistory.data!, message]);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit();
-    }
-  };
-
   return (
-   <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col">
       <ToastContainer toasts={toasts} onRemove={(id) => setToasts(t => t.filter(t => t.id !== id))} />
-        <header className="h-14 border-b border-zinc-900 flex items-center justify-between px-6 bg-[#050505] z-10 shrink-0">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={toggleMobileSidebar}
-              className="md:hidden w-8 h-8 rounded-lg bg-linear-to-br from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/10 active:scale-95 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
-            aria-label="Toggle sidebar menu"
-          >
-            <Zap className="w-4 h-4 text-white" fill="currentColor" />
-          </button>
-          <div className="flex items-center gap-2.5">
-              <div className="w-2 h-2 rounded-full bg-zinc-600" />
-              <span className="text-xs font-medium text-zinc-400">
-              {agent.data?.config.name}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Theme toggle button */}
-          <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 rounded-lg hover:bg-zinc-900/50 transition-colors text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
-            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-          <ModelSelector agentId={agentId} />
-          <ToolSelector agentId={agentId} />
-        </div>
-      </header>
+      <ChatHeader agentId={agentId} />
+      
       <div className="flex flex-col flex-1 overflow-hidden">
-        <main
-          ref={scrollRef}
-          onScroll={handleScroll}
-          id="main-content"
-            className="flex-1 overflow-y-auto p-0 flex flex-col font-mono text-sm relative scroll-smooth bg-[#050505]"
-        >
-          {/* Added contentRef wrapper to accurately measure expansion */}
-          <div ref={contentRef} className="flex flex-col min-h-full pb-4">
-            <div className="h-4" />
-              <div className="px-6 py-4 flex items-center gap-4 text-zinc-300 select-none">
-                <div className="h-px bg-zinc-600 flex-1" />
-                <span className="text-[10px] uppercase tracking-widest">Session Start • {new Date().toLocaleDateString()}</span>
-                <div className="h-px bg-zinc-600 flex-1" />
-            </div>
+        <AutoScrollContainer>
+          <MessageList messages={messages} agentId={agentId} busyWith={busyWith || undefined} />
+        </AutoScrollContainer>
 
-            <AnimatePresence mode="popLayout">
-              {messages.map((msg, i) => (
-                <MessageComponent
-                  key={i}
-                  msg={msg}
-                  agentId={agentId}
-                  hasResponse={msg.type === 'question.request' ? answeredQuestions.has(msg.requestId) : false}
-                />
-              ))}
-            </AnimatePresence>
-
-            {busyWith && (
-              <div className="flex items-center gap-4 px-6 py-2 animate-pulse">
-                <div className="mt-0.5 shrink-0 w-4 flex justify-center">
-                  <div className="flex gap-1">
-                    <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </div>
-                </div>
-                  <div className="text-zinc-300 text-sm leading-relaxed">{busyWith}...</div>
-              </div>
-            )}
-          </div>
-        </main>
-
-          <footer className="shrink-0 bg-zinc-900/80 border-t border-zinc-900 relative">
-          <AnimatePresence>
-            {showScrollButton && (
-              <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                onClick={scrollToBottom}
-                  className="absolute left-1/2 -translate-x-1/2 -top-12 p-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white transition-colors z-20 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
-                title="Scroll to bottom"
-                aria-label="Scroll to bottom of chat"
-              >
-                <ChevronDown className="w-4 h-4" />
-              </motion.button>
-            )}
-          </AnimatePresence>
-          <div className="relative">
-            <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-indigo-500/50 to-transparent opacity-0 transition-opacity" />
-
-            <div className="flex items-start gap-4 px-6 py-4">
-              <div className="shrink-0 h-lh items-center flex justify-center select-none text-lg">
-                <span className="text-indigo-500 font-bold">&gt;</span>
-              </div>
-
-              <div className="flex-1 relative pt-0.75 flex gap-2">
-                <label htmlFor="chat-input" className="sr-only">Command or message input</label>
-                <textarea
-                  id="chat-input"
-                  value={input}
-                  onChange={(e) => {
-                    setInput(e.target.value);
-                    setInputError(false);
-                  }}
-                  onKeyDown={handleKeyDown}
-                  disabled={!idle || !!waitingOn}
-                    className={`flex-1 bg-transparent border-none focus:ring-0 resize-none h-16 md:h-24 text-sm font-mono text-zinc-200 placeholder-zinc-400 p-0 leading-relaxed outline-none disabled:opacity-50 ${inputError ? 'placeholder:text-red-400/50' : ''}`}
-                  placeholder={inputError ? "Please enter a message or command..." : "Execute command or send message..."}
-                  spellCheck="false"
-                  aria-label="Command or message input"
-                  aria-describedby={filteredAvailableCommands.length > 0 ? "command-suggestions" : undefined}
-                  aria-invalid={inputError}
-                  aria-required="true"
-                />
-                
-                {/* Character count */}
-                <div className="absolute bottom-0 right-0">
-                    <span className="text-[10px] text-zinc-600 font-mono">
-                    {input.length} chars
-                  </span>
-                </div>
-
-                <AnimatePresence>
-                  {filteredAvailableCommands.length > 0 && (
-                    <motion.div
-                      id="command-suggestions"
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 5 }}
-                        className="absolute bottom-full left-0 right-0 mb-2 flex flex-wrap gap-2 p-3 bg-zinc-900/80 border border-zinc-800 rounded-md shadow-lg z-20"
-                      role="listbox"
-                      aria-label="Command suggestions"
-                    >
-                      {filteredAvailableCommands.map((cmd) => (
-                        <button
-                          key={cmd}
-                          onClick={() => { setInput(`/${cmd} `) }}
-                            className="text-[10px] font-mono bg-zinc-800 hover:bg-zinc-700 px-2 py-1 rounded text-indigo-400 transition-colors cursor-pointer"
-                          role="option"
-                        >
-                          /{cmd}
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Action buttons with consistent sizing */}
-                <div className="flex md:flex-row flex-col gap-2 sm:gap-3 pl-2 pb-1 pr-1 sm:pr-0 md:self-end self-start">
-                  {idle ? (
-                    <button
-                      aria-label="Send message"
-                      onClick={() => handleSubmit()}
-                        className="p-2 rounded-lg hover:bg-zinc-800 transition-colors flex items-center justify-center min-w-[40px] text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
-                    >
-                      <Send className="w-5 h-5" />
-                    </button>
-                  ) : (
-                    <button
-                      aria-label="Abort agent"
-                      onClick={() => agentRPCClient.abortAgent({ agentId, reason: "User abort" })}
-                        className="p-2 rounded-lg hover:bg-zinc-800 transition-colors flex items-center justify-center min-w-[40px] text-zinc-400 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
-                    >
-                      <Square className="w-5 h-5" />
-                    </button>
-                  )}
-                  <button
-                    aria-label="Attach file or context"
-                    onClick={() => setShowFileBrowser(true)}
-                      className="p-2 rounded-lg hover:bg-zinc-800 transition-colors flex items-center justify-center min-w-[40px] text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
-                  >
-                    <Paperclip className="w-5 h-5" />
-                  </button>
-                  <button
-                    aria-label={showHistory ? "Hide command history" : "Show command history"}
-                    onClick={() => setShowHistory(!showHistory)}
-                      className="p-2 rounded-lg hover:bg-zinc-800 transition-colors flex items-center justify-center min-w-[40px] text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
-                  >
-                    <History className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <AnimatePresence>
-              {showHistory && commandHistory.data && commandHistory.data.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                    className="absolute bottom-full left-6 right-6 mb-2 p-3 bg-zinc-900/95 border border-zinc-800 rounded-md shadow-lg z-30 max-h-64 overflow-y-auto"
-                  role="dialog"
-                  aria-labelledby="history-title"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                      <span id="history-title" className="text-xs text-zinc-400 font-mono uppercase">Command History</span>
-                    <button
-                      onClick={() => setShowHistory(false)}
-                        className="text-zinc-500 hover:text-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505] px-2 py-1 rounded"
-                      aria-label="Close command history"
-                    >
-                      ×
-                    </button>
-                  </div>
-                  <div className="space-y-1" role="listbox" aria-label="Previous commands">
-                    {commandHistory.data.slice().reverse().map((cmd, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => { setInput(cmd); setShowHistory(false); }}
-                          className="w-full text-left text-xs font-mono bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded text-zinc-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                        role="option"
-                      >
-                        {cmd}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Keyboard shortcuts documentation */}
-            <div className="h-6 bg-zinc-900/30 flex items-center justify-between px-2 select-none">
-            <div className="flex items-center gap-4 px-4">
-                <span className="text-[10px] text-zinc-400 font-mono line-clamp-1">{statusLine || 'Ready'}</span>
-                <div className="hidden sm:flex items-center gap-2 text-[10px] text-zinc-500">
-                  <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-zinc-300 font-mono">Enter</kbd>
-                <span>Send</span>
-                  <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-zinc-300 font-mono">Shift+Enter</kbd>
-                <span>New line</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 px-4">
-              <div className={`w-1.5 h-1.5 ${idle ? 'bg-indigo-500' : 'bg-amber-500'} rounded-full animate-pulse`} />
-                <span className={`text-[10px] ${idle ? 'text-indigo-400' : 'text-amber-400'} font-mono uppercase`}>{idle ? 'Online' : 'Busy'}</span>
-            </div>
-          </div>
-        </footer>
+        <ChatFooter
+          agentId={agentId}
+          input={input}
+          setInput={setInput}
+          inputError={inputError}
+          setInputError={setInputError}
+          idle={idle}
+          waitingOn={waitingOn ? 'waiting' : undefined}
+          statusLine={statusLine || undefined}
+          availableCommands={filteredAvailableCommands}
+          commandHistory={commandHistory.data || []}
+          showHistory={showHistory}
+          setShowHistory={setShowHistory}
+          setShowFileBrowser={setShowFileBrowser}
+          onSubmit={handleSubmit}
+        />
 
         <FileBrowserOverlay
           agentId={agentId}
