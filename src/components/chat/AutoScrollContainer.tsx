@@ -28,9 +28,7 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
     const resizeObserver = new ResizeObserver(() => {
       const contentHeight = contentRef.current?.scrollHeight;
       const shouldScroll = isAtBottomRef.current;
-      console.log('[ResizeObserver]', { contentHeight, shouldScroll, isAtBottom: isAtBottomRef.current });
       if (isAtBottomRef.current && scrollRef.current) {
-        console.log('[ResizeObserver] Scrolling to bottom');
         scrollRef.current.scrollTo({
           top: scrollRef.current.scrollHeight,
           behavior: 'instant'
@@ -41,9 +39,7 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
     resizeObserver.observe(contentRef.current);
     
     const mutationObserver = new MutationObserver(() => {
-      console.log('[MutationObserver] Content changed');
       if (isAtBottomRef.current && scrollRef.current) {
-        console.log('[MutationObserver] Scrolling to bottom');
         scrollRef.current.scrollTo({
           top: scrollRef.current.scrollHeight,
           behavior: 'instant'
@@ -64,7 +60,6 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
   }, [contentRef.current]);
 
   const scrollToBottom = () => {
-    console.log('[scrollToBottom] Manual scroll triggered');
     isAtBottomRef.current = true;
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,

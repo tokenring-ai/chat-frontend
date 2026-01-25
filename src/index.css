@@ -76,6 +76,10 @@
   }
 
   .prose {
+    max-width: 100ch;
+    h1 {
+     font-size: 1.6em;
+    }
     ol {
       padding-left: 2.3em;
     }

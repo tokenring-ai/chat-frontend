@@ -49,7 +49,7 @@ export default function MessageComponent({ msg, agentId, hasResponse }: MessageC
       }}
       initial="hidden"
       animate="visible"
-      className={`group relative flex flex-row items-start gap-4 px-6 py-2 transition-colors border-l-2 ${
+      className={`group relative flex flex-row items-start gap-3 px-3 py-3 transition-colors border-l-2 ${
         msg.type === 'input.received' ? 'bg-purple-800/20 border-purple-500/50' : 'hover:bg-zinc-700/30 border-transparent hover:border-zinc-600'
       }`}
     >
@@ -59,24 +59,24 @@ export default function MessageComponent({ msg, agentId, hasResponse }: MessageC
 
       <div className={`prose prose-sm prose-invert ${getContentColor(msg)}`}>
         {msg.type === 'output.artifact' ? (
-          <ArtifactViewer artifact={msg} />
+          <p><ArtifactViewer artifact={msg} /></p>
         ) : msg.type === 'question.response' ? (
-          `Response: ${JSON.stringify(msg.result)}`
+          <p>Response: {JSON.stringify(msg.result)}</p>
         ) : msg.type === 'reset' ? (
-          `Reset: ${msg.what.join(', ')}`
+          <p>Reset: {msg.what.join(', ')}</p>
         ) : msg.type === 'abort' ? (
-          `Aborted${msg.reason ? `: ${msg.reason}` : ''}`
+          <p>Aborted{msg.reason ? `: ${msg.reason}` : ''}</p>
         ) : msg.type === 'input.handled' ? (
-          `[${msg.status}] ${msg.message}`
+          <p>[{msg.status}] {msg.message}</p>
         ) : msg.type === 'input.received' ? (
-          msg.message
+          <p>{msg.message}</p>
         ) : msg.type === 'question.request' && !hasResponse ? (
           <InlineQuestion request={msg} agentId={agentId} />
         ) : 'message' in msg ? (
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.message}</ReactMarkdown>
         ) : null}
 
-        <div className="flex flex-row items-center gap-3 pt-2 pb-2 text-xs text-zinc-400 font-mono">
+        <div className="flex flex-row items-center gap-3 pb-2 text-xs text-zinc-400 font-mono">
           {'message' in msg && msg.message && (
             <button
               onClick={handleCopy}

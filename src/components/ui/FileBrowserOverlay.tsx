@@ -484,14 +484,22 @@ export default function FileBrowserOverlay({ agentId, isOpen, onClose }: FileBro
                                 <span className="text-xs text-zinc-400">•</span>
                                 <span className="text-xs text-zinc-300 font-medium">{getBasename(selectedFile)}</span>
                             </div>
-                            <button
-                                onClick={handleSaveFile}
-                                disabled={isSaving || !editorContent || editorContent === fileContent.data?.content}
-                                className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200 disabled:opacity-30 disabled:pointer-events-none transition-colors"
-                            >
-                                <Save size={14} />
-                                <span className="text-xs">{isSaving ? 'Saving...' : 'Save'}</span>
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={handleSaveFile}
+                                    disabled={isSaving || !editorContent || editorContent === fileContent.data?.content}
+                                    className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-200 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                                >
+                                    <Save size={14} />
+                                    <span className="text-xs">{isSaving ? 'Saving...' : 'Save'}</span>
+                                </button>
+                                <button
+                                    onClick={() => setSelectedFile(null)}
+                                    className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
                         </div>
                         <div className="flex-1 overflow-auto custom-scrollbar bg-[#050505] relative">
                             {fileContent.data ? (

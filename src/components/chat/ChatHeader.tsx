@@ -5,7 +5,7 @@ import { useSidebar } from '../SidebarContext.tsx';
 import { useAgent } from '../../rpc.ts';
 import { useTheme } from '../../hooks/useTheme.ts';
 
-export default function ChatHeader({ agentId }: { agentId: string }) {
+export default function ChatHeader({ agentId, idle }: { agentId: string, idle: boolean }) {
   const { toggleMobileSidebar } = useSidebar();
   const agent = useAgent(agentId);
   const [theme, setTheme] = useTheme();
@@ -21,7 +21,7 @@ export default function ChatHeader({ agentId }: { agentId: string }) {
           <Zap className="w-4 h-4 text-white" fill="currentColor" />
         </button>
         <div className="flex items-center gap-2.5">
-          <div className="w-2 h-2 rounded-full bg-zinc-600" />
+          <div className={`w-2 h-2 rounded-full ${idle ? 'bg-indigo-500' : 'bg-amber-500'}  animate-pulse`} />
           <span className="text-xs font-medium text-zinc-400">
             {agent.data?.config.name}
           </span>

@@ -90,6 +90,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
             className="flex items-center gap-3 cursor-pointer group"
             onClick={isSidebarExpanded ? () => navigateAndClose('/') : toggleSidebar}
             title={!isSidebarExpanded ? "Expand sidebar" : "TokenRing Home"}
+            aria-label={!isSidebarExpanded ? "Expand sidebar" : "TokenRing Home"}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
@@ -162,6 +163,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                         }`}
                       role="button"
                       tabIndex={0}
+                      aria-label={`Open agent ${agent.name}`}
                       aria-current={currentAgentId === agent.id ? 'page' : undefined}
                     >
                       <div className="shrink-0" aria-hidden="true">
@@ -209,7 +211,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                     <button
                       key={workflow.key}
                       onClick={() => spawnWorkflow(workflow.key)}
-                      className="flex items-start gap-3 px-3 py-2 rounded hover:bg-secondary/30 transition-colors text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+                      className="flex items-start gap-3 px-3 py-2 rounded hover:bg-secondary/30 transition-colors text-left group w-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
                       aria-label={`Spawn workflow: ${workflow.name}`}
                     >
                       <Play className="w-3.5 h-3.5 text-cyan-500 shrink-0 mt-0.5 fill-current" />
@@ -249,7 +251,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                           <button
                             key={template.type}
                             onClick={() => createAgent(template.type)}
-                            className="flex items-start gap-3 px-3 py-2 rounded hover:bg-secondary/30 transition-colors text-left group w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+                            className="flex items-start gap-3 px-3 py-2 rounded hover:bg-secondary/30 transition-colors text-left group w-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
                             aria-label={`Create new agent: ${template.name}`}
                           >
                             <User className="w-3.5 h-3.5 text-purple-300 shrink-0 mt-0.5" />
@@ -274,9 +276,9 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
               className={`group flex items-center justify-center p-2 rounded transition-colors cursor-pointer ${currentAgentId ? 'bg-secondary/50' : 'hover:bg-secondary/30'
                 }`}
               title="Current agent"
+              aria-label="Current agent"
               role="button"
               tabIndex={0}
-              aria-label="Current agent"
             >
               <Cpu className="w-5 h-5 text-amber-600" />
             </div>
@@ -286,7 +288,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
         {/* Footer */}
         {isSidebarExpanded && (
           <div className="p-4 border-t border-primary shrink-0 hidden md:block">
-            <button className="flex items-center gap-3 w-full px-3 py-2 text-muted hover:text-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-primary">
+            <button className="flex items-center gap-3 w-full px-3 py-2 text-muted hover:text-secondary transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-primary" aria-label="Open preferences">
               <Settings className="w-4 h-4" />
               <span className="text-sm">Preferences</span>
             </button>

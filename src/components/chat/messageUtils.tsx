@@ -4,9 +4,9 @@ import { Bot, FileCode, Info, Square, Zap } from 'lucide-react';
 export const getIcon = (msg: AgentEventEnvelope) => {
   switch (msg.type) {
     case 'agent.created':
-      return <div className="w-[1em] h-[1em] rounded-full bg-emerald-500" />;
+      return <div className="w-[1em] h-[1em] mt-1 rounded-full bg-emerald-500" />;
     case 'agent.stopped':
-      return <div className="w-[1em] h-[1em] rounded-full bg-red-500" />;
+      return <div className="w-[1em] h-[1em] mt-1 rounded-full bg-red-500" />;
     case 'output.info':
       return <Info className="w-[1em] text-blue-500/70" />;
     case 'output.warning':

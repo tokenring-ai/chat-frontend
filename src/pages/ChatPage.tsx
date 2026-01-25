@@ -56,7 +56,14 @@ export default function ChatPage({ agentId }: { agentId: string }) {
   return (
     <div className="h-full flex flex-col">
       <ToastContainer toasts={toasts} onRemove={(id) => setToasts(t => t.filter(t => t.id !== id))} />
-      <ChatHeader agentId={agentId} />
+
+      <FileBrowserOverlay
+        agentId={agentId}
+        isOpen={showFileBrowser}
+        onClose={() => setShowFileBrowser(false)}
+      />
+
+      <ChatHeader agentId={agentId} idle={idle}/>
       
       <div className="flex flex-col flex-1 overflow-hidden">
         <AutoScrollContainer>
@@ -78,12 +85,6 @@ export default function ChatPage({ agentId }: { agentId: string }) {
           setShowHistory={setShowHistory}
           setShowFileBrowser={setShowFileBrowser}
           onSubmit={handleSubmit}
-        />
-
-        <FileBrowserOverlay
-          agentId={agentId}
-          isOpen={showFileBrowser}
-          onClose={() => setShowFileBrowser(false)}
         />
       </div>
     </div>

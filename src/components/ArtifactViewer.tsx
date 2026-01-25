@@ -1,65 +1,97 @@
 import { type Artifact } from "@tokenring-ai/agent/AgentEvents";
-import { ChevronDown, ChevronRight, Download } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import {ChevronDown, ChevronRight, Download, FileText, Code, FileJson, Layout} from 'lucide-react';
+import React, {Fragment, useMemo, useState} from 'react';
 import DiffArtifact from "./artifact/DiffArtifact.tsx";
 import MarkdownArtifact from "./artifact/MarkdownArtifact.tsx";
 import TextArtifact from "./artifact/TextArtifact.tsx";
 
-const artifactComponentMap: Record<string, any> = {
-  'text/x-diff': DiffArtifact,
-  'text/markdown': MarkdownArtifact,
-}
+    const artifactComponentMap: Record<string, any> = {
+      'text/x-diff': DiffArtifact,
+      'text/markdown': MarkdownArtifact,
+    }
 
-interface ArtifactViewerProps {
-  artifact: Artifact;
-}
+    const getMimeIcon = (mime: string) => {
+      if (mime.includes('markdown')) return <FileText size={20} className="text-blue-400" />;
+      if (mime.includes('diff')) return <Code size={20} className="text-green-400" />;
+      if (mime.includes('json')) return <FileJson size={20} className="text-yellow-400" />;
+      return <Layout size={20} className="text-gray-400" />;
+    };
 
-export default function ArtifactViewer({ artifact }: ArtifactViewerProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+    interface ArtifactViewerProps {
+      artifact: Artifact;
+    }
 
-  const decodedBody = useMemo(() => {
-    if (artifact.encoding === 'base64') return Buffer.from(artifact.body, 'base64');
-    return artifact.body;
-  }, [artifact]);
+    export default function ArtifactViewer({ artifact }: ArtifactViewerProps) {
+      const [isExpanded, setIsExpanded] = useState(false);
 
-  const handleDownload = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const blob = new Blob([decodedBody], { type: artifact.mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = artifact.name;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+      const decodedBody = useMemo(() => {
+        if (artifact.encoding === 'base64') return Buffer.from(artifact.body, 'base64');
+        return artifact.body;
+      }, [artifact]);
 
+      const handleDownload = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const blob = new Blob([decodedBody], { type: artifact.mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = artifact.name;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
 
-  const ArtifactComponent = artifactComponentMap[artifact.mimeType] ?? TextArtifact;
-  return (
-    <div className="space-y-2 bg-artifact shadow-sm flex-col gap-2 prose-sm">
-      <div>Artifact</div>
-      <div className="border border-primary rounded-xl w-full hover:bg-hover">
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center gap-3 p-2  transition-colors text-left cursor-pointer"
-        >
-          {isExpanded ? <ChevronDown size={18} className="text-accent" /> : <ChevronRight size={18} className="text-accent" />}
-        <span className="font-semibold text-primary">{artifact.name}</span>
-        <span className="text-tertiary text-xs ml-auto">{artifact.mimeType}</span>
-        <button
-          onClick={handleDownload}
-          className="p-1 hover:bg-tertiary rounded-lg transition-colors text-secondary hover:text-primary"
-          title="Download artifact"
-        >
-          <Download size={16} />
-        </button>
-      </button>
-      {isExpanded && (
-        <div className="p-2">
-          <ArtifactComponent artifact={artifact} decodedBody={decodedBody} />
+      const ArtifactComponent = artifactComponentMap[artifact.mimeType] ?? TextArtifact;
+  
+      return (
+        <div className="group">
+          <div className="bg-[#1e1e1e] border border-[#333] rounded-lg overflow-hidden shadow-xl transition-all duration-200 hover:border-[#444] min-w-2xs">
+            {/* Header Section */}
+            <div 
+              className="p-3 flex items-center cursor-pointer hover:bg-[#252525] transition-colors"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="text-gray-500 transition-transform duration-200">
+                  {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                </div>
+                
+                <div className="p-3 bg-[#2a2a2a] rounded-md">
+                  {getMimeIcon(artifact.mimeType)}
+                </div>
+                
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold text-gray-200 truncate">
+                    {artifact.name}
+                  </span>
+                  <span className="text-[10px] text-gray-500 font-mono">
+                    {artifact.mimeType}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Section with spacing */}
+              <div className="flex items-center ml-4">
+                <button 
+                  onClick={handleDownload}
+                  title="Download artifact"
+                  className="p-2 text-gray-400 hover:text-white hover:bg-[#333] rounded-md transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Download size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Body Content (Conditional) */}
+            {isExpanded && (
+              <div className="border-t border-[#333] bg-[#0d0d0d]">
+                <div className="max-h-[500px] overflow-auto custom-scrollbar">
+                  <div className="p-4 prose-invert">
+                    <ArtifactComponent artifact={artifact} decodedBody={decodedBody} />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      )}
-      </div>
-    </div>
-  );
-}
+      );
+    }

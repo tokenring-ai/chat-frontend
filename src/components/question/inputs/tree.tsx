@@ -21,7 +21,6 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, depth, selected, onToggle, mu
 
     const handleToggle = (e: React.MouseEvent) => {
         e.stopPropagation();
-        console.log('TreeNode clicked:', value, 'canSelect:', canSelect(value));
         if (canSelect(value)) {
             onToggle(value);
         }
