@@ -119,7 +119,7 @@ class ToastManager {
   subscribe(listener: (toasts: ToastItem[]) => void) {
     this.listeners.add(listener);
     listener([...this.toasts]);
-    return () => this.listeners.delete(listener);
+    return () => {this.listeners.delete(listener); return}
   }
 
   private notify() {

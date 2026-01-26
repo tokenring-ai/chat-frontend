@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ToastContainer, toastManager } from '../components/ui/Toast.tsx';
-import { useAgentEventState } from '../hooks/useAgentEventState.ts';
-import { useAgentExecutionState } from '../hooks/useAgentExecutionState.ts';
-import { agentRPCClient, useAvailableCommands, useCommandHistory } from '../rpc.ts';
-import ChatHeader from '../components/chat/ChatHeader.tsx';
-import ChatFooter from '../components/chat/ChatFooter.tsx';
-import MessageList from '../components/chat/MessageList.tsx';
+import {useEffect, useMemo, useState} from 'react';
 import AutoScrollContainer from '../components/chat/AutoScrollContainer.tsx';
+import ChatFooter from '../components/chat/ChatFooter.tsx';
+import ChatHeader from '../components/chat/ChatHeader.tsx';
+import MessageList from '../components/chat/MessageList.tsx';
 import FileBrowserOverlay from '../components/ui/FileBrowserOverlay.tsx';
+import {ToastContainer, toastManager} from '../components/ui/Toast.tsx';
+import {useAgentEventState} from '../hooks/useAgentEventState.ts';
+import {useAgentExecutionState} from '../hooks/useAgentExecutionState.ts';
+import {agentRPCClient, useAvailableCommands, useCommandHistory} from '../rpc.ts';
 
 export default function ChatPage({ agentId }: { agentId: string }) {
   const [input, setInput] = useState('');
@@ -21,10 +21,7 @@ export default function ChatPage({ agentId }: { agentId: string }) {
   const commandHistory = useCommandHistory(agentId);
   const availableCommands = useAvailableCommands(agentId);
 
-  useEffect(() => {
-    const unsubscribe = toastManager.subscribe(setToasts);
-    return unsubscribe;
-  }, []);
+  useEffect(() => toastManager.subscribe(setToasts), []);
 
   const filteredAvailableCommands = useMemo(() => {
     let ret: string[] = [];

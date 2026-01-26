@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { History, Paperclip, Send, Square, Cpu } from 'lucide-react';
+import { History, Paperclip, Send, Square, Cpu, Settings, Wrench } from 'lucide-react';
 import { RiStackFill } from 'react-icons/ri';
 import { useRef, useEffect } from 'react';
 import { agentRPCClient } from '../../rpc.ts';
@@ -121,10 +121,63 @@ export default function ChatFooter({
               )}
             </AnimatePresence>
           </div>
+
+          {/* Send/Abort button - moved to right of input */}
+          <div className="shrink-0">
+            {idle ? (
+              <button
+                aria-label="Send message"
+                title="Send message"
+                onClick={onSubmit}
+                className="p-2 rounded hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            ) : (
+              <button
+                aria-label="Abort agent"
+                title="Abort agent"
+                onClick={() => agentRPCClient.abortAgent({ agentId, reason: 'User abort' })}
+                className="p-2 rounded hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+              >
+                <Square className="w-5 h-5" />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="h-10 bg-zinc-900/50 border-t border-zinc-800 flex items-center justify-between px-6">
           <div className="flex items-center gap-2">
+            {/* Model selection button */}
+            <button
+              aria-label="Select model"
+              title="Select model"
+              className="p-1.5 rounded hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            >
+              <Cpu className="w-5 h-5" />
+            </button>
+            
+            {/* Tool selection button */}
+            <button
+              aria-label="Select tools"
+              title="Select tools"
+              className="p-1.5 rounded hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            >
+              <Wrench className="w-5 h-5" />
+            </button>
+
+            {/* Preferences button */}
+            <button
+              aria-label="Preferences"
+              title="Preferences"
+              className="p-1.5 rounded hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+            
+            <div className="w-px h-5 bg-zinc-700 mx-1" />
+            
+            {/* File attachment button */}
             <button
               aria-label="Attach file or context"
               title="Attach file or context"
@@ -144,25 +197,11 @@ export default function ChatFooter({
           </div>
           
           <div className="flex items-center gap-2">
-            {idle ? (
-              <button
-                aria-label="Send message"
-                title="Send message"
-                onClick={onSubmit}
-                className="p-1.5 rounded hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-              >
-                <Send className="w-5 h-5" />
-              </button>
-            ) : (
-              <button
-                aria-label="Abort agent"
-                title="Abort agent"
-                onClick={() => agentRPCClient.abortAgent({ agentId, reason: 'User abort' })}
-                className="p-1.5 rounded hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-              >
-                <Square className="w-5 h-5" />
-              </button>
-            )}
+            {/* Right side - status indicator */}
+            <div className={`w-1.5 h-1.5 ${idle ? 'bg-indigo-500' : 'bg-amber-500'} rounded-full animate-pulse`} />
+            <span className={`text-[10px] ${idle ? 'text-indigo-400' : 'text-amber-400'} font-mono uppercase`}>
+              {idle ? 'Online' : 'Busy'}
+            </span>
           </div>
         </div>
 
@@ -220,12 +259,6 @@ export default function ChatFooter({
           <span>Send</span>
           <kbd className="px-1.5 py-0.5 bg-zinc-800 rounded text-zinc-300 font-mono">Shift+Enter</kbd>
           <span>New line</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className={`w-1.5 h-1.5 ${idle ? 'bg-indigo-500' : 'bg-amber-500'} rounded-full animate-pulse`} />
-          <span className={`text-[10px] ${idle ? 'text-indigo-400' : 'text-amber-400'} font-mono uppercase`}>
-            {idle ? 'Online' : 'Busy'}
-          </span>
         </div>
       </div>
     </footer>

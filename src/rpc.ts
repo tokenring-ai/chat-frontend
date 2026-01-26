@@ -3,7 +3,7 @@ import AIClientRpcSchema from "@tokenring-ai/ai-client/rpc/schema";
 import ChatRpcSchema from "@tokenring-ai/chat/rpc/schema";
 import FileSystemRpcSchema from '@tokenring-ai/filesystem/rpc/schema';
 import WorkflowRpcSchema from '@tokenring-ai/workflow/rpc/schema';
-import createJsonRPCClient from "@tokenring-ai/web-host/jsonrpc/createJsonRPCClient";
+import createJsonRPCClient from "@tokenring-ai/web-host/createJsonRPCClient";
 import useSWR from "swr";
 
 const baseURL = new URL(window.location.origin);
