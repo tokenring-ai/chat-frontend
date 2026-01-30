@@ -4,7 +4,7 @@ import ChatFooter from '../components/chat/ChatFooter.tsx';
 import ChatHeader from '../components/chat/ChatHeader.tsx';
 import MessageList from '../components/chat/MessageList.tsx';
 import FileBrowserOverlay from '../components/ui/FileBrowserOverlay.tsx';
-import {ToastContainer, toastManager} from '../components/ui/Toast.tsx';
+import {notificationManager, ToastContainer, toastManager} from '../components/ui/Toast.tsx';
 import {useAgentEventState} from '../hooks/useAgentEventState.ts';
 import {useAgentExecutionState} from '../hooks/useAgentExecutionState.ts';
 import {agentRPCClient, useAvailableCommands, useCommandHistory} from '../rpc.ts';
@@ -14,14 +14,17 @@ export default function ChatPage({ agentId }: { agentId: string }) {
   const [showHistory, setShowHistory] = useState(false);
   const [showFileBrowser, setShowFileBrowser] = useState(false);
   const [inputError, setInputError] = useState(false);
-  const [toasts, setToasts] = useState<any[]>([]);
+  const [toasts, setToasts] = useState<any[]>();
   
   const { messages } = useAgentEventState(agentId);
   const { idle, busyWith, statusLine, waitingOn } = useAgentExecutionState(agentId);
   const commandHistory = useCommandHistory(agentId);
   const availableCommands = useAvailableCommands(agentId);
 
-  useEffect(() => toastManager.subscribe(setToasts), []);
+  useEffect(() => {
+    const cleanup = notificationManager.subscribeToasts(setToasts);
+    return cleanup as () => void;
+  }, []);
 
   const filteredAvailableCommands = useMemo(() => {
     let ret: string[] = [];
@@ -52,7 +55,7 @@ export default function ChatPage({ agentId }: { agentId: string }) {
 
   return (
     <div className="h-full flex flex-col">
-      <ToastContainer toasts={toasts} onRemove={(id) => setToasts(t => t.filter(t => t.id !== id))} />
+      <ToastContainer toasts={toasts || []} onRemove={(id) => toastManager.remove(id)}/>
 
       <FileBrowserOverlay
         agentId={agentId}

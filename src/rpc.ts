@@ -3,16 +3,16 @@ import AIClientRpcSchema from "@tokenring-ai/ai-client/rpc/schema";
 import ChatRpcSchema from "@tokenring-ai/chat/rpc/schema";
 import FileSystemRpcSchema from '@tokenring-ai/filesystem/rpc/schema';
 import WorkflowRpcSchema from '@tokenring-ai/workflow/rpc/schema';
-import createJsonRPCClient from "@tokenring-ai/web-host/createJsonRPCClient";
+import createWsRPCClient from "@tokenring-ai/web-host/createWsRPCClient";
 import useSWR from "swr";
 
 const baseURL = new URL(window.location.origin);
 
-export const agentRPCClient = createJsonRPCClient(baseURL, AgentRpcSchema);
-export const aiRPCClient = createJsonRPCClient(baseURL, AIClientRpcSchema);
-export const chatRPCClient = createJsonRPCClient(baseURL, ChatRpcSchema);
-export const filesystemRPCClient = createJsonRPCClient(baseURL, FileSystemRpcSchema);
-export const workflowRPCClient = createJsonRPCClient(baseURL, WorkflowRpcSchema);
+export const agentRPCClient = createWsRPCClient(baseURL, AgentRpcSchema);
+export const aiRPCClient = createWsRPCClient(baseURL, AIClientRpcSchema);
+export const chatRPCClient = createWsRPCClient(baseURL, ChatRpcSchema);
+export const filesystemRPCClient = createWsRPCClient(baseURL, FileSystemRpcSchema);
+export const workflowRPCClient = createWsRPCClient(baseURL, WorkflowRpcSchema);
 
 export function useAvailableCommands(agentId: string) {
   return useSWR(`/agent/getAvailableCommands/${agentId}`, () => agentId ? agentRPCClient.getAvailableCommands({ agentId }) : null);

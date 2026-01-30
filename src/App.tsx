@@ -35,7 +35,7 @@ export default function App() {
         <div className="flex-1 flex flex-col relative min-w-0">
           <main className="flex-1 min-h-0 relative">
             <Routes>
-              <Route path="/agent/:agentId/*" Component={() => <ChatPage agentId={useParams().agentId!} />} />
+              <Route path="/agent/:agentId/*" element={<ChatPage key={currentAgentId} agentId={currentAgentId!} />} />
               <Route path="/" element={
                 <AgentSelection
                   agents={agents}

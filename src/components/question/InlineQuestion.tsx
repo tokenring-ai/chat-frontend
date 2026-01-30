@@ -13,6 +13,7 @@ interface InlineQuestionProps {
 
 export default function InlineQuestion({ request, agentId }: InlineQuestionProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [countdown, setCountdown] = useState<number | null>(null);
   const question = request.question;
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -23,6 +24,21 @@ export default function InlineQuestion({ request, agentId }: InlineQuestionProps
       containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }, []);
+
+  // Countdown timer
+  useEffect(() => {
+    if (request.autoSubmitAfter <= 0) return;
+
+    const updateCountdown = () => {
+      const deadline = request.timestamp + request.autoSubmitAfter * 1000;
+      const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      setCountdown(remaining);
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [request.timestamp, request.autoSubmitAfter]);
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -57,6 +73,11 @@ export default function InlineQuestion({ request, agentId }: InlineQuestionProps
           </span>
         </div>
         <div className="flex items-center gap-2">
+          {countdown !== null && countdown > 0 && (
+            <span className="text-[10px] text-accent font-medium">
+              {countdown}s
+            </span>
+          )}
           <span className="text-[10px] text-muted uppercase font-medium">
             {question.type}
           </span>
