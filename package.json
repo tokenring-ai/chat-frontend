@@ -36,6 +36,7 @@
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/typography": "^0.5.19",
+    "@tokenring-ai/app": "0.2.0",
     "@tokenring-ai/agent": "0.2.0",
     "@tokenring-ai/ai-client": "0.2.0",
     "@tokenring-ai/chat": "0.2.0",
