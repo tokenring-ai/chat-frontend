@@ -30,7 +30,10 @@ import {
   RiMicFill,
   RiAmazonFill,
   RiArticleFill,
-  RiServerFill, RiQuestionAnswerFill
+  RiServerFill, 
+  RiQuestionAnswerFill,
+  RiCheckboxCircleFill,
+  RiCheckboxBlankCircleLine
 } from "react-icons/ri";
 
 interface ToolSelectorProps {
@@ -131,6 +134,26 @@ export default function ToolSelector({ agentId }: ToolSelectorProps) {
     }
   }, [agentId, enabledTools]);
 
+  const handleToggleCategory = useCallback(async (category: string, categoryTools: Record<string, string>) => {
+    try {
+      const allToolNames = Object.values(categoryTools);
+      const enabledSet = new Set(enabledTools.data?.tools || []);
+      
+      // Check if all tools are currently enabled
+      const allEnabled = allToolNames.every(toolName => enabledSet.has(toolName));
+      
+      if (allEnabled) {
+        // Disable all tools in category
+        await chatRPCClient.disableTools({ agentId, tools: allToolNames });
+      } else {
+        // Enable all tools in category
+        await chatRPCClient.enableTools({ agentId, tools: allToolNames });
+      }
+      enabledTools.mutate();
+    } catch (error) {
+      console.error('Failed to toggle category:', error);
+    }
+  }, [agentId, enabledTools]);
 
   // Filter tools based on search query
   const filteredTools = useMemo(() => {
@@ -155,11 +178,8 @@ export default function ToolSelector({ agentId }: ToolSelectorProps) {
       categories.add(category);
     }
 
-    // Sort packages alphabetically
-    Object.keys(grouped).sort((a, b) => a.localeCompare(b));
-
     return { grouped, categories };
-  }, [filteredTools]);
+  }, [filteredTools, tools]);
 
   const enabledSet = new Set(enabledTools.data?.tools || []);
 
@@ -219,25 +239,30 @@ export default function ToolSelector({ agentId }: ToolSelectorProps) {
             for (const [displayName, toolName] of Object.entries(categoryTools)) {
               if (enabledTools.data?.tools?.includes(toolName)) enabledToolCount++;
             }
+            
+            const allEnabled = enabledToolCount === toolCount;
+            const allDisabled = enabledToolCount === 0;
 
             return (
               <div key={category} className="flex flex-col">
                 {/* Package Header */}
-                <div
-                  className="flex items-center cursor-pointer py-1.5 hover:bg-zinc-800/50 rounded-md px-2 transition-colors group select-none"
-                  onClick={() => {
-                    setExpandedCategories(prev => {
-                      const next = new Set(prev);
-                      if (next.has(category)) {
-                        next.delete(category);
-                      } else {
-                        next.add(category);
-                      }
-                      return next;
-                    });
-                  }}
-                >
-                  <span className="w-5 flex items-center justify-center text-zinc-500 group-hover:text-zinc-400">
+                <div className="flex items-center cursor-pointer py-1.5 hover:bg-zinc-800/50 rounded-md px-2 transition-colors group select-none">
+                  {/* Expand/Collapse Arrow */}
+                  <div
+                    className="w-5 flex items-center justify-center text-zinc-500 group-hover:text-zinc-400"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpandedCategories(prev => {
+                        const next = new Set(prev);
+                        if (next.has(category)) {
+                          next.delete(category);
+                        } else {
+                          next.add(category);
+                        }
+                        return next;
+                      });
+                    }}
+                  >
                     <svg className="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       {isPackageExpanded ? (
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -245,22 +270,49 @@ export default function ToolSelector({ agentId }: ToolSelectorProps) {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       )}
                     </svg>
-                  </span>
-                  <div className="flex-1 flex items-center gap-2 text-zinc-300 text-xs font-medium">
+                  </div>
+                  
+                  {/* Package Name */}
+                  <div 
+                    className="flex-1 flex items-center gap-2 text-zinc-300 text-xs font-medium"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpandedCategories(prev => {
+                        const next = new Set(prev);
+                        if (next.has(category)) {
+                          next.delete(category);
+                        } else {
+                          next.add(category);
+                        }
+                        return next;
+                      });
+                    }}
+                  >
                     <span className={packageColor}>{packageIcon}</span>
                     {category}
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  
+                  {/* Bulk Enable/Disable Checkbox */}
+                  <div
+                    className="flex items-center gap-1.5 cursor-pointer hover:bg-zinc-700/50 rounded px-1 py-0.5 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleCategory(category, categoryTools);
+                    }}
+                    title={allEnabled ? "Disable all tools" : allDisabled ? "Enable all tools" : "Toggle all tools"}
+                  >
                     <span className="text-[9px] font-mono text-zinc-600">
                       {enabledToolCount}/{toolCount}
                     </span>
-                    {
-                      enabledToolCount === toolCount
-                      ? <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)]" />
-                      : enabledToolCount > 0
-                      ? <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_6px_rgba(255,193,7,0.4)]" />
-                      : null
-                    }
+                    {allEnabled ? (
+                      <RiCheckboxCircleFill className="w-3.5 h-3.5 text-emerald-500" />
+                    ) : allDisabled ? (
+                      <RiCheckboxBlankCircleLine className="w-3.5 h-3.5 text-zinc-600 hover:text-emerald-400" />
+                    ) : (
+                      <div className="w-3.5 h-3.5 rounded border-2 border-zinc-500 flex items-center justify-center">
+                        <span className="text-[8px] text-zinc-400">{enabledToolCount}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -272,7 +324,10 @@ export default function ToolSelector({ agentId }: ToolSelectorProps) {
                     return (
                       <div
                         key={toolName}
-                        onClick={() => handleToggleTool(toolName)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleTool(toolName);
+                        }}
                         className="flex items-center cursor-pointer py-1.5 hover:bg-zinc-800/30 rounded-md px-3 transition-colors group"
                       >
                         <div
