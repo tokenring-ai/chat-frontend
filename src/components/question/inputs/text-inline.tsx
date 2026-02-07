@@ -1,4 +1,4 @@
-import type { ParsedTextQuestion, ResultTypeForQuestion } from "@tokenring-ai/agent/question";
+import type { ParsedTextQuestion } from "@tokenring-ai/agent/question";
 import { X, Send } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
 import { agentRPCClient } from "../../../rpc.ts";

@@ -5,14 +5,8 @@ import {
   FileText,
   Search,
   X,
-  Server,
-  Cloud,
-  ChevronDown,
   ChevronRight,
-  FolderOpen,
   Code,
-  List,
-  LayoutGrid,
   Image as ImageIcon,
   Check,
   Plus,
@@ -27,7 +21,7 @@ import MarkdownEditor from "../editor/MarkdownEditor.tsx";
 import CodeEditor from '../editor/CodeEditor.tsx';
 import { filesystemRPCClient, useDirectoryListing, useFileContents, useSelectedFiles } from '../../rpc.ts';
 import { cn } from '../../lib/utils.ts';
-import { toastManager } from './Toast.tsx';
+import { toastManager } from '../ui/toast.tsx';
 
 interface FileBrowserOverlayProps {
     agentId: string;
@@ -42,15 +36,9 @@ const getBasename = (filePath: string): string => {
 };
 
 // Formatting size
-const formatSize = (bytes: number): string => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-};
 
-export default function FileBrowserOverlay({ agentId, isOpen, onClose }: FileBrowserOverlayProps) {
+
+export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOverlayProps) {
     const [path, setPath] = useState('.');
     const [selectedFile, setSelectedFile] = useState<string | null>(null);
     const [showHiddenFiles, setShowHiddenFiles] = useState(false);
@@ -161,16 +149,7 @@ export default function FileBrowserOverlay({ agentId, isOpen, onClose }: FileBro
         }
     };
 
-    const handleGoUp = () => {
-        if (path === '.') return;
-        const parts = path.split('/').filter(Boolean);
-        if (parts.length === 1) {
-            setPath('.');
-        } else {
-            setPath(parts.slice(0, -1).join('/'));
-        }
-        setSelectedFile(null);
-    };
+
 
     const handleAddFile = async (file: string, e?: React.MouseEvent) => {
         e?.stopPropagation();
@@ -249,7 +228,7 @@ export default function FileBrowserOverlay({ agentId, isOpen, onClose }: FileBro
         if (file.endsWith('.json')) return <Code className="text-amber-500" size={size} />;
         if (file.endsWith('.md')) return <FileText className="text-purple-400" size={size} />;
         if (file.match(/\.(png|jpe?g|gif|svg|webp)$/i)) return <ImageIcon className="text-purple-400" size={size} />;
-        return <FileText className="text-zinc-400" size={size} />;
+        return <FileText className="text-muted" size={size} />;
     };
 
     const breadcrumbs = path === '.' ? [] : path.split('/');

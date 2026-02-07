@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation, useParams } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import './index.css';
 import { useAgentList, useAgentTypes, useWorkflows } from "./rpc.ts";
 import AgentSelection from './pages/AgentSelection.tsx';
@@ -7,7 +7,7 @@ import Sidebar from './components/Sidebar.tsx';
 import { SidebarProvider } from './components/SidebarContext.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import { ChatInputProvider } from './components/ChatInputContext.tsx';
-import { ToastContainer, notificationManager } from './components/ui/Toast.tsx';
+import { ToastContainer, notificationManager } from './components/ui/toast.tsx';
 import { useEffect, useState } from 'react';
 
 export default function App() {
@@ -27,7 +27,7 @@ export default function App() {
     return (
       <div className="flex items-center justify-center h-dvh text-lg text-muted bg-primary">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-zinc-700 border-t-indigo-500 rounded-full animate-spin" />
+          <div className="w-12 h-12 border-4 border-primary border-t-indigo-500 rounded-full animate-spin" />
           <span>Loading TokenRing...</span>
         </div>
       </div>

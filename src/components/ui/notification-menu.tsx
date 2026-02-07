@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Bell, X, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { notificationManager, NotificationItem } from './Toast.tsx';
+import { notificationManager, NotificationItem } from './toast.tsx';
 import { cn } from '../../lib/utils.ts';
 
 const toastIcons = {
@@ -18,7 +18,7 @@ const toastColors = {
   warning: 'text-amber-400',
 };
 
-export default function NotificationPanel() {
+export default function NotificationMenu() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -46,7 +46,7 @@ export default function NotificationPanel() {
     <div className="relative">
       <button
         onClick={handleOpen}
-        className="relative p-2 rounded-lg hover:bg-zinc-900/50 transition-colors text-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer"
+        className="relative p-2 rounded-lg hover:bg-hover transition-colors text-muted focus-ring"
         aria-label="Notifications"
       >
         <Bell className="w-4 h-4" />
@@ -66,15 +66,15 @@ export default function NotificationPanel() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -10 }}
               transition={{ duration: 0.15 }}
-              className="absolute right-0 top-full mt-2 w-80 max-h-96 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl overflow-hidden z-50"
+              className="absolute right-0 top-full mt-2 w-80 max-h-96 bg-secondary border border-primary rounded-lg shadow-xl overflow-hidden z-50"
             >
-              <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
-                <h3 className="text-sm font-medium text-zinc-200">Notifications</h3>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-primary">
+                <h3 className="text-sm font-medium text-primary">Notifications</h3>
                 <div className="flex items-center gap-2">
                   {notifications.length > 0 && (
                     <button
                       onClick={() => notificationManager.clearNotifications()}
-                      className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
+                      className="p-1 rounded hover:bg-hover text-muted hover:text-primary transition-colors"
                       aria-label="Clear all"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -82,7 +82,7 @@ export default function NotificationPanel() {
                   )}
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
+                    className="p-1 rounded hover:bg-hover text-muted hover:text-primary transition-colors"
                     aria-label="Close"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -92,14 +92,23 @@ export default function NotificationPanel() {
 
               <div className="overflow-y-auto max-h-80">
                 {notifications.length === 0 ? (
-                  <div className="px-4 py-8 text-center text-sm text-zinc-500">
+                  <div className="px-4 py-8 text-center text-sm text-muted">
                     No notifications
                   </div>
                 ) : (
                   notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      className="px-4 py-3 border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors"
+                      className="px-4 py-3 border-b border-primary hover:bg-hover transition-colors cursor-pointer"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => notificationManager.markAsRead(notification.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          notificationManager.markAsRead(notification.id);
+                        }
+                      }}
                     >
                       <div className="flex items-start gap-2">
                         <span className={cn('text-sm font-bold mt-0.5', toastColors[notification.type || 'info'])}>
@@ -107,10 +116,10 @@ export default function NotificationPanel() {
                         </span>
                         <div className="flex-1 min-w-0">
                           {notification.title && (
-                            <h4 className="text-xs font-medium text-zinc-200 mb-1">{notification.title}</h4>
+                            <h4 className="text-xs font-medium text-primary mb-1">{notification.title}</h4>
                           )}
-                          <p className="text-xs text-zinc-400 break-words">{notification.message}</p>
-                          <span className="text-[10px] text-zinc-600 mt-1 block">{formatTime(notification.timestamp)}</span>
+                          <p className="text-xs text-muted break-words">{notification.message}</p>
+                          <span className="text-[10px] text-dim mt-1 block">{formatTime(notification.timestamp)}</span>
                         </div>
                       </div>
                     </div>

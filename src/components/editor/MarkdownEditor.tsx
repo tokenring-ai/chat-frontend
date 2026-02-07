@@ -1,7 +1,5 @@
 import MDEditor from '@uiw/react-md-editor';
-import { Save } from 'lucide-react';
 import React, { useState } from 'react';
-import { filesystemRPCClient } from '../../rpc.ts';
 
 interface FileViewerProps {
   content: string;

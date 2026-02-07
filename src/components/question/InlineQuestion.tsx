@@ -1,6 +1,7 @@
 import { type ParsedQuestionRequest } from "@tokenring-ai/agent/AgentEvents";
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import FileInlineQuestion from "./inputs/file-inline.tsx";
 import FormInlineQuestion from "./inputs/form-inline.tsx";
 import TextInlineQuestion from "./inputs/text-inline.tsx";
@@ -82,22 +83,27 @@ export default function InlineQuestion({ request, agentId }: InlineQuestionProps
             {question.type}
           </span>
           {isExpanded ? (
-            <ChevronDown size={14} className="text-tertiary" aria-hidden="true" />
+            <ChevronDown size={14} className="text-muted" aria-hidden="true" />
           ) : (
-            <ChevronRight size={14} className="text-tertiary" aria-hidden="true" />
+            <ChevronRight size={14} className="text-muted" aria-hidden="true" />
           )}
         </div>
       </div>
 
       {/* Content - expandable */}
-      {isExpanded && (
-        <div
-          id={`question-content-${request.requestId}`}
-          className="border-t border-primary"
-          role="region"
-          aria-labelledby={`question-title-${request.requestId}`}
-          onKeyDown={handleKeyDown}
-        >
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            id={`question-content-${request.requestId}`}
+            className="border-t border-primary overflow-hidden"
+            role="region"
+            aria-labelledby={`question-title-${request.requestId}`}
+            onKeyDown={handleKeyDown}
+          >
           {question.type === 'treeSelect' && (
             <TreeInlineQuestion
               question={question}
@@ -130,8 +136,9 @@ export default function InlineQuestion({ request, agentId }: InlineQuestionProps
               onClose={() => setIsExpanded(false)}
             />
           )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

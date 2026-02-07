@@ -1,6 +1,5 @@
 import React, {Fragment, useState} from 'react';
-import {TreeSelectQuestionSchema, type TreeLeaf, type ParsedTreeSelectQuestion, type ResultTypeForQuestion} from '@tokenring-ai/agent/question';
-import {z} from "zod";
+import {type TreeLeaf, type ParsedTreeSelectQuestion, type ResultTypeForQuestion} from '@tokenring-ai/agent/question';
 import {SelectionSummary} from './selection-summary.tsx';
 import {TreeSelectorActions} from './tree-selector-actions.tsx';
 

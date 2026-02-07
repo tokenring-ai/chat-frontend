@@ -62,7 +62,7 @@ export default function Toast({id, type = 'info', title, message, duration = 500
           exit={{ opacity: 0, x: 100, scale: 0.95 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
           className={cn(
-            'flex items-start gap-3 px-4 py-3 rounded-lg border shadow-lg min-w-[300px] max-w-md',
+            'flex items-start gap-3 px-4 py-3 rounded-card border shadow-lg min-w-[300px] max-w-md',
             toastStyles[type]
           )}
           role="alert"
@@ -76,7 +76,7 @@ export default function Toast({id, type = 'info', title, message, duration = 500
           {onClose && (
             <button
               onClick={() => setIsVisible(false)}
-              className="shrink-0 p-0.5 rounded hover:bg-black/20 transition-colors"
+              className="shrink-0 p-0.5 rounded hover:bg-black/20 transition-colors focus-ring"
               aria-label="Close toast"
             >
               <X className="w-4 h-4" />

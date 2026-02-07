@@ -1,26 +1,30 @@
 import { useState, useEffect, useRef } from 'react';
 
 export function useTheme() {
-  // Use ref to track initialization and prevent multiple localStorage reads
   const initializedRef = useRef(false);
   
   const [theme, setThemeState] = useState<'light' | 'dark'>(() => {
-    // Only read from localStorage once during initialization
     const stored = typeof window !== 'undefined' ? localStorage.getItem('theme') : null;
     if (stored === 'light' || stored === 'dark') {
-      document.documentElement.setAttribute('data-color-mode', stored);
+      if (stored === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
       return stored;
     }
-    return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    const prefersDark = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (prefersDark) {
+      document.documentElement.classList.add('dark');
+    }
+    return prefersDark ? 'dark' : 'light';
   });
 
   useEffect(() => {
     // Skip the first render since we already set the initial theme
     if (initializedRef.current) {
-      if (theme === 'light') {
-        document.documentElement.setAttribute('data-color-mode', 'light')
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
       } else {
-        document.documentElement.setAttribute('data-color-mode', 'dark')
+        document.documentElement.classList.remove('dark');
       }
       localStorage.setItem('theme', theme);
     }

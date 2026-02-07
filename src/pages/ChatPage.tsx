@@ -1,14 +1,14 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import AutoScrollContainer from '../components/chat/AutoScrollContainer.tsx';
 import ChatFooter from '../components/chat/ChatFooter.tsx';
 import ChatHeader from '../components/chat/ChatHeader.tsx';
 import MessageList from '../components/chat/MessageList.tsx';
-import FileBrowserOverlay from '../components/ui/FileBrowserOverlay.tsx';
+import FileBrowserOverlay from '../components/overlay/file-browser.tsx';
 import {useAgentEventState} from '../hooks/useAgentEventState.ts';
 import {useAgentExecutionState} from '../hooks/useAgentExecutionState.ts';
 import {agentRPCClient, useAvailableCommands, useCommandHistory} from '../rpc.ts';
 import { useChatInput } from '../components/ChatInputContext.tsx';
-import { toastManager } from '../components/ui/Toast.tsx';
+import { toastManager } from '../components/ui/toast.tsx';
 
 export default function ChatPage({ agentId }: { agentId: string }) {
   const { getInput, setInput: setPersistedInput, clearInput } = useChatInput();

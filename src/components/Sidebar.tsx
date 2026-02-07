@@ -14,8 +14,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAgentList, useAgentTypes, useWorkflows, agentRPCClient, workflowRPCClient } from '../rpc';
 import { useSidebar } from './SidebarContext';
-import { toastManager } from './ui/Toast';
-import ConfirmDialog from './ui/ConfirmDialog';
+import { toastManager } from './ui/toast';
+import ConfirmDialog from './overlay/confirm-dialog.tsx';
 
 interface SidebarProps {
   currentAgentId: string;
@@ -105,18 +105,10 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
         } ${isSidebarExpanded ? 'w-80' : 'w-16'} top-0 left-0 md:static z-40`}
       >
         <div className={`p-4 flex items-center shrink-0 ${isSidebarExpanded ? 'justify-between' : 'justify-between md:justify-center'}`}>
-          <div
-            className="flex items-center gap-3 cursor-pointer group"
+          <button
+            className="flex items-center gap-3 cursor-pointer group focus-ring rounded-lg"
             onClick={isSidebarExpanded ? () => navigateAndClose('/') : toggleSidebar}
             aria-label={!isSidebarExpanded ? "Expand sidebar" : "TokenRing Home"}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                isSidebarExpanded ? navigateAndClose('/') : toggleSidebar();
-              }
-            }}
           >
             <div className={`w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/10 shrink-0 transition-transform duration-200 ${!isSidebarExpanded ? 'group-hover:scale-110' : ''}`}>
               <Zap className="w-5 h-5 text-white" fill="currentColor" />
@@ -124,7 +116,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
             {isSidebarExpanded && (
               <h1 className="text-primary font-bold tracking-tight text-lg">TokenRing</h1>
             )}
-          </div>
+          </button>
 
           {isSidebarExpanded && (
             <button
@@ -221,7 +213,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                   <Loader2 className="w-6 h-6 text-muted animate-spin" />
                 </div>
               ) : workflowsList.length === 0 ? (
-                <div className="px-3 py-4 text-center text-muted text-xs italic">
+                <div className="px-3 py-4 text-center text-muted text-sm italic">
                   No workflows available
                 </div>
               ) : (
@@ -255,7 +247,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                   <Loader2 className="w-6 h-6 text-muted animate-spin" />
                 </div>
               ) : templatesList.length === 0 ? (
-                <div className="px-3 py-4 text-center text-muted text-xs italic">
+                <div className="px-3 py-4 text-center text-muted text-sm italic">
                   No templates available
                 </div>
               ) : (
@@ -290,20 +282,17 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
         ) : (
           <div className="flex-1 px-2 py-4 space-y-4 flex flex-col items-center">
             {/* Collapsed mode: Show icons only */}
-            <div
+            <button
               onClick={() => currentAgentId ? navigateAndClose(`/agent/${currentAgentId}`) : toggleSidebar()}
-              className={`p-2 rounded-lg hover:bg-hover text-muted transition-colors cursor-pointer ${currentAgentId ? 'bg-active' : ''
-              }`}
+              className={`p-2 rounded-lg hover:bg-hover text-muted transition-colors cursor-pointer focus-ring ${currentAgentId ? 'bg-active' : ''}`}
               aria-label="Current agent"
-              role="button"
-              tabIndex={0}
             >
               <Cpu className="w-6 h-6 text-amber-500" />
-            </div>
+            </button>
             <div className="w-8 h-[1px] bg-primary" />
             <button
               onClick={toggleSidebar}
-              className="p-2 rounded-lg hover:bg-hover text-muted transition-colors"
+              className="p-2 rounded-lg hover:bg-hover text-muted transition-colors focus-ring"
             >
               <Play className="w-5 h-5" />
             </button>

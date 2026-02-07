@@ -1,5 +1,5 @@
-import { getDefaultQuestionValue, type ParsedFormQuestion, type ResultTypeForQuestion } from '@tokenring-ai/agent/question';
-import { ChevronLeft, ChevronRight, X, Send } from 'lucide-react';
+import { getDefaultQuestionValue, type ParsedFormQuestion } from '@tokenring-ai/agent/question';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
 import FileInlineQuestion from './file-inline.tsx';
 import TreeInlineQuestion from './tree-inline.tsx';

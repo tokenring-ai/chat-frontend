@@ -1,4 +1,4 @@
-import type { ParsedFileSelectQuestion, ResultTypeForQuestion } from "@tokenring-ai/agent/question";
+import type { ParsedFileSelectQuestion } from "@tokenring-ai/agent/question";
 import { File, Folder, ChevronDown, ChevronRight, X, Send, RefreshCw } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { agentRPCClient, filesystemRPCClient } from "../../../rpc.ts";

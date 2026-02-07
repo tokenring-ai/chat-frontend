@@ -108,10 +108,11 @@ const packageColors: Record<string, string> = {
   '@tokenring-ai/cli': 'text-emerald-600 dark:text-emerald-500',
   '@tokenring-ai/cli-ink': 'text-emerald-600 dark:text-emerald-500',
   '@tokenring-ai/web-host': 'text-orange-600 dark:text-orange-500',
+  default: 'text-muted',
 };
 
 export default function ToolSelector({ agentId }: ToolSelectorProps) {
-  const availableTools = useAvailableTools(agentId);
+  const availableTools = useAvailableTools();
   const enabledTools = useEnabledTools(agentId);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
@@ -221,7 +222,7 @@ export default function ToolSelector({ agentId }: ToolSelectorProps) {
           {Object.keys(filteredToolsByCategory.grouped).sort().map((category) => {
             const isPackageExpanded = expandedCategories.has(category);
             const packageIcon = packageIcons[category] || <RiDatabaseFill />;
-            const packageColor = packageColors[category] || 'text-zinc-500';
+            const packageColor = packageColors[category] || packageColors.default;
 
             let categoryTools = filteredToolsByCategory.grouped[category];
             let toolCount = Object.keys(categoryTools).length;

@@ -1,7 +1,6 @@
-import {type ParsedQuestionRequest, QuestionRequestSchema} from "@tokenring-ai/agent/AgentEvents";
+import {type ParsedQuestionRequest} from "@tokenring-ai/agent/AgentEvents";
 import { useState, useEffect } from 'react';
 import { agentRPCClient } from '../rpc.ts';
-import z from 'zod';
 
 type ExecutionState = {
   idle: boolean;

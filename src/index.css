@@ -1,11 +1,13 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-@custom-variant dark (&:where([data-color-mode=dark], [data-color-mode=dark] *));
+@variant dark (&:where(.dark, .dark *));
+
+/* Using Tailwind's native dark: variant with class strategy */
 
 @layer base {
   :root {
-    /* Light mode - Paper/Claude style */
+    /* Light mode - Paper theme */
     --bg-primary: #fafaf9;
     --bg-secondary: #f5f5f4;
     --bg-sidebar: #ffffff;
@@ -21,14 +23,14 @@
     --text-dim: #a8a29e;
   }
 
-  :root[data-color-mode=dark] {
+  .dark {
     /* Dark mode - Charcoal theme */
     --bg-primary: #0a0a0a;
     --bg-secondary: #141414;
     --bg-sidebar: #0a0a0a;
     --bg-tertiary: #1a1a1a;
     --bg-hover: rgba(255, 255, 255, 0.05);
-    --bg-active: rgba(99, 102, 241, 0.15);
+    --bg-active: #ffffff1c;
     --bg-input: #1a1a1a;
     --border-primary: #262626;
     --accent-primary: #6366f1;
@@ -51,7 +53,7 @@
   }
 
   /* Paper texture for light mode */
-  :root:not([data-color-mode=dark]) body {
+  :root:not(.dark) body {
     background-image: 
       repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.01) 2px, rgba(0,0,0,0.01) 4px),
       repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.01) 2px, rgba(0,0,0,0.01) 4px);
@@ -64,11 +66,11 @@
   }
 
   /* Scrollbar theming */
-  :root[data-color-mode=dark] ::-webkit-scrollbar-thumb {
+  .dark ::-webkit-scrollbar-thumb {
     background: #262626;
   }
   
-  :root:not([data-color-mode=dark]) ::-webkit-scrollbar-thumb {
+  :root:not(.dark) ::-webkit-scrollbar-thumb {
     background: #e7e5e4;
   }
 }
@@ -128,21 +130,26 @@
   .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
 
   /* Icon sizes */
+  .icon-xs { @apply w-3 h-3; }
   .icon-sm { @apply w-3.5 h-3.5; }
   .icon-md { @apply w-4 h-4; }
   .icon-lg { @apply w-5 h-5; }
+  .icon-xl { @apply w-6 h-6; }
 
   /* Button hover states */
   .btn-ghost { 
-    @apply hover:bg-hover transition-colors; 
+    @apply transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2;
+    --tw-ring-offset-color: var(--bg-primary);
   }
-  .btn-subtle { 
-    @apply hover:bg-hover transition-colors; 
+  .btn-ghost:hover {
+    background-color: var(--bg-hover);
   }
-
-  /* Focus ring utility */
-  .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2;
+  .btn-icon {
+    @apply p-2 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2;
+    --tw-ring-offset-color: var(--bg-primary);
+  }
+  .btn-icon:hover {
+    background-color: var(--bg-hover);
   }
 
   /* Consistent border-radius */
@@ -158,45 +165,6 @@
     ol {
       padding-left: 2.3em;
     }
-  }
-
-  .prose-dark {
-    --tw-prose-body: oklch(67% .013 285.805);
-    --tw-prose-headings: oklch(21% .006 285.885);
-    --tw-prose-lead: oklch(44.2% .017 285.786);
-    --tw-prose-links: oklch(21% .006 285.885);
-    --tw-prose-bold: oklch(21% .006 285.885);
-    --tw-prose-counters: oklch(55.2% .016 285.938);
-    --tw-prose-bullets: oklch(87.1% .006 286.286);
-    --tw-prose-hr: oklch(92% .004 286.32);
-    --tw-prose-quotes: oklch(21% .006 285.885);
-    --tw-prose-quote-borders: oklch(92% .004 286.32);
-    --tw-prose-captions: oklch(55.2% .016 285.938);
-    --tw-prose-kbd: oklch(21% .006 285.885);
-    --tw-prose-kbd-shadows: oklab(21% .00164225 -.00577088/.1);
-    --tw-prose-code: oklch(21% .006 285.885);
-    --tw-prose-pre-code: oklch(92% .004 286.32);
-    --tw-prose-pre-bg: oklch(27.4% .006 286.033);
-    --tw-prose-th-borders: oklch(87.1% .006 286.286);
-    --tw-prose-td-borders: oklch(92% .004 286.32);
-    --tw-prose-invert-body: oklch(87.1% .006 286.286);
-    --tw-prose-invert-headings: #fff;
-    --tw-prose-invert-lead: oklch(70.5% .015 286.067);
-    --tw-prose-invert-links: #fff;
-    --tw-prose-invert-bold: #fff;
-    --tw-prose-invert-counters: oklch(70.5% .015 286.067);
-    --tw-prose-invert-bullets: oklch(44.2% .017 285.786);
-    --tw-prose-invert-hr: oklch(37% .013 285.805);
-    --tw-prose-invert-quotes: oklch(96.7% .001 286.375);
-    --tw-prose-invert-quote-borders: oklch(37% .013 285.805);
-    --tw-prose-invert-captions: oklch(70.5% .015 286.067);
-    --tw-prose-invert-kbd: #fff;
-    --tw-prose-invert-kbd-shadows: #ffffff1a;
-    --tw-prose-invert-code: #fff;
-    --tw-prose-invert-pre-code: oklch(87.1% .006 286.286);
-    --tw-prose-invert-pre-bg: #00000080;
-    --tw-prose-invert-th-borders: oklch(44.2% .017 285.786);
-    --tw-prose-invert-td-borders: oklch(37% .013 285.805);
   }
 }
 

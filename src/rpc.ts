@@ -63,7 +63,7 @@ export function useChatModelsByProvider() {
   return useSWR(`/ai-client/chatModelsByProvider`, () => aiRPCClient.listChatModelsByProvider({}));
 }
 
-export function useAvailableTools(agentId: string) {
+export function useAvailableTools() {
   return useSWR(`/chat/getAvailableTools`, () => chatRPCClient.getAvailableTools({}));
 }
 

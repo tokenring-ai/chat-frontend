@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { History, Paperclip, Send, Square } from 'lucide-react';
-import { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { agentRPCClient } from '../../rpc.ts';
 
 interface ChatFooterProps {
@@ -114,7 +114,7 @@ export default function ChatFooter({
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 5 }}
-                  className="absolute bottom-full left-0 right-0 mb-2 flex flex-wrap gap-2 p-3 bg-secondary/95 border border-primary rounded-md shadow-lg z-20"
+                  className="absolute bottom-full left-0 right-0 mb-2 flex flex-wrap gap-2 p-3 bg-secondary/95 border border-primary rounded-md shadow-xl z-20"
                   role="listbox"
                   aria-label="Command suggestions"
                   aria-activedescendant={`cmd-${selectedSuggestion}`}
@@ -185,7 +185,7 @@ export default function ChatFooter({
           
           <div className="flex items-center gap-2 order-1 sm:order-2" aria-live="polite" aria-atomic="true">
             {/* Right side - status indicator */}
-            <div className={`w-1.5 h-1.5 ${idle ? 'bg-indigo-500' : 'bg-amber-500'} rounded-full animate-pulse`} />
+            <div className={`w-2 h-2 ${idle ? 'bg-indigo-500' : 'bg-amber-500'} rounded-full animate-pulse`} aria-label={idle ? 'Agent is online' : 'Agent is busy'} role="status" />
             <span className={`text-2xs ${idle ? 'text-indigo-400' : 'text-amber-400'} font-mono uppercase`}>
               {idle ? 'Online' : 'Busy'}
             </span>
@@ -198,7 +198,7 @@ export default function ChatFooter({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute bottom-full left-6 right-6 mb-2 p-3 bg-secondary/95 border border-primary rounded-md shadow-lg z-30 max-h-64 overflow-y-auto"
+              className="absolute bottom-full left-6 right-6 mb-2 p-3 bg-secondary/95 border border-primary rounded-md shadow-xl z-30 max-h-64 overflow-y-auto"
               role="dialog"
               aria-labelledby="history-title"
             >

@@ -1,6 +1,6 @@
-import type { ParsedTreeSelectQuestion, ResultTypeForQuestion, TreeLeaf } from '@tokenring-ai/agent/question';
+import type { ParsedTreeSelectQuestion, TreeLeaf } from '@tokenring-ai/agent/question';
 import { Check, ChevronDown, ChevronRight, X, Send } from 'lucide-react';
-import React, { useState, Fragment, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { agentRPCClient } from "../../../rpc.ts";
 
 interface TreeInlineProps {
@@ -21,7 +21,7 @@ const CompactTreeNode: React.FC<{
   multiple: boolean;
   canSelect: (value: string) => boolean;
   isFirstNode?: boolean;
-}> = ({ node, depth, selected, onToggle, onExpand, isExpanded, multiple, canSelect, isFirstNode }) => {
+}> = ({ node, depth, selected, onToggle, onExpand, isExpanded, multiple, canSelect }) => {
   const value = node.value || node.name;
   const isSelected = selected.has(value);
   const hasChildren = !!node.children && node.children.length > 0;

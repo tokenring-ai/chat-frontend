@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Cpu, Check } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from './ui/dropdown-menu.tsx';
 import {chatRPCClient, useChatModelsByProvider, useModel} from '../rpc.ts';
-import { toastManager } from './ui/Toast.tsx';
+import { toastManager } from './ui/toast.tsx';
 import {
   RiAnthropicFill,
   RiCpuFill,
@@ -47,6 +48,7 @@ const providerColors: Record<string, string> = {
   qwen: 'text-pink-600 dark:text-pink-500',
   xai: 'text-zinc-800 dark:text-zinc-100',
   zai: 'text-green-600 dark:text-green-500',
+  default: 'text-muted',
 };
 
 
@@ -174,13 +176,13 @@ export default function ModelSelector({ agentId }: ModelSelectorProps) {
               const isProviderExpanded = expandedProviders.has(provider);
               const providerCode = models.length > 0 ? models[0]?.modelName.replace(/:.*/, '') : 'unknown';
               const providerIcon = providerIcons[providerCode] || <RiDatabaseFill />;
-              const providerColor = providerColors[providerCode] || 'text-zinc-500';
+              const providerColor = providerColors[providerCode] || providerColors.default;
 
               return (
                 <div key={provider} className="flex flex-col">
                   {/* Provider Header */}
                   <div
-                    className="flex items-center cursor-pointer py-1.5 hover:bg-hover rounded-md px-2 transition-colors group select-none"
+                    className="flex items-center cursor-pointer py-1.5 hover:bg-hover rounded-md px-2 transition-colors group select-none focus-ring"
                     onClick={() => {
                       setExpandedProviders(prev => {
                         const next = new Set(prev);
@@ -192,9 +194,12 @@ export default function ModelSelector({ agentId }: ModelSelectorProps) {
                         return next;
                       });
                     }}
+                    tabIndex={0}
+                    role="button"
+                    aria-expanded={isProviderExpanded}
                   >
                     <span className="w-5 flex items-center justify-center text-muted group-hover:text-primary">
-                      <svg className="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-label={isProviderExpanded ? 'Collapse provider' : 'Expand provider'}>
                         {isProviderExpanded ? (
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         ) : (
@@ -212,13 +217,28 @@ export default function ModelSelector({ agentId }: ModelSelectorProps) {
                   </div>
 
                   {/* Model List */}
-                  {isProviderExpanded && (
-                  <div className="flex flex-col pl-5 mt-0.5 space-y-0.5 border-l border-primary ml-2">
+                  <AnimatePresence>
+                    {isProviderExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className="flex flex-col pl-5 mt-0.5 space-y-0.5 border-l border-primary ml-2 overflow-hidden"
+                      >
                     {models.map((model) => (
                       <div
                         key={model.modelId}
                         onClick={() => handleSelectModel(model.modelId)}
-                        className="flex items-center cursor-pointer py-1.5 hover:bg-hover rounded-md px-3 transition-colors group"
+                        className="flex items-center cursor-pointer py-1.5 hover:bg-hover rounded-md px-3 transition-colors group focus-ring"
+                        tabIndex={0}
+                        role="button"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleSelectModel(model.modelId);
+                          }
+                        }}
                       >
                         <div
                           className={`w-1.5 h-1.5 rounded-full mr-2.5 shrink-0 shadow-[0_0_6px_rgba(0,0,0,0.1)] dark:shadow-[0_0_6px_rgba(0,0,0,0.3)] ${
@@ -226,7 +246,7 @@ export default function ModelSelector({ agentId }: ModelSelectorProps) {
                               ? 'bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.6)]'
                               : model.available
                                 ? 'bg-emerald-500'
-                                : 'bg-zinc-300 dark:bg-zinc-600'
+                                : 'bg-tertiary'
                           }`}
                         />
                         <span className={`flex-1 text-xs font-mono truncate ${
@@ -241,8 +261,9 @@ export default function ModelSelector({ agentId }: ModelSelectorProps) {
                         )}
                       </div>
                     ))}
-                  </div>
-                  )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               );
             })}
