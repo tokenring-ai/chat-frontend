@@ -36,17 +36,17 @@ const providerIcons: Record<string, React.ReactNode> = {
 
 // Provider color mapping
 const providerColors: Record<string, string> = {
-  anthropic: 'text-indigo-500',
-  azure: 'text-blue-500',
-  cerebras: 'text-amber-500',
-  deepseek: 'text-cyan-500',
-  google: 'text-blue-400',
-  groq: 'text-orange-500',
-  openai: 'text-white',
-  openrouter: 'text-purple-500',
-  qwen: 'text-pink-500',
-  xai: 'text-zinc-100',
-  zai: 'text-green-500',
+  anthropic: 'text-indigo-600 dark:text-indigo-400',
+  azure: 'text-blue-600 dark:text-blue-400',
+  cerebras: 'text-amber-600 dark:text-amber-500',
+  deepseek: 'text-cyan-600 dark:text-cyan-500',
+  google: 'text-blue-500 dark:text-blue-400',
+  groq: 'text-orange-600 dark:text-orange-500',
+  openai: 'text-zinc-900 dark:text-white',
+  openrouter: 'text-purple-600 dark:text-purple-400',
+  qwen: 'text-pink-600 dark:text-pink-500',
+  xai: 'text-zinc-800 dark:text-zinc-100',
+  zai: 'text-green-600 dark:text-green-500',
 };
 
 
@@ -130,25 +130,30 @@ export default function ModelSelector({ agentId }: ModelSelectorProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="hidden md:flex items-center gap-2 px-2 py-1 rounded hover:bg-secondary/10 transition-colors cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-primary" role="button" aria-haspopup="true" aria-expanded="false">
-          {isSelecting ? (
-            <Cpu className="w-3.5 h-3.5 text-muted animate-spin" />
+        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring" role="button" aria-haspopup="true" aria-expanded="false">
+          {isSelecting || currentModel.isLoading ? (
+            <>
+              <Cpu className="w-3.5 h-3.5 text-muted animate-spin" />
+              <span className="text-xs font-mono text-muted truncate max-w-64">Loading...</span>
+            </>
           ) : (
-            <Cpu className="w-3.5 h-3.5 text-dim group-hover:text-muted" />
+            <>
+              <Cpu className="w-3.5 h-3.5 text-muted group-hover:text-primary" />
+              <span className="text-xs font-mono text-muted group-hover:text-primary truncate max-w-64">
+                {currentModel.data?.model ?? 'Select model...'}
+              </span>
+            </>
           )}
-          <span className="text-xs font-mono text-muted group-hover:text-secondary truncate max-w-64">
-            {isSelecting ? 'Loading...' : (currentModel.data?.model ?? 'Select model...')}
-          </span>
         </div>
       </DropdownMenuTrigger>
 
       {hasModels && (
-        <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col bg-[#09090b] border-zinc-800" style={{ width: '560px' }} aria-label="Select AI model">
+        <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col bg-secondary border-primary shadow-xl" style={{ width: '560px' }} aria-label="Select AI model">
           {/* Search Box */}
-          <div className="relative group px-3 py-2 shrink-0">
+          <div className="relative group px-3 py-2 shrink-0 border-b border-primary">
             <div className="relative">
               <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none">
-                <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
@@ -157,7 +162,7 @@ export default function ModelSelector({ agentId }: ModelSelectorProps) {
                 placeholder="Filter models..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg py-1.5 pl-9 pr-3 text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                className="w-full bg-input border border-primary rounded-lg py-1.5 pl-9 pr-3 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
@@ -175,7 +180,7 @@ export default function ModelSelector({ agentId }: ModelSelectorProps) {
                 <div key={provider} className="flex flex-col">
                   {/* Provider Header */}
                   <div
-                    className="flex items-center cursor-pointer py-1.5 hover:bg-zinc-800/50 rounded-md px-2 transition-colors group select-none"
+                    className="flex items-center cursor-pointer py-1.5 hover:bg-hover rounded-md px-2 transition-colors group select-none"
                     onClick={() => {
                       setExpandedProviders(prev => {
                         const next = new Set(prev);
@@ -188,7 +193,7 @@ export default function ModelSelector({ agentId }: ModelSelectorProps) {
                       });
                     }}
                   >
-                    <span className="w-5 flex items-center justify-center text-zinc-500 group-hover:text-zinc-400">
+                    <span className="w-5 flex items-center justify-center text-muted group-hover:text-primary">
                       <svg className="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         {isProviderExpanded ? (
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -197,34 +202,38 @@ export default function ModelSelector({ agentId }: ModelSelectorProps) {
                         )}
                       </svg>
                     </span>
-                    <div className="flex-1 flex items-center gap-2 text-zinc-300 text-xs font-medium">
+                    <div className="flex-1 flex items-center gap-2 text-primary text-xs font-medium">
                       <span className={providerColor}>{providerIcon}</span>
                       {provider}
                     </div>
-                    <span className="text-[9px] font-mono text-zinc-600 px-1.5">
+                    <span className="text-2xs font-mono text-muted px-1.5">
                       {models.length}
                     </span>
                   </div>
 
                   {/* Model List */}
                   {isProviderExpanded && (
-                  <div className="flex flex-col pl-5 mt-0.5 space-y-0.5">
+                  <div className="flex flex-col pl-5 mt-0.5 space-y-0.5 border-l border-primary ml-2">
                     {models.map((model) => (
                       <div
                         key={model.modelId}
                         onClick={() => handleSelectModel(model.modelId)}
-                        className="flex items-center cursor-pointer py-1.5 hover:bg-zinc-800/30 rounded-md px-3 transition-colors group"
+                        className="flex items-center cursor-pointer py-1.5 hover:bg-hover rounded-md px-3 transition-colors group"
                       >
                         <div
-                          className={`w-1.5 h-1.5 rounded-full mr-2.5 shrink-0 shadow-[0_0_6px_rgba(0,0,0,0.3)] ${
+                          className={`w-1.5 h-1.5 rounded-full mr-2.5 shrink-0 shadow-[0_0_6px_rgba(0,0,0,0.1)] dark:shadow-[0_0_6px_rgba(0,0,0,0.3)] ${
                             currentModel.data?.model === model.modelId
                               ? 'bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.6)]'
                               : model.available
-                                ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)]'
-                                : 'bg-zinc-600'
+                                ? 'bg-emerald-500'
+                                : 'bg-zinc-300 dark:bg-zinc-600'
                           }`}
                         />
-                        <span className="flex-1 text-xs font-mono text-zinc-300 group-hover:text-zinc-200 truncate">
+                        <span className={`flex-1 text-xs font-mono truncate ${
+                          currentModel.data?.model === model.modelId 
+                            ? 'text-indigo-600 dark:text-indigo-400 font-medium' 
+                            : 'text-muted group-hover:text-primary'
+                        }`}>
                           {model.modelName}
                         </span>
                         {currentModel.data?.model === model.modelId && (
@@ -239,7 +248,7 @@ export default function ModelSelector({ agentId }: ModelSelectorProps) {
             })}
 
             {filteredModels.length === 0 && (
-              <div className="px-3 py-4 text-center text-xs text-zinc-500">
+              <div className="px-3 py-4 text-center text-xs text-muted">
                 No models found matching "{searchQuery}"
               </div>
             )}

@@ -22,10 +22,10 @@ const toastIcons = {
 };
 
 const toastStyles = {
-  success: 'border-emerald-500/50 bg-emerald-900/90 text-emerald-100',
-  error: 'border-red-500/50 bg-red-900/90 text-red-100',
-  info: 'border-blue-500/50 bg-blue-900/90 text-blue-100',
-  warning: 'border-amber-500/50 bg-amber-900/90 text-amber-100',
+  success: 'border-emerald-500/50 bg-emerald-50 dark:bg-emerald-900/90 text-emerald-900 dark:text-emerald-100',
+  error: 'border-red-500/50 bg-red-50 dark:bg-red-900/90 text-red-900 dark:text-red-100',
+  info: 'border-blue-500/50 bg-blue-50 dark:bg-blue-900/90 text-blue-900 dark:text-blue-100',
+  warning: 'border-amber-500/50 bg-amber-50 dark:bg-amber-900/90 text-amber-900 dark:text-amber-100',
 };
 
 export default function Toast({id, type = 'info', title, message, duration = 5000, onClose}: ToastProps) {

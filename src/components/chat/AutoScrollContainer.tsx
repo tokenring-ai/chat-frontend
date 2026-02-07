@@ -26,8 +26,6 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
     if (!contentRef.current || !scrollRef.current) return;
 
     const resizeObserver = new ResizeObserver(() => {
-      const contentHeight = contentRef.current?.scrollHeight;
-      const shouldScroll = isAtBottomRef.current;
       if (isAtBottomRef.current && scrollRef.current) {
         scrollRef.current.scrollTo({
           top: scrollRef.current.scrollHeight,
@@ -57,7 +55,7 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
       resizeObserver.disconnect();
       mutationObserver.disconnect();
     };
-  }, [contentRef.current]);
+  }, []);
 
   const scrollToBottom = () => {
     isAtBottomRef.current = true;
@@ -73,7 +71,7 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
       <main
         ref={scrollRef}
         onScroll={handleScroll}
-        className={`flex-1 overflow-y-auto p-0 flex flex-col font-mono text-sm relative scroll-smooth bg-[#050505] h-full ${className}`}
+        className={`flex-1 overflow-y-auto p-0 flex flex-col font-mono text-sm relative scroll-smooth bg-primary h-full ${className}`}
       >
         <div ref={contentRef} className="flex flex-col min-h-full pb-4">
           {children}
@@ -86,7 +84,7 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             onClick={scrollToBottom}
-            className="absolute right-4 bottom-4 p-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white transition-colors z-20 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+            className="absolute right-4 bottom-4 p-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white transition-colors z-20 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
             title="Scroll to bottom"
             aria-label="Scroll to bottom of chat"
           >

@@ -14,6 +14,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAgentList, useAgentTypes, useWorkflows, agentRPCClient, workflowRPCClient } from '../rpc';
 import { useSidebar } from './SidebarContext';
+import { toastManager } from './ui/Toast';
+import ConfirmDialog from './ui/ConfirmDialog';
 
 interface SidebarProps {
   currentAgentId: string;
@@ -25,6 +27,7 @@ interface SidebarProps {
 export default function Sidebar({ currentAgentId, agents, workflows, agentTypes }: SidebarProps) {
   const navigate = useNavigate();
   const { isSidebarExpanded, toggleSidebar, isMobileOpen, setMobileOpen } = useSidebar();
+  const [confirmDelete, setConfirmDelete] = React.useState<string | null>(null);
 
   const activeAgentsList = agents.data || [];
   const workflowsList = workflows.data || [];
@@ -36,23 +39,39 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
   };
 
   const createAgent = async (type: string) => {
-    const { id } = await agentRPCClient.createAgent({ agentType: type, headless: false });
-    await agents.mutate();
-    navigateAndClose(`/agent/${id}`);
+    try {
+      const { id } = await agentRPCClient.createAgent({ agentType: type, headless: false });
+      await agents.mutate();
+      navigateAndClose(`/agent/${id}`);
+    } catch (error: any) {
+      console.error('Failed to create agent:', error);
+      toastManager.error(error.message || 'Failed to create agent', { duration: 5000 });
+    }
   };
 
   const spawnWorkflow = async (workflowName: string) => {
-    const { id } = await workflowRPCClient.spawnWorkflow({
-      workflowName,
-      headless: false
-    });
-    await agents.mutate();
-    navigateAndClose(`/agent/${id}`);
+    try {
+      const { id } = await workflowRPCClient.spawnWorkflow({
+        workflowName,
+        headless: false
+      });
+      await agents.mutate();
+      navigateAndClose(`/agent/${id}`);
+    } catch (error: any) {
+      console.error('Failed to spawn workflow:', error);
+      toastManager.error(error.message || 'Failed to spawn workflow', { duration: 5000 });
+    }
   };
 
   const deleteAgent = async (e: React.MouseEvent, agentId: string) => {
     e.stopPropagation();
-    if (!window.confirm('Are you sure you want to delete this agent?')) return;
+    setConfirmDelete(agentId);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmDelete) return;
+    const agentId = confirmDelete;
+    setConfirmDelete(null);
     await agentRPCClient.deleteAgent({ agentId });
     await agents.mutate();
     if (currentAgentId === agentId) {
@@ -82,14 +101,13 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
 
       <aside
         aria-label="Navigation sidebar"
-        className={`fixed md:relative border-r border-primary bg-primary flex flex-col shrink-0 overflow-hidden h-full z-40 transition-all duration-300 ease-in-out md:translate-x-0 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'
-          } ${isSidebarExpanded ? 'w-80' : 'w-16'} top-0 left-0 md:static`}
+        className={`fixed md:relative border-r border-primary bg-sidebar flex flex-col shrink-0 overflow-hidden h-full transition-all duration-300 ease-in-out md:translate-x-0 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+        } ${isSidebarExpanded ? 'w-80' : 'w-16'} top-0 left-0 md:static z-40`}
       >
         <div className={`p-4 flex items-center shrink-0 ${isSidebarExpanded ? 'justify-between' : 'justify-between md:justify-center'}`}>
           <div
             className="flex items-center gap-3 cursor-pointer group"
             onClick={isSidebarExpanded ? () => navigateAndClose('/') : toggleSidebar}
-            title={!isSidebarExpanded ? "Expand sidebar" : "TokenRing Home"}
             aria-label={!isSidebarExpanded ? "Expand sidebar" : "TokenRing Home"}
             role="button"
             tabIndex={0}
@@ -100,7 +118,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
               }
             }}
           >
-            <div className={`w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/10 shrink-0 transition-transform duration-200 ${!isSidebarExpanded ? 'group-hover:scale-110' : ''}`}>
+            <div className={`w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/10 shrink-0 transition-transform duration-200 ${!isSidebarExpanded ? 'group-hover:scale-110' : ''}`}>
               <Zap className="w-5 h-5 text-white" fill="currentColor" />
             </div>
             {isSidebarExpanded && (
@@ -111,8 +129,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
           {isSidebarExpanded && (
             <button
               onClick={toggleSidebar}
-              className="hidden md:block text-muted hover:text-primary transition-colors p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
-              title="Collapse sidebar"
+              className="hidden md:block text-muted hover:text-primary transition-colors p-1 focus-ring"
               aria-label="Collapse sidebar"
             >
               <PanelLeftClose className="w-5 h-5" />
@@ -121,7 +138,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
 
           <button
             onClick={() => setMobileOpen(false)}
-            className="md:hidden text-muted hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+            className="md:hidden text-muted hover:text-primary transition-colors focus-visible:outline-none"
             aria-label="Close sidebar"
           >
             <X className="w-6 h-6" />
@@ -129,22 +146,22 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
         </div>
 
         {isSidebarExpanded ? (
-          <div className="flex-1 px-3 py-2 space-y-6 overflow-y-auto">
+          <div className="flex-1 px-3 py-2 space-y-6 overflow-y-auto custom-scrollbar">
             {/* Active Agents Section */}
             <div>
               <div className="flex items-center justify-between px-2 mb-3">
-                <h2 className="text-[10px] font-bold text-amber-600/90 uppercase tracking-widest flex items-center gap-2">
+                <h2 className="text-2xs font-bold text-amber-600 dark:text-amber-500/90 uppercase tracking-widest flex items-center gap-2">
                   <Cpu className="w-4 h-4" />
                   Active Agents
                 </h2>
-                <span className="text-[9px] text-muted" aria-live="polite">{activeAgentsList.length} running</span>
+                <span className="text-2xs text-muted" aria-live="polite">{activeAgentsList.length} running</span>
               </div>
               {agents.isLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 text-dim animate-spin" />
+                  <Loader2 className="w-6 h-6 text-muted animate-spin" />
                 </div>
               ) : activeAgentsList.length === 0 ? (
-                <div className="px-3 py-4 text-center text-dim text-xs">
+                <div className="px-3 py-4 text-center text-muted text-xs italic">
                   No active agents
                 </div>
               ) : (
@@ -159,8 +176,11 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                           navigateAndClose(`/agent/${agent.id}`);
                         }
                       }}
-                      className={`group flex items-center gap-3 px-3 py-2 rounded transition-colors cursor-pointer ${currentAgentId === agent.id ? 'bg-secondary/50' : 'hover:bg-secondary/30'
-                        }`}
+                      className={`group flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer ${
+                        currentAgentId === agent.id
+                          ? 'bg-active border border-primary'
+                          : 'hover:bg-hover border border-transparent'
+                      }`}
                       role="button"
                       tabIndex={0}
                       aria-label={`Open agent ${agent.name}`}
@@ -168,19 +188,18 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                     >
                       <div className="shrink-0" aria-hidden="true">
                         {agent.idle ? (
-                          <Pause className="w-3.5 h-3.5 text-dim" />
+                          <Pause className="w-3.5 h-3.5 text-muted" />
                         ) : (
                           <div className="w-3.5 h-3.5 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className={`text-sm font-medium truncate ${currentAgentId === agent.id ? 'text-primary' : 'text-secondary'}`}>{agent.name}</div>
-                        <div className="text-[9px] text-muted mt-0.5 truncate">{agent.statusMessage || (agent.idle ? 'Agent is idle' : 'Agent is busy')}</div>
+                        <div className="text-2xs text-muted mt-0.5 truncate">{agent.statusMessage || (agent.idle ? 'Agent is idle' : 'Agent is busy')}</div>
                       </div>
                       <button
                         onClick={(e) => deleteAgent(e, agent.id)}
-                        className="p-1 text-dim hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
-                        title="Delete agent"
+                        className="p-1 text-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 focus-ring"
                         aria-label={`Delete agent ${agent.name}`}
                       >
                         <Trash2 className="w-3 h-3" />
@@ -193,16 +212,16 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
 
             {/* Workflows Section */}
             <div>
-              <h2 className="text-[10px] font-bold text-cyan-600/90 uppercase tracking-widest mb-3 px-2 flex items-center gap-2">
+              <h2 className="text-2xs font-bold text-cyan-600 dark:text-cyan-500/90 uppercase tracking-widest mb-3 px-2 flex items-center gap-2">
                 <Play className="w-4 h-4" />
                 Workflows
               </h2>
               {workflows.isLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 text-dim animate-spin" />
+                  <Loader2 className="w-6 h-6 text-muted animate-spin" />
                 </div>
               ) : workflowsList.length === 0 ? (
-                <div className="px-3 py-4 text-center text-dim text-xs">
+                <div className="px-3 py-4 text-center text-muted text-xs italic">
                   No workflows available
                 </div>
               ) : (
@@ -211,13 +230,13 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                     <button
                       key={workflow.key}
                       onClick={() => spawnWorkflow(workflow.key)}
-                      className="flex items-start gap-3 px-3 py-2 rounded hover:bg-secondary/30 transition-colors text-left group w-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+                      className="flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-hover transition-all text-left group w-full cursor-pointer focus-ring"
                       aria-label={`Spawn workflow: ${workflow.name}`}
                     >
-                      <Play className="w-3.5 h-3.5 text-cyan-500 shrink-0 mt-0.5 fill-current" />
+                      <Play className="w-3.5 h-3.5 text-cyan-500 shrink-0 mt-0.5 fill-current opacity-70 group-hover:opacity-100" />
                       <div className="min-w-0">
-                        <div className="text-sm font-medium text-secondary truncate">{workflow.name}</div>
-                        <div className="text-[9px] text-muted line-clamp-1 mt-0.5">{workflow.description}</div>
+                        <div className="text-sm font-medium text-secondary group-hover:text-primary truncate">{workflow.name}</div>
+                        <div className="text-2xs text-muted line-clamp-1 mt-0.5">{workflow.description}</div>
                       </div>
                     </button>
                   ))}
@@ -227,23 +246,23 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
 
             {/* Agent Templates Section */}
             <div>
-              <h2 className="text-[10px] font-bold text-purple-400/90 uppercase tracking-widest mb-3 px-2 flex items-center gap-2">
+              <h2 className="text-2xs font-bold text-indigo-600 dark:text-indigo-400/90 uppercase tracking-widest mb-3 px-2 flex items-center gap-2">
                 <User className="w-4 h-4" />
-                Agent Templates
+                Templates
               </h2>
               {agentTypes.isLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 text-dim animate-spin" />
+                  <Loader2 className="w-6 h-6 text-muted animate-spin" />
                 </div>
               ) : templatesList.length === 0 ? (
-                <div className="px-3 py-4 text-center text-dim text-xs">
+                <div className="px-3 py-4 text-center text-muted text-xs italic">
                   No templates available
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {Object.entries(groupedTemplates).map(([category, templates]) => (
                     <div key={category}>
-                      <h3 className="text-[9px] font-semibold text-purple-300/70 uppercase tracking-wider mb-2 px-3">
+                      <h3 className="text-2xs font-semibold text-muted uppercase tracking-wider mb-2 px-3">
                         {category}
                       </h3>
                       <div className="space-y-1">
@@ -251,13 +270,13 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                           <button
                             key={template.type}
                             onClick={() => createAgent(template.type)}
-                            className="flex items-start gap-3 px-3 py-2 rounded hover:bg-secondary/30 transition-colors text-left group w-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+                            className="flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-hover transition-all text-left group w-full cursor-pointer focus-ring"
                             aria-label={`Create new agent: ${template.name}`}
                           >
-                            <User className="w-3.5 h-3.5 text-purple-300 shrink-0 mt-0.5" />
+                            <User className="w-3.5 h-3.5 text-indigo-500/70 group-hover:text-indigo-500 shrink-0 mt-0.5" />
                             <div className="min-w-0">
-                              <div className="text-sm font-medium text-secondary truncate">{template.name}</div>
-                              <div className="text-[9px] text-muted line-clamp-1 mt-0.5">{template.description}</div>
+                              <div className="text-sm font-medium text-secondary group-hover:text-primary truncate">{template.name}</div>
+                              <div className="text-2xs text-muted line-clamp-1 mt-0.5">{template.description}</div>
                             </div>
                           </button>
                         ))}
@@ -269,32 +288,48 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
             </div>
           </div>
         ) : (
-          <div className="flex-1 px-2 py-2 space-y-2 overflow-y-auto">
+          <div className="flex-1 px-2 py-4 space-y-4 flex flex-col items-center">
             {/* Collapsed mode: Show icons only */}
             <div
-              onClick={() => navigateAndClose(`/agent/${currentAgentId}`)}
-              className={`group flex items-center justify-center p-2 rounded transition-colors cursor-pointer ${currentAgentId ? 'bg-secondary/50' : 'hover:bg-secondary/30'
-                }`}
-              title="Current agent"
+              onClick={() => currentAgentId ? navigateAndClose(`/agent/${currentAgentId}`) : toggleSidebar()}
+              className={`p-2 rounded-lg hover:bg-hover text-muted transition-colors cursor-pointer ${currentAgentId ? 'bg-active' : ''
+              }`}
               aria-label="Current agent"
               role="button"
               tabIndex={0}
             >
-              <Cpu className="w-5 h-5 text-amber-600" />
+              <Cpu className="w-6 h-6 text-amber-500" />
             </div>
+            <div className="w-8 h-[1px] bg-primary" />
+            <button
+              onClick={toggleSidebar}
+              className="p-2 rounded-lg hover:bg-hover text-muted transition-colors"
+            >
+              <Play className="w-5 h-5" />
+            </button>
           </div>
         )}
 
         {/* Footer */}
         {isSidebarExpanded && (
-          <div className="p-4 border-t border-primary shrink-0 hidden md:block">
-            <button className="flex items-center gap-3 w-full px-3 py-2 text-muted hover:text-secondary transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-primary" aria-label="Open preferences">
+          <div className="p-4 border-t border-primary shrink-0">
+            <button className="flex items-center gap-3 w-full px-3 py-2 text-muted hover:text-primary transition-colors cursor-pointer rounded-lg hover:bg-hover focus-ring" aria-label="Open preferences">
               <Settings className="w-4 h-4" />
-              <span className="text-sm">Preferences</span>
+              <span className="text-sm font-medium">Preferences</span>
             </button>
           </div>
         )}
       </aside>
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Delete Agent"
+          message="Are you sure you want to delete this agent? This action cannot be undone."
+          confirmText="Delete"
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setConfirmDelete(null)}
+          variant="danger"
+        />
+      )}
     </>
   );
 }

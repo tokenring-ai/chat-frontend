@@ -12,7 +12,7 @@ export default function MarkdownArtifact({ artifact, decodedBody }: MarkdownArti
   const textBody = typeof decodedBody === "string" ? decodedBody : decodedBody.toString("utf-8");
 
   return (
-    <div className="prose prose-sm prose-invert max-w-none dark:prose-invert">
+    <div className="prose prose-sm max-w-none dark:prose-invert prose-zinc text-zinc-800 dark:text-zinc-200">
       <ReactMarkdown remarkPlugins={[remarkGfm]}>
         {textBody}
       </ReactMarkdown>

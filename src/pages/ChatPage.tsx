@@ -4,27 +4,28 @@ import ChatFooter from '../components/chat/ChatFooter.tsx';
 import ChatHeader from '../components/chat/ChatHeader.tsx';
 import MessageList from '../components/chat/MessageList.tsx';
 import FileBrowserOverlay from '../components/ui/FileBrowserOverlay.tsx';
-import {notificationManager, ToastContainer, toastManager} from '../components/ui/Toast.tsx';
 import {useAgentEventState} from '../hooks/useAgentEventState.ts';
 import {useAgentExecutionState} from '../hooks/useAgentExecutionState.ts';
 import {agentRPCClient, useAvailableCommands, useCommandHistory} from '../rpc.ts';
+import { useChatInput } from '../components/ChatInputContext.tsx';
+import { toastManager } from '../components/ui/Toast.tsx';
 
 export default function ChatPage({ agentId }: { agentId: string }) {
-  const [input, setInput] = useState('');
+  const { getInput, setInput: setPersistedInput, clearInput } = useChatInput();
+  const [input, setInputState] = useState(() => getInput(agentId));
   const [showHistory, setShowHistory] = useState(false);
   const [showFileBrowser, setShowFileBrowser] = useState(false);
   const [inputError, setInputError] = useState(false);
-  const [toasts, setToasts] = useState<any[]>();
+  
+  const setInput = (value: string) => {
+    setInputState(value);
+    setPersistedInput(agentId, value);
+  };
   
   const { messages } = useAgentEventState(agentId);
   const { idle, busyWith, statusLine, waitingOn } = useAgentExecutionState(agentId);
   const commandHistory = useCommandHistory(agentId);
   const availableCommands = useAvailableCommands(agentId);
-
-  useEffect(() => {
-    const cleanup = notificationManager.subscribeToasts(setToasts);
-    return cleanup as () => void;
-  }, []);
 
   const filteredAvailableCommands = useMemo(() => {
     let ret: string[] = [];
@@ -48,15 +49,19 @@ export default function ChatPage({ agentId }: { agentId: string }) {
     if (!idle || !!waitingOn) return;
     const message = input;
     setInput('');
+    clearInput(agentId);
     setInputError(false);
-    await agentRPCClient.sendInput({ agentId, message });
-    await commandHistory.mutate([...commandHistory.data!, message]);
+    try {
+      await agentRPCClient.sendInput({ agentId, message });
+      const newHistory = [...(commandHistory.data || []), message].slice(-50);
+      await commandHistory.mutate(newHistory);
+    } catch (error: any) {
+      toastManager.error(error.message || 'Failed to send message', { duration: 5000 });
+    }
   };
 
   return (
     <div className="h-full flex flex-col">
-      <ToastContainer toasts={toasts || []} onRemove={(id) => toastManager.remove(id)}/>
-
       <FileBrowserOverlay
         agentId={agentId}
         isOpen={showFileBrowser}
