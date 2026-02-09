@@ -1,4 +1,4 @@
-import type { AgentEventEnvelope } from '@tokenring-ai/agent/AgentEvents';
+import type {AgentEventEnvelope, QuestionResponse} from '@tokenring-ai/agent/AgentEvents';
 import MessageComponent from './MessageComponent.tsx';
 import { useMemo } from 'react';
 import { Virtuoso } from 'react-virtuoso';
@@ -10,14 +10,14 @@ interface MessageListProps {
 }
 
 export default function MessageList({ messages, agentId, busyWith }: MessageListProps) {
-  const answeredQuestions = useMemo(() => {
-    const answered = new Set<string>();
+  const questionResponses = useMemo(() => {
+    const map = new Map<string, QuestionResponse>();
     for (const msg of messages) {
       if (msg.type === 'question.response') {
-        answered.add(msg.requestId);
+        map.set(msg.requestId, msg);
       }
     }
-    return answered;
+    return map;
   }, [messages]);
 
   const allItems = useMemo(() => {
@@ -25,6 +25,7 @@ export default function MessageList({ messages, agentId, busyWith }: MessageList
       { type: 'header' }
     ];
     messages.forEach((msg, i) => {
+      if (msg.type === 'question.response') return;
       items.push({ type: 'message', data: msg, index: i });
     });
     if (busyWith) {
@@ -68,11 +69,12 @@ export default function MessageList({ messages, agentId, busyWith }: MessageList
           );
         }
         const msg = item.data;
+        const response = msg.type === 'question.request' ? questionResponses.get(msg.requestId) : undefined;
         return (
           <MessageComponent
             msg={msg}
             agentId={agentId}
-            hasResponse={msg.type === 'question.request' ? answeredQuestions.has(msg.requestId) : false}
+            response={response}
           />
         );
       }}

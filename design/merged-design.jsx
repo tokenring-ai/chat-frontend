@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  ArrowRight,
   Bot,
   Cpu,
   FileCode,

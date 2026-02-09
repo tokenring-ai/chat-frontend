@@ -70,7 +70,6 @@ const packageIcons: Record<string, React.ReactNode> = {
   '@tokenring-ai/mcp': <RiDatabaseFill />,
   '@tokenring-ai/research': <RiSparklingFill />,
   '@tokenring-ai/cli': <RiTerminalBoxFill />,
-  '@tokenring-ai/cli-ink': <RiTerminalBoxFill />,
   '@tokenring-ai/web-host': <RiServerFill />,
 };
 
@@ -106,7 +105,6 @@ const packageColors: Record<string, string> = {
   '@tokenring-ai/mcp': 'text-pink-600 dark:text-pink-500',
   '@tokenring-ai/research': 'text-purple-600 dark:text-purple-500',
   '@tokenring-ai/cli': 'text-emerald-600 dark:text-emerald-500',
-  '@tokenring-ai/cli-ink': 'text-emerald-600 dark:text-emerald-500',
   '@tokenring-ai/web-host': 'text-orange-600 dark:text-orange-500',
   default: 'text-muted',
 };

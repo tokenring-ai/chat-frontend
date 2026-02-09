@@ -58,7 +58,7 @@
    .tr-text { fill: var(--accent); font-family: 'Arial Black', sans-serif; font-size: 14px; font-weight: bold; opacity: 0.3; text-anchor: middle; dominant-baseline: middle; }
 
    /* Animations */
-   @keyframes orbit { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+   @keyframes orbit { from { offset-distance: 0; } to { offset-distance: 100%; } }
    @keyframes pulse-ring { 0%, 100% { stroke-opacity: 0.1; stroke-width: 2.5; } 50% { stroke-opacity: 0.6; stroke-width: 4; } }
    @keyframes pulse-tr { 0%, 100% { opacity: 0.2; transform: scale(0.9); } 50% { opacity: 0.8; transform: scale(1.1); } }
    @keyframes signal-flow { to { stroke-dashoffset: -20; } }
@@ -277,7 +277,7 @@
     <svg viewBox="0 0 64 64">
       <text x="32" y="34" class="tr-text" style="opacity: 1">TR</text>
       <path class="ring" style="stroke: var(--accent); stroke-width: 2" d="M32 8 L53 20 L53 44 L32 56 L11 44 L11 20 Z"/>
-      <circle class="tk" style="offset-distance: 0%" r="3"/>
+      <circle class="tk" style="offset-distance: 0" r="3"/>
       <circle class="tk" style="offset-distance: 50%" r="3"/>
     </svg>
     <div class="label">Nodes</div>

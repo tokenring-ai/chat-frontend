@@ -1,7 +1,6 @@
 import {AgentEventEnvelope} from "@tokenring-ai/agent/AgentEvents";
 import { useState, useEffect, useRef } from 'react';
 import { agentRPCClient } from '../rpc.ts';
-
 export function useAgentEventState(agentId: string) {
   const [messages, setMessages] = useState<AgentEventEnvelope[]>([]);
   const [position, setPosition] = useState(0);

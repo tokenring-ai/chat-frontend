@@ -1,5 +1,5 @@
-import { type ParsedQuestionRequest } from "@tokenring-ai/agent/AgentEvents";
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import {type ParsedQuestionRequest, type QuestionResponse} from "@tokenring-ai/agent/AgentEvents";
+import { ChevronDown } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import FileInlineQuestion from "./inputs/file-inline.tsx";
@@ -10,14 +10,25 @@ import TreeInlineQuestion from "./inputs/tree-inline.tsx";
 interface InlineQuestionProps {
   request: ParsedQuestionRequest;
   agentId: string;
+  response?: QuestionResponse;
 }
 
-export default function InlineQuestion({ request, agentId }: InlineQuestionProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+function formatResponseResult(response: any) {
+  if (Array.isArray(response)) {
+    if (response.length === 0) return "Nothing selected";
+    if (response.length === 1) response = response[0]
+  }
+
+  if (typeof response === "string") return `Response: ${response}`;
+  return `Response: ${JSON.stringify(response.result)}`;
+}
+
+export default function InlineQuestion({ request, agentId, response }: InlineQuestionProps) {
+  const [isExpanded, setIsExpanded] = useState(!response);
   const [countdown, setCountdown] = useState<number | null>(null);
   const question = request.question;
   const containerRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLButtonElement>(null);
 
   // Focus on the header when the question is rendered
   useEffect(() => {
@@ -50,9 +61,9 @@ export default function InlineQuestion({ request, agentId }: InlineQuestionProps
   };
 
   return (
-    <div ref={containerRef} className="mt-3 border border-primary rounded-lg overflow-hidden bg-secondary/50" role="region" aria-labelledby={`question-title-${request.requestId}`}>
+    <div ref={containerRef} className="not-prose mb-2" role="region" aria-labelledby={`question-title-${request.requestId}`}>
       {/* Header - always visible */}
-      <div
+      <button
         ref={headerRef}
         onClick={() => setIsExpanded(!isExpanded)}
         onKeyDown={(e) => {
@@ -61,34 +72,29 @@ export default function InlineQuestion({ request, agentId }: InlineQuestionProps
             setIsExpanded(!isExpanded);
           }
         }}
-        className="flex items-center justify-between px-4 py-2.5 cursor-pointer hover:bg-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+        className="flex items-center gap-2 py-0.5 w-full text-left cursor-pointer group/header hover:opacity-80 transition-opacity"
         tabIndex={0}
-        role="button"
         aria-expanded={isExpanded}
         aria-controls={`question-content-${request.requestId}`}
         id={`question-title-${request.requestId}`}
       >
-        <div className="flex items-center gap-2">
-          <span className="text-accent text-sm font-medium">
-            {request.message || 'Please provide input'}
-          </span>
+        <div className={`transition-transform duration-150 ${isExpanded ? 'rotate-0' : '-rotate-90'}`}>
+          <ChevronDown size={14} className="text-dim" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-1">
+          <span className="text-sm font-medium text-primary truncate leading-none">
+            {request.message}
+          </span>
+          <span className="text-[10px] font-mono text-dim opacity-0 group-hover/header:opacity-100 transition-opacity leading-none pt-0.5">
+            {question.type}
+          </span>
           {countdown !== null && countdown > 0 && (
-            <span className="text-[10px] text-accent font-medium">
+            <span className="text-[10px] text-accent font-medium leading-none pt-0.5">
               {countdown}s
             </span>
           )}
-          <span className="text-[10px] text-muted uppercase font-medium">
-            {question.type}
-          </span>
-          {isExpanded ? (
-            <ChevronDown size={14} className="text-muted" aria-hidden="true" />
-          ) : (
-            <ChevronRight size={14} className="text-muted" aria-hidden="true" />
-          )}
         </div>
-      </div>
+      </button>
 
       {/* Content - expandable */}
       <AnimatePresence>
@@ -99,7 +105,7 @@ export default function InlineQuestion({ request, agentId }: InlineQuestionProps
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
             id={`question-content-${request.requestId}`}
-            className="border-t border-primary overflow-hidden"
+            className="ml-1.5 mt-2 border-l border-primary/40 pl-4 py-1"
             role="region"
             aria-labelledby={`question-title-${request.requestId}`}
             onKeyDown={handleKeyDown}
@@ -139,6 +145,12 @@ export default function InlineQuestion({ request, agentId }: InlineQuestionProps
           </motion.div>
         )}
       </AnimatePresence>
+
+      {response && (
+        <span className="text-muted truncate">
+          {formatResponseResult(response.result)}
+        </span>
+      )}
     </div>
   );
 }

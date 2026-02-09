@@ -1,4 +1,4 @@
-import { type AgentEventEnvelope } from "@tokenring-ai/agent/AgentEvents";
+import {type AgentEventEnvelope, type QuestionResponse} from "@tokenring-ai/agent/AgentEvents";
 import { motion } from 'framer-motion';
 import { Check, Copy, ChevronDown, Code, FileText, FileJson, Image as ImageIcon, Layout, Download } from 'lucide-react';
 import React, {useState, useMemo} from 'react';
@@ -6,8 +6,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import InlineQuestion from '../question/InlineQuestion.tsx';
 import { Bot, FileCode, Info, Square, Zap } from 'lucide-react';
-
-
 
 const formatTimestamp = (timestamp: number) => {
   return new Date(timestamp).toLocaleTimeString([], { 
@@ -21,7 +19,7 @@ const formatTimestamp = (timestamp: number) => {
 interface MessageComponentProps {
   msg: AgentEventEnvelope;
   agentId: string;
-  hasResponse: boolean;
+  response?: QuestionResponse;
 }
 
 interface EventConfig {
@@ -168,7 +166,7 @@ function MessageFooter({ msg, onDownload }: { msg: AgentEventEnvelope; onDownloa
   );
 }
 
-export default function MessageComponent({ msg, agentId, hasResponse }: MessageComponentProps) {
+export default function MessageComponent({ msg, agentId, response }: MessageComponentProps) {
   // Get artifact-specific icon if this is an artifact message
   const messageIcon = useMemo(() => {
     if (msg.type === 'output.artifact') {
@@ -203,8 +201,6 @@ export default function MessageComponent({ msg, agentId, hasResponse }: MessageC
       <div className={`prose prose-sm dark:prose-invert ${events[msg.type].style}`}>
         {msg.type === 'output.artifact' ? (
           <ArtifactDisplay artifact={msg} />
-        ) : msg.type === 'question.response' ? (
-          <p>Response: {JSON.stringify(msg.result)}</p>
         ) : msg.type === 'reset' ? (
           <p>Reset: {msg.what.join(', ')}</p>
         ) : msg.type === 'abort' ? (
@@ -213,19 +209,19 @@ export default function MessageComponent({ msg, agentId, hasResponse }: MessageC
           <p>[{msg.status}] {msg.message}</p>
         ) : msg.type === 'input.received' ? (
           <p>{msg.message}</p>
-        ) : msg.type === 'question.request' && !hasResponse ? (
-          <InlineQuestion request={msg} agentId={agentId} />
+        ) : msg.type === 'question.request' ? (
+          <InlineQuestion request={msg} agentId={agentId} response={response} />
         ) : 'message' in msg ? (
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              code: ({ node, inline, className, children, ...props }: any) => {
-                const content = String(children).replace(/\n$/, '');
-                return inline ? (
-                  <code className={className} {...props}>{children}</code>
-                ) : (
-                  <CodeBlock className={className}>{content}</CodeBlock>
-                );
+              code: ({ node, className, children, ...props }) => {
+                const text = String(children).trim();
+                if (text.includes("\n")) { // Multi-line code block
+                  return <CodeBlock className={className}>{text}</CodeBlock>;
+                } else {
+                  return <code className={className} {...props}>{text}</code>;
+                }
               }
             }}
           >
