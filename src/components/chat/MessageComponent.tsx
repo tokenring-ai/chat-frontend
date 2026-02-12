@@ -203,8 +203,6 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
           <ArtifactDisplay artifact={msg} />
         ) : msg.type === 'reset' ? (
           <p>Reset: {msg.what.join(', ')}</p>
-        ) : msg.type === 'abort' ? (
-          <p>Aborted{msg.reason ? `: ${msg.reason}` : ''}</p>
         ) : msg.type === 'input.handled' ? (
           <p>[{msg.status}] {msg.message}</p>
         ) : msg.type === 'question.request' ? (

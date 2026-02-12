@@ -208,7 +208,7 @@ export default function ChatFooter({
             ) : (
               <button
                 aria-label="Abort agent"
-                onClick={() => agentRPCClient.abortAgent({ agentId, reason: 'User abort' })}
+                onClick={() => agentRPCClient.abortAgent({ agentId, message: 'User aborted the current operation via the chat webapp' })}
                 className="p-2 rounded hover:bg-hover transition-colors text-muted hover:text-red-400 focus-ring"
               >
                 <Square className="w-5 h-5" />
