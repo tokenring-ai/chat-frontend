@@ -207,8 +207,6 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
           <p>Aborted{msg.reason ? `: ${msg.reason}` : ''}</p>
         ) : msg.type === 'input.handled' ? (
           <p>[{msg.status}] {msg.message}</p>
-        ) : msg.type === 'input.received' ? (
-          <p>{msg.message}</p>
         ) : msg.type === 'question.request' ? (
           <InlineQuestion request={msg} agentId={agentId} response={response} />
         ) : 'message' in msg ? (

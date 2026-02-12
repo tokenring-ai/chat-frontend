@@ -38,13 +38,23 @@ export default function ChatFooter({
 }: ChatFooterProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [selectedSuggestion, setSelectedSuggestion] = useState(0);
+  const [historyIndex, setHistoryIndex] = useState<number | null>(null);
+  const [historyBuffer, setHistoryBuffer] = useState('');
+  const isNavigatingHistoryRef = useRef(false);
 
+  // Reset history navigation when user manually types
   useEffect(() => {
-    setSelectedSuggestion(0);
-  }, [availableCommands]);
+    if (!isNavigatingHistoryRef.current && historyIndex !== null) {
+      setHistoryIndex(null);
+      setHistoryBuffer('');
+    }
+    // Reset the ref after the effect runs
+    isNavigatingHistoryRef.current = false;
+  }, [input, historyIndex]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (availableCommands.length > 0) {
+    // Handle command suggestions with arrow keys
+    if (availableCommands.length > 0 && historyIndex === null) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         setSelectedSuggestion(prev => (prev + 1) % availableCommands.length);
@@ -63,6 +73,50 @@ export default function ChatFooter({
         return;
       }
     }
+
+    // Handle history navigation with arrow keys
+    if (availableCommands.length === 0 || historyIndex !== null) {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (commandHistory.length > 0) {
+          let newIndex: number;
+
+          if (historyIndex === null) {
+            // Start navigating history, save current input
+            setHistoryBuffer(input);
+            newIndex = commandHistory.length - 1;
+          } else if (historyIndex > 0) {
+            newIndex = historyIndex - 1;
+          } else {
+            newIndex = 0;
+          }
+
+          setHistoryIndex(newIndex);
+          isNavigatingHistoryRef.current = true;
+          setInput(commandHistory[newIndex]);
+        }
+        return;
+      }
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyIndex !== null) {
+          if (historyIndex < commandHistory.length - 1) {
+            const newIndex = historyIndex + 1;
+            setHistoryIndex(newIndex);
+            isNavigatingHistoryRef.current = true;
+            setInput(commandHistory[newIndex]);
+          } else {
+            // Go back to the original input before history navigation
+            setHistoryIndex(null);
+            setHistoryBuffer('');
+            setInput(historyBuffer);
+          }
+        }
+        return;
+      }
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       onSubmit();
@@ -239,8 +293,8 @@ export default function ChatFooter({
           <span className="text-2xs text-dim font-mono">{input.length} chars</span>
         </div>
         <div className="hidden sm:flex items-center gap-2 text-2xs text-dim">
-          <span className="hidden md:inline"><kbd className="px-1.5 py-0.5 bg-tertiary rounded text-primary font-mono">Enter</kbd> Send • <kbd className="px-1.5 py-0.5 bg-tertiary rounded text-primary font-mono">Shift+Enter</kbd> New line</span>
-          <span className="md:hidden">⏎ Send</span>
+          <span className="hidden md:inline"><kbd className="px-1.5 py-0.5 bg-tertiary rounded text-primary font-mono">Enter</kbd> Send • <kbd className="px-1.5 py-0.5 bg-tertiary rounded text-primary font-mono">↑/↓</kbd> History • <kbd className="px-1.5 py-0.5 bg-tertiary rounded text-primary font-mono">Shift+Enter</kbd> New line</span>
+          <span className="md:hidden">⏎ Send • ↑/↓ History</span>
         </div>
       </div>
     </footer>
