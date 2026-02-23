@@ -13,14 +13,16 @@ interface InlineQuestionProps {
   response?: QuestionResponse;
 }
 
-function formatResponseResult(response: any) {
-  if (Array.isArray(response)) {
-    if (response.length === 0) return "Nothing selected";
-    if (response.length === 1) response = response[0]
+function formatResponseResult(result: any) {
+  if (result === null) return "Cancelled";
+
+  if (Array.isArray(result)) {
+    if (result.length === 0) return "Nothing selected";
+    if (result.length === 1) result = result[0]
   }
 
-  if (typeof response === "string") return `Response: ${response}`;
-  return `Response: ${JSON.stringify(response.result)}`;
+  if (typeof result === "string") return `Response: ${result}`;
+  return `Response: ${JSON.stringify(result.result)}`;
 }
 
 export default function InlineQuestion({ request, agentId, response }: InlineQuestionProps) {

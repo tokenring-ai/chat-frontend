@@ -65,8 +65,13 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
 
   return (
     <>
+      {/* Mobile Overlay */}
       {isMobileOpen && (
-        <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setMobileOpen(false)} aria-hidden="true" />
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 md:hidden transition-opacity duration-300" 
+          onClick={() => setMobileOpen(false)} 
+          aria-hidden="true"
+        />
       )}
 
       <aside
@@ -99,7 +104,11 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
               >
                 <PanelLeftClose className="w-4 h-4" />
               </button>
-              <button onClick={() => setMobileOpen(false)} className="p-2 mr-1 text-muted hover:text-primary md:hidden focus-ring cursor-pointer" aria-label="Close sidebar">
+              <button 
+                onClick={() => setMobileOpen(false)} 
+                className="p-2 mr-1 text-muted hover:text-primary md:hidden focus-ring cursor-pointer" 
+                aria-label="Close sidebar"
+              >
                 <X className="w-4 h-4" />
               </button>
             </>
@@ -130,7 +139,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
 
         {/* Tab content */}
         {isSidebarExpanded && (
-          <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-3">
+          <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-3 md:py-4">
 
             {activeTab === 'agents' && (
               <div className="space-y-4">

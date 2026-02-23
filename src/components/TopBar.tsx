@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Zap, ChevronDown, Pause, Settings, User, WifiOff } from 'lucide-react';
+import { Zap, ChevronDown, Pause, Settings, User, WifiOff, Menu } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAgentList } from '../rpc.ts';
 import { LightDarkSelector } from './ui/light-dark-selector.tsx';
 import NotificationMenu from './ui/notification-menu.tsx';
 import { useConnectionStatus } from '../hooks/useConnectionStatus.ts';
+import { useSidebar } from './SidebarContext.tsx';
 
 interface TopBarProps {
   currentAgentId: string | null;
@@ -48,6 +49,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { isOnline } = useConnectionStatus();
+  const { toggleMobileSidebar } = useSidebar();
 
   const agentList = agents.data || [];
   const currentAgent = agentList.find(a => a.id === currentAgentId);
@@ -72,6 +74,15 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
           <Zap className="w-4 h-4 text-white" fill="currentColor" />
         </div>
         <span className="text-primary font-bold tracking-tight text-sm hidden sm:block">TokenRing</span>
+      </button>
+
+      {/* Mobile Menu Button - Hidden on desktop */}
+      <button
+        onClick={toggleMobileSidebar}
+        className="md:hidden p-2 rounded-lg hover:bg-hover transition-colors text-muted focus-ring cursor-pointer"
+        aria-label="Open menu"
+      >
+        <Menu className="w-5 h-5" />
       </button>
 
       <div className="w-px h-5 bg-primary shrink-0" />
