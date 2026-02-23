@@ -52,7 +52,11 @@ export default function App() {
               <main className="flex-1 min-h-0 relative">
                 <ErrorBoundary>
                   <Routes>
-                    <Route path="/agent/:agentId/*" element={<ChatPage key={currentAgentId} agentId={currentAgentId!} />} />
+                    <Route path="/agent/:agentId/*" element={
+                      currentAgentId && agents.data && !agents.data.find(a => a.id === currentAgentId)
+                        ? <div className="flex items-center justify-center h-full text-muted">Agent <code className="mx-1 px-1 bg-primary rounded">{currentAgentId}</code> not found</div>
+                        : <ChatPage key={currentAgentId} agentId={currentAgentId!} />
+                    } />
                     <Route path="/" element={
                       <AgentSelection
                         agents={agents}

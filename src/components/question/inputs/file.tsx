@@ -6,7 +6,7 @@ import { filesystemRPCClient } from '../../../rpc.ts';
 interface FileSelectorProps {
   agentId: string;
   question: ParsedFileSelectQuestion;
-  onSubmit: (selected: ResultTypeForQuestion<ParsedFileSelectQuestion>) => void;
+  onSubmit: (selected: ResultTypeForQuestion<ParsedFileSelectQuestion> | null) => void;
 }
 
 export default function FileInputQuestion({

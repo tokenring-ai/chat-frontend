@@ -78,7 +78,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, depth, selected, onToggle, mu
 
 type TreeSelectorProps = {
   question: ParsedTreeSelectQuestion;
-  onSubmit: (value: ResultTypeForQuestion<ParsedTreeSelectQuestion>) => void;
+  onSubmit: (value: ResultTypeForQuestion<ParsedTreeSelectQuestion> | null) => void;
 }
 
 
