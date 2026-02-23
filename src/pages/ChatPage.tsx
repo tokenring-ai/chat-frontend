@@ -1,7 +1,6 @@
 import {useMemo, useState} from 'react';
 import AutoScrollContainer from '../components/chat/AutoScrollContainer.tsx';
 import ChatFooter from '../components/chat/ChatFooter.tsx';
-import ChatHeader from '../components/chat/ChatHeader.tsx';
 import MessageList from '../components/chat/MessageList.tsx';
 import FileBrowserOverlay from '../components/overlay/file-browser.tsx';
 import {useAgentEventState} from '../hooks/useAgentEventState.ts';
@@ -67,9 +66,6 @@ export default function ChatPage({ agentId }: { agentId: string }) {
         isOpen={showFileBrowser}
         onClose={() => setShowFileBrowser(false)}
       />
-
-      <ChatHeader agentId={agentId} idle={idle}/>
-      
       <div className="flex flex-col flex-1 overflow-hidden">
         <AutoScrollContainer>
           <MessageList messages={messages} agentId={agentId} busyWith={busyWith || undefined} />

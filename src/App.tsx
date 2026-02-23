@@ -3,11 +3,14 @@ import './index.css';
 import { useAgentList, useAgentTypes, useWorkflows } from "./rpc.ts";
 import AgentSelection from './pages/AgentSelection.tsx';
 import ChatPage from './pages/ChatPage.tsx';
+import TopBar from './components/TopBar.tsx';
 import Sidebar from './components/Sidebar.tsx';
 import { SidebarProvider } from './components/SidebarContext.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import { ChatInputProvider } from './components/ChatInputContext.tsx';
 import { ToastContainer, notificationManager } from './components/ui/toast.tsx';
+import ModelSelector from './components/ModelSelector.tsx';
+import ToolSelector from './components/ToolSelector.tsx';
 import { useEffect, useState } from 'react';
 
 export default function App() {
@@ -41,15 +44,25 @@ export default function App() {
       <ChatInputProvider>
         <ErrorBoundary>
           <ToastContainer toasts={toasts || []} onRemove={(id) => notificationManager.removeToast(id)}/>
-          <div className="flex h-dvh bg-primary/50 text-secondary antialiased font-sans selection:bg-indigo-500/30 overflow-hidden">
-            <Sidebar
-              currentAgentId={currentAgentId || ''}
+          <div className="flex flex-col h-dvh bg-primary/50 text-secondary antialiased font-sans selection:bg-indigo-500/30 overflow-hidden">
+            <TopBar
+              currentAgentId={currentAgentId}
               agents={agents}
-              workflows={workflows}
-              agentTypes={agentTypes}
+              agentControls={currentAgentId ? (
+                <>
+                  <ModelSelector agentId={currentAgentId} />
+                  <ToolSelector agentId={currentAgentId} />
+                </>
+              ) : undefined}
             />
-            <div className="flex-1 flex flex-col relative min-w-0">
-              <main className="flex-1 min-h-0 relative">
+            <div className="flex flex-1 min-h-0">
+              <Sidebar
+                currentAgentId={currentAgentId || ''}
+                agents={agents}
+                workflows={workflows}
+                agentTypes={agentTypes}
+              />
+              <main className="flex-1 min-w-0 relative">
                 <ErrorBoundary>
                   <Routes>
                     <Route path="/agent/:agentId/*" element={
