@@ -52,7 +52,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
     if (!confirmDelete) return;
     const agentId = confirmDelete;
     setConfirmDelete(null);
-    await agentRPCClient.deleteAgent({ agentId });
+    await agentRPCClient.deleteAgent({ agentId, reason: "User initiated agent deletion from sidebar in Chat Web UI" });
     await agents.mutate();
     if (currentAgentId === agentId) navigateAndClose('/');
   };

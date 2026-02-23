@@ -58,7 +58,7 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
     setConfirmDelete(null);
     setDeletingAgentId(agentId);
     try {
-      await agentRPCClient.deleteAgent({ agentId });
+      await agentRPCClient.deleteAgent({ agentId, reason: "User initiated agent deletion from agent selection screen in Chat Web UI" });
       await agents.mutate();
     } finally {
       setDeletingAgentId(null);

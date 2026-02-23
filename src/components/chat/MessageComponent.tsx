@@ -203,8 +203,6 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
           <ArtifactDisplay artifact={msg} />
         ) : msg.type === 'reset' ? (
           <p>Reset: {msg.what.join(', ')}</p>
-        ) : msg.type === 'input.handled' ? (
-          <p>[{msg.status}] {msg.message}</p>
         ) : msg.type === 'question.request' ? (
           <InlineQuestion request={msg} agentId={agentId} response={response} />
         ) : 'message' in msg ? (
@@ -224,7 +222,6 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
             {msg.message}
           </ReactMarkdown>
         ) : null}
-
         <MessageFooter 
           msg={msg} 
           onDownload={msg.type === 'output.artifact' ? () => {
@@ -241,7 +238,7 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
       </div>
     </motion.div>
   );
-}// ... existing code ...
+}
 function ArtifactDisplay({ artifact }: { artifact: Extract<AgentEventEnvelope, { type: 'output.artifact' }> }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const mime = artifact.mimeType;
