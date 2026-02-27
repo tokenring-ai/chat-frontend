@@ -4,7 +4,6 @@ import ChatFooter from '../components/chat/ChatFooter.tsx';
 import MessageList from '../components/chat/MessageList.tsx';
 import FileBrowserOverlay from '../components/overlay/file-browser.tsx';
 import {useAgentEventState} from '../hooks/useAgentEventState.ts';
-import {useAgentExecutionState} from '../hooks/useAgentExecutionState.ts';
 import {agentRPCClient, useAvailableCommands, useCommandHistory} from '../rpc.ts';
 import { useChatInput } from '../components/ChatInputContext.tsx';
 import { toastManager } from '../components/ui/toast.tsx';
@@ -21,8 +20,9 @@ export default function ChatPage({ agentId }: { agentId: string }) {
     setPersistedInput(agentId, value);
   };
   
-  const { messages } = useAgentEventState(agentId);
-  const { idle, busyWith, statusLine, waitingOn } = useAgentExecutionState(agentId);
+  const { messages, executionState } = useAgentEventState(agentId);
+  const { busyWith, statusLine, waitingOn } = executionState;
+  const idle = executionState.inputQueue.length === 0 && executionState.waitingOn.length === 0 && executionState.running;
   const commandHistory = useCommandHistory(agentId);
   const availableCommands = useAvailableCommands(agentId);
 
@@ -45,7 +45,7 @@ export default function ChatPage({ agentId }: { agentId: string }) {
       setTimeout(() => setInputError(false), 1000);
       return;
     }
-    if (!idle || !!waitingOn) return;
+    if (!idle) return;
     const message = input;
     setInput('');
     clearInput(agentId);
@@ -68,7 +68,7 @@ export default function ChatPage({ agentId }: { agentId: string }) {
       />
       <div className="flex flex-col flex-1 overflow-hidden">
         <AutoScrollContainer>
-          <MessageList messages={messages} agentId={agentId} busyWith={busyWith || undefined} />
+          <MessageList messages={messages} agentId={agentId} busyWith={busyWith} />
         </AutoScrollContainer>
 
         <ChatFooter
@@ -78,8 +78,7 @@ export default function ChatPage({ agentId }: { agentId: string }) {
           inputError={inputError}
           setInputError={setInputError}
           idle={idle}
-          waitingOn={waitingOn ? 'waiting' : undefined}
-          statusLine={statusLine || undefined}
+          statusLine={statusLine}
           availableCommands={filteredAvailableCommands}
           commandHistory={commandHistory.data || []}
           showHistory={showHistory}

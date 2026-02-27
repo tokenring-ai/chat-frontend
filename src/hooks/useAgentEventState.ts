@@ -1,8 +1,20 @@
-import {AgentEventEnvelope} from "@tokenring-ai/agent/AgentEvents";
+import {AgentEventEnvelope, AgentExecutionStateSchema} from "@tokenring-ai/agent/AgentEvents";
 import { useState, useEffect, useRef } from 'react';
+import {z} from "zod";
 import { agentRPCClient } from '../rpc.ts';
 export function useAgentEventState(agentId: string) {
   const [messages, setMessages] = useState<AgentEventEnvelope[]>([]);
+  const [executionState, setExecutionState] = useState<z.output<typeof AgentExecutionStateSchema>>({
+    type: 'agent.execution',
+    running: false,
+    busyWith: null,
+    statusLine: null,
+    currentlyExecuting: null,
+    waitingOn: [],
+    inputQueue: [],
+    timestamp: 0,
+  });
+
   const [position, setPosition] = useState(0);
   const stateRef = useRef({ messages: [] as AgentEventEnvelope[], position: 0 });
 
@@ -75,6 +87,14 @@ export function useAgentEventState(agentId: string) {
                   }
                   messagesChanged = true;
                   break;
+                case 'agent.execution':
+                  setExecutionState(event);
+                  messagesChanged = true;
+                  break;
+                default:
+                  // noinspection JSUnusedLocalSymbols
+                  const foo: never = event;
+                  break;
               }
             }
 
@@ -99,5 +119,5 @@ export function useAgentEventState(agentId: string) {
     return () => abortController.abort();
   }, [agentId]);
 
-  return { messages, position };
+  return { messages, executionState, position };
 }

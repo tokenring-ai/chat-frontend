@@ -10,8 +10,7 @@ interface ChatFooterProps {
   inputError: boolean;
   setInputError: (value: boolean) => void;
   idle: boolean;
-  waitingOn?: string;
-  statusLine?: string;
+  statusLine: string | null;
   availableCommands: string[];
   commandHistory: string[];
   showHistory: boolean;
@@ -27,7 +26,6 @@ export default function ChatFooter({
   inputError,
   setInputError,
   idle,
-  waitingOn,
   statusLine,
   availableCommands,
   commandHistory,
@@ -142,7 +140,7 @@ export default function ChatFooter({
                 setInputError(false);
               }}
               onKeyDown={handleKeyDown}
-              disabled={!idle || !!waitingOn}
+              disabled={!idle }
               rows={1}
               className={`w-full bg-transparent border-none focus:ring-0 resize-none text-sm font-mono text-primary placeholder-muted p-0 leading-relaxed outline-none disabled:opacity-50 ${
                 inputError ? 'placeholder:text-red-400/50' : ''

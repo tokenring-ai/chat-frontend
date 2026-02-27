@@ -24,7 +24,7 @@ export default function ChatHeader({ agentId, idle }: { agentId: string, idle: b
         <div className="flex items-center gap-2.5">
           <div className={`w-2 h-2 rounded-full ${idle ? 'bg-indigo-500' : 'bg-amber-500'} animate-pulse`} aria-label={idle ? 'Agent is idle' : 'Agent is busy'} role="status" />
           <span className="text-xs font-medium text-muted">
-            {agent.data?.config.name}
+            {agent.data?.config.displayName}
           </span>
         </div>
       </div>

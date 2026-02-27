@@ -95,7 +95,7 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
                 <div className="col-span-full px-4 py-6 text-center border border-dashed border-primary rounded-lg text-xs text-muted italic">
                   No agents currently active
                 </div>
-              ) : agents.data!.map((a: AgentItem) => (
+              ) : agents.data!.map((a) => (
                 <div key={a.id} className="group flex items-center gap-3 bg-secondary border border-primary px-3 py-2.5 rounded-lg hover:border-amber-500/40 hover:bg-hover transition-all">
                   <div className="shrink-0">
                     {a.idle ? <Pause className="w-3.5 h-3.5 text-muted" /> : <div className="w-3.5 h-3.5 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />}
@@ -103,16 +103,16 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
                   <button
                     onClick={() => navigate(`/agent/${a.id}`)}
                     className="flex-1 flex flex-col text-left cursor-pointer min-w-0"
-                    aria-label={`Select agent ${a.name}`}
+                    aria-label={`Select agent ${a.displayName}`}
                   >
-                    <span className="text-sm font-medium text-primary truncate">{a.name}</span>
+                    <span className="text-sm font-medium text-primary truncate">{a.displayName}</span>
                     <span className="text-2xs text-muted truncate mt-0.5">{a.statusMessage || (a.idle ? 'Idle' : 'Busy')}</span>
                   </button>
                   <button
                     onClick={() => setConfirmDelete(a.id)}
                     disabled={deletingAgentId === a.id}
                     className="p-1 text-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 focus-ring cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                    aria-label={`Delete agent ${a.name}`}
+                    aria-label={`Delete agent ${a.displayName}`}
                   >
                     {deletingAgentId === a.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                   </button>
@@ -170,13 +170,13 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
                       onClick={() => createAgent(t.type)}
                       disabled={creatingAgentType === t.type}
                       className="flex items-center gap-3 bg-secondary border border-primary px-3 py-2.5 rounded-lg text-left hover:bg-hover hover:border-indigo-500/40 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
-                      aria-label={`Create new agent: ${t.name}`}
+                      aria-label={`Create new agent: ${t.displayName}`}
                     >
                       <div className="shrink-0 text-indigo-500/70">
                         {creatingAgentType === t.type ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <User className="w-3.5 h-3.5" />}
                       </div>
                       <div className="min-w-0">
-                        <div className="text-sm font-medium text-primary truncate">{t.name}</div>
+                        <div className="text-sm font-medium text-primary truncate">{t.displayName}</div>
                         {t.description && <div className="text-2xs text-muted line-clamp-1 mt-0.5">{t.description}</div>}
                       </div>
                     </button>

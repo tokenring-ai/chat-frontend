@@ -36,6 +36,10 @@ const events: Record<AgentEventEnvelope['type'], EventConfig> = {
     style: 'text-rose-800 dark:text-rose-400 font-medium',
     icon: <div className="w-[1em] h-[1em] mt-1 rounded-full bg-rose-500" />,
   },
+  'agent.execution': {
+    style: 'text-blue-700 dark:text-blue-400',
+    icon: <div className="w-[1em] h-[1em] mt-1 rounded-full bg-blue-500" />,
+  },
   'output.info': {
     style: 'text-secondary',
     icon: <Info className="w-[1em] text-blue-500/70" />,

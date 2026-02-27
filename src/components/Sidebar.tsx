@@ -160,20 +160,20 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigateAndClose(`/agent/${agent.id}`); } }}
                       className={`group flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer ${currentAgentId === agent.id ? 'bg-active border border-primary' : 'hover:bg-hover border border-transparent'}`}
                       role="button" tabIndex={0}
-                      aria-label={`Open agent ${agent.name}`}
+                      aria-label={`Open agent ${agent.displayName}`}
                       aria-current={currentAgentId === agent.id ? 'page' : undefined}
                     >
                       <div className="shrink-0" aria-hidden="true">
                         {agent.idle ? <Pause className="w-3.5 h-3.5 text-muted" /> : <div className="w-3.5 h-3.5 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className={`text-sm font-medium truncate ${currentAgentId === agent.id ? 'text-primary' : 'text-secondary'}`}>{agent.name}</div>
+                        <div className={`text-sm font-medium truncate ${currentAgentId === agent.id ? 'text-primary' : 'text-secondary'}`}>{agent.displayName}</div>
                         <div className="text-2xs text-muted mt-0.5 truncate">{agent.statusMessage || (agent.idle ? 'Idle' : 'Busy')}</div>
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); setConfirmDelete(agent.id); }}
                         className="p-1 text-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 focus-ring cursor-pointer"
-                        aria-label={`Delete agent ${agent.name}`}
+                        aria-label={`Delete agent ${agent.displayName}`}
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
@@ -195,11 +195,11 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                             key={template.type}
                             onClick={() => createAgent(template.type)}
                             className="flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-hover transition-all text-left group w-full focus-ring cursor-pointer"
-                            aria-label={`Create new agent: ${template.name}`}
+                            aria-label={`Create new agent: ${template.displayName}`}
                           >
                             <User className="w-3.5 h-3.5 text-indigo-500/70 group-hover:text-indigo-500 shrink-0 mt-0.5" />
                             <div className="min-w-0">
-                              <div className="text-sm font-medium text-secondary group-hover:text-primary truncate">{template.name}</div>
+                              <div className="text-sm font-medium text-secondary group-hover:text-primary truncate">{template.displayName}</div>
                               <div className="text-2xs text-muted line-clamp-1 mt-0.5">{template.description}</div>
                             </div>
                           </button>

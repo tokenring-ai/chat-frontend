@@ -6,7 +6,7 @@ import { Virtuoso } from 'react-virtuoso';
 interface MessageListProps {
   messages: AgentEventEnvelope[];
   agentId: string;
-  busyWith?: string;
+  busyWith: string | null;
 }
 
 export default function MessageList({ messages, agentId, busyWith }: MessageListProps) {

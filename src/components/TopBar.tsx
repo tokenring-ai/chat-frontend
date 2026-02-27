@@ -98,7 +98,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
           {currentAgent ? (
             <>
               <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${currentAgent.idle ? 'bg-indigo-500' : 'bg-amber-500'}`} />
-              <span className="text-primary font-medium max-w-48 truncate">{currentAgent.name}</span>
+              <span className="text-primary font-medium max-w-48 truncate">{currentAgent.displayName}</span>
             </>
           ) : (
             <span className="text-muted">Select agent</span>
@@ -133,7 +133,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
                     }
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-primary truncate">{agent.name}</div>
+                    <div className="text-sm font-medium text-primary truncate">{agent.displayName}</div>
                     <div className="text-2xs text-muted truncate">{agent.statusMessage || (agent.idle ? 'Idle' : 'Busy')}</div>
                   </div>
                 </button>
