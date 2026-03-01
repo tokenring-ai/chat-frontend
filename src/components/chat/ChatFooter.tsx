@@ -1,7 +1,14 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { History, Paperclip, Send, Square } from 'lucide-react';
-import React, { useRef, useEffect, useState } from 'react';
+import { FolderOpen, History, Paperclip, Send, Square, X, FileText, Image, FileCode, File } from 'lucide-react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { agentRPCClient } from '../../rpc.ts';
+import type { InputAttachment } from '@tokenring-ai/agent/AgentEvents';
+
+interface FileAttachment {
+  id: string;
+  file: File;
+  attachment: InputAttachment;
+}
 
 interface ChatFooterProps {
   agentId: string;
@@ -16,8 +23,19 @@ interface ChatFooterProps {
   showHistory: boolean;
   setShowHistory: (value: boolean) => void;
   setShowFileBrowser: (value: boolean) => void;
-  onSubmit: () => void;
+  onSubmit: (attachments?: InputAttachment[]) => void;
 }
+
+// Get file icon based on mime type
+function getFileIcon(mimeType: string) {
+  if (mimeType.startsWith('image/')) return Image;
+  if (mimeType.startsWith('text/')) return FileText;
+  if (mimeType.includes('json') || mimeType.includes('javascript') || mimeType.includes('typescript')) return FileCode;
+  return File;
+}
+
+// Maximum file size (5MB)
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export default function ChatFooter({
   agentId,
@@ -35,9 +53,11 @@ export default function ChatFooter({
   onSubmit,
 }: ChatFooterProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedSuggestion, setSelectedSuggestion] = useState(0);
   const [historyIndex, setHistoryIndex] = useState<number | null>(null);
   const [historyBuffer, setHistoryBuffer] = useState('');
+  const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const isNavigatingHistoryRef = useRef(false);
 
   // Reset history navigation when user manually types
@@ -49,6 +69,86 @@ export default function ChatFooter({
     // Reset the ref after the effect runs
     isNavigatingHistoryRef.current = false;
   }, [input, historyIndex]);
+
+  // Read file and convert to InputAttachment
+  const readFileAsAttachment = useCallback(async (file: File): Promise<FileAttachment> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = () => {
+        const arrayBuffer = reader.result as ArrayBuffer;
+        const bytes = new Uint8Array(arrayBuffer);
+        
+        // Convert to base64
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        const base64 = btoa(binary);
+        
+        const attachment: InputAttachment = {
+          name: file.name,
+          encoding: 'base64',
+          mimeType: file.type || 'application/octet-stream',
+          body: base64,
+          timestamp: Date.now(),
+        };
+        
+        resolve({
+          id: `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          file,
+          attachment,
+        });
+      };
+      
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsArrayBuffer(file);
+    });
+  }, []);
+
+  // Handle file selection
+  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const newAttachments: FileAttachment[] = [];
+    
+    for (const file of Array.from(files)) {
+      // Check file size
+      if (file.size > MAX_FILE_SIZE) {
+        console.warn(`File ${file.name} exceeds 5MB limit`);
+        continue;
+      }
+      
+      try {
+        const attachment = await readFileAsAttachment(file);
+        newAttachments.push(attachment);
+      } catch (error) {
+        console.error(`Failed to read file ${file.name}:`, error);
+      }
+    }
+    
+    if (newAttachments.length > 0) {
+      setAttachments(prev => [...prev, ...newAttachments]);
+    }
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [readFileAsAttachment]);
+
+  // Remove attachment
+  const removeAttachment = useCallback((id: string) => {
+    setAttachments(prev => prev.filter(a => a.id !== id));
+  }, []);
+
+  // Handle submit with attachments
+  const handleSubmitWithAttachments = useCallback(() => {
+    const inputAttachments = attachments.length > 0 ? attachments.map(a => a.attachment) : undefined;
+    onSubmit(inputAttachments);
+    setAttachments([]);
+  }, [attachments, onSubmit]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     // Handle command suggestions with arrow keys
@@ -117,13 +217,62 @@ export default function ChatFooter({
 
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      onSubmit();
+      handleSubmitWithAttachments();
     }
   };
 
   return (
     <footer className="shrink-0 bg-secondary border-t border-primary relative">
       <div className="relative">
+        {/* Hidden file input for local file upload */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          onChange={handleFileSelect}
+          className="hidden"
+          aria-label="Upload files"
+        />
+
+        {/* Attachments preview */}
+        <AnimatePresence>
+          {attachments.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="border-b border-primary overflow-hidden"
+            >
+              <div className="flex flex-wrap gap-2 px-6 py-2">
+                {attachments.map(({ id, file, attachment }) => {
+                  const Icon = getFileIcon(attachment.mimeType);
+                  return (
+                    <motion.div
+                      key={id}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="flex items-center gap-2 bg-tertiary px-3 py-1.5 rounded-md group"
+                    >
+                      <Icon className="w-4 h-4 text-muted" />
+                      <span className="text-xs text-primary font-mono max-w-[150px] truncate">
+                        {file.name}
+                      </span>
+                      <button
+                        onClick={() => removeAttachment(id)}
+                        className="text-muted hover:text-red-400 transition-colors focus-ring rounded"
+                        aria-label={`Remove ${file.name}`}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div className="flex items-start gap-4 px-6 py-4">
           <div className="shrink-0 h-lh items-center flex justify-center select-none text-lg">
             <span className="text-indigo-500 font-bold">&gt;</span>
@@ -198,7 +347,7 @@ export default function ChatFooter({
             {idle ? (
               <button
                 aria-label="Send message"
-                onClick={onSubmit}
+                onClick={handleSubmitWithAttachments}
                 className="p-2 rounded hover:bg-hover transition-colors text-muted hover:text-primary focus-ring"
               >
                 <Send className="w-5 h-5" />
@@ -217,13 +366,22 @@ export default function ChatFooter({
 
         <div className="min-h-10 py-2 bg-secondary border-t border-primary flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 gap-2 sm:gap-0">
           <div className="flex items-center gap-2 order-2 sm:order-1">
-            {/* File attachment button */}
+            {/* Local file upload button */}
             <button
-              aria-label="Attach file or context"
+              aria-label="Attach file"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={!idle}
+              className="p-1.5 rounded hover:bg-hover transition-colors text-muted hover:text-primary focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Paperclip className="w-5 h-5" />
+            </button>
+            {/* Remote file browser button */}
+            <button
+              aria-label="Browse remote files"
               onClick={() => setShowFileBrowser(true)}
               className="p-1.5 rounded hover:bg-hover transition-colors text-muted hover:text-primary focus-ring"
             >
-              <Paperclip className="w-5 h-5" />
+              <FolderOpen className="w-5 h-5" />
             </button>
             <button
               aria-label={showHistory ? 'Hide command history' : 'Show command history'}
@@ -241,6 +399,11 @@ export default function ChatFooter({
             <span className={`text-2xs ${idle ? 'text-indigo-400' : 'text-amber-400'} font-mono uppercase`}>
               {idle ? 'Online' : 'Busy'}
             </span>
+            {attachments.length > 0 && (
+              <span className="text-2xs text-cyan-400 font-mono">
+                • {attachments.length} file{attachments.length !== 1 ? 's' : ''}
+              </span>
+            )}
           </div>
         </div>
 

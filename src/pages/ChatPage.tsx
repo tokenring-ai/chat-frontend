@@ -7,6 +7,7 @@ import {useAgentEventState} from '../hooks/useAgentEventState.ts';
 import {agentRPCClient, useAvailableCommands, useCommandHistory} from '../rpc.ts';
 import { useChatInput } from '../components/ChatInputContext.tsx';
 import { toastManager } from '../components/ui/toast.tsx';
+import type { InputAttachment } from '@tokenring-ai/agent/AgentEvents';
 
 export default function ChatPage({ agentId }: { agentId: string }) {
   const { getInput, setInput: setPersistedInput, clearInput } = useChatInput();
@@ -39,7 +40,7 @@ export default function ChatPage({ agentId }: { agentId: string }) {
     return ret;
   }, [availableCommands.data, input]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (attachments?: InputAttachment[]) => {
     if (!input.trim()) {
       setInputError(true);
       setTimeout(() => setInputError(false), 1000);
@@ -51,7 +52,11 @@ export default function ChatPage({ agentId }: { agentId: string }) {
     clearInput(agentId);
     setInputError(false);
     try {
-      await agentRPCClient.sendInput({ agentId, message });
+      await agentRPCClient.sendInput({ 
+        agentId, 
+        message,
+        attachments,
+      });
       const newHistory = [...(commandHistory.data || []), message].slice(-50);
       await commandHistory.mutate(newHistory);
     } catch (error: any) {

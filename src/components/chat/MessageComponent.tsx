@@ -1,11 +1,14 @@
-import {type AgentEventEnvelope, type QuestionResponse} from "@tokenring-ai/agent/AgentEvents";
+import {type AgentEventEnvelope, type QuestionResponse, type InputAttachment} from "@tokenring-ai/agent/AgentEvents";
 import { motion } from 'framer-motion';
-import { Check, Copy, ChevronDown, Code, FileText, FileJson, Image as ImageIcon, Layout, Download } from 'lucide-react';
+import { Check, Copy, ChevronDown, Code, FileText, FileJson, Image as ImageIcon, Layout, Download, Square, Zap } from 'lucide-react';
 import React, {useState, useMemo} from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import InlineQuestion from '../question/InlineQuestion.tsx';
-import { Bot, FileCode, Info, Square, Zap } from 'lucide-react';
+import { Bot, FileCode, Info } from 'lucide-react';
+import AttachmentChip from './AttachmentChip';
+
+const utf8decoder = new TextDecoder('utf-8'); // Specify the encoding (UTF-8 is default)
 
 const formatTimestamp = (timestamp: number) => {
   return new Date(timestamp).toLocaleTimeString([], { 
@@ -54,7 +57,7 @@ const events: Record<AgentEventEnvelope['type'], EventConfig> = {
   },
   'output.artifact': {
     style: 'text-blue-700 dark:text-blue-400',
-    icon: <FileCode className="w-[1em] text-muted" />, // This will be overridden dynamically
+    icon: <FileCode className="w-[1em] text-muted" />,
   },
   'output.chat': {
     style: 'text-primary',
@@ -171,7 +174,6 @@ function MessageFooter({ msg, onDownload }: { msg: AgentEventEnvelope; onDownloa
 }
 
 export default function MessageComponent({ msg, agentId, response }: MessageComponentProps) {
-  // Get artifact-specific icon if this is an artifact message
   const messageIcon = useMemo(() => {
     if (msg.type === 'output.artifact') {
       const mime = msg.mimeType;
@@ -183,6 +185,8 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
     }
     return events[msg.type].icon;
   }, [msg]);
+
+  const hasAttachments = msg.type === 'input.received' && msg.attachments && msg.attachments.length > 0;
 
   return (
     <motion.div
@@ -202,7 +206,7 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
         {messageIcon}
       </div>
 
-      <div className={`prose prose-sm dark:prose-invert ${events[msg.type].style}`}>
+      <div className={`prose prose-sm dark:prose-invert ${events[msg.type].style} w-full`}>
         {msg.type === 'output.artifact' ? (
           <ArtifactDisplay artifact={msg} />
         ) : msg.type === 'reset' ? (
@@ -210,21 +214,38 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
         ) : msg.type === 'question.request' ? (
           <InlineQuestion request={msg} agentId={agentId} response={response} />
         ) : 'message' in msg ? (
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              code: ({ node, className, children, ...props }) => {
-                const text = String(children).trim();
-                if (text.includes("\n")) { // Multi-line code block
-                  return <CodeBlock className={className}>{text}</CodeBlock>;
-                } else {
-                  return <code className={className} {...props}>{text}</code>;
+          <>
+            {/* Message content */}
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                code: ({ node, className, children, ...props }) => {
+                  const text = String(children).trim();
+                  if (text.includes("\n")) {
+                    return <CodeBlock className={className}>{text}</CodeBlock>;
+                  } else {
+                    return <code className={className} {...props}>{text}</code>;
+                  }
                 }
-              }
-            }}
-          >
-            {msg.message}
-          </ReactMarkdown>
+              }}
+            >
+              {msg.message}
+            </ReactMarkdown>
+
+            {/* Attachments displayed below the message */}
+            {hasAttachments && (
+              <div className="not-prose mt-4 mb-2">
+                <div className="flex flex-wrap gap-2">
+                  {msg.attachments!.map((attachment, index) => (
+                    <AttachmentChip 
+                      key={`${attachment.name}-${attachment.timestamp}-${index}`} 
+                      attachment={attachment} 
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         ) : null}
         <MessageFooter 
           msg={msg} 
@@ -243,18 +264,18 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
     </motion.div>
   );
 }
+
 function ArtifactDisplay({ artifact }: { artifact: Extract<AgentEventEnvelope, { type: 'output.artifact' }> }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const mime = artifact.mimeType;
 
   const decodedBody = useMemo(() => {
-    if (artifact.encoding === 'base64') return Buffer.from(artifact.body, 'base64');
+    if (artifact.encoding === 'base64') return Uint8Array.fromBase64(artifact.body);
     return artifact.body;
   }, [artifact]);
 
-  const textBody = typeof decodedBody === "string" ? decodedBody : decodedBody.toString("utf-8");
+  const textBody = typeof decodedBody === "string" ? decodedBody : utf8decoder.decode(decodedBody);
 
-  // Get summary based on mime type
   const summary = useMemo(() => {
     if (mime === 'text/x-diff') {
       const lines = textBody.split('\n');
