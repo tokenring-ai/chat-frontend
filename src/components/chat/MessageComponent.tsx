@@ -1,6 +1,6 @@
 import {type AgentEventEnvelope, type QuestionResponse, type InputAttachment} from "@tokenring-ai/agent/AgentEvents";
 import { motion } from 'framer-motion';
-import { Check, Copy, ChevronDown, Code, FileText, FileJson, Image as ImageIcon, Layout, Download, Square, Zap } from 'lucide-react';
+import { Check, Copy, ChevronDown, Code, FileText, FileJson, Image as ImageIcon, Layout, Download, Square, Zap, Pause, Play, Activity } from 'lucide-react';
 import React, {useState, useMemo} from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -83,13 +83,21 @@ const events: Record<AgentEventEnvelope['type'], EventConfig> = {
     style: 'text-cyan-800 bg-cyan-50 dark:text-cyan-300 dark:bg-cyan-950/30 px-2 py-1 rounded border border-cyan-100 dark:border-cyan-900/50',
     icon: <span className="text-cyan-500 font-bold flex items-center">!</span>,
   },
-  'reset': {
-    style: 'text-purple-700 dark:text-purple-400',
-    icon: <span className="text-purple-500 font-bold flex items-center">↺</span>,
-  },
   'abort': {
     style: 'text-red-700 dark:text-red-400 font-medium',
     icon: <Square className="w-[1em] text-red-500" />,
+  },
+  'pause': {
+    style: 'text-amber-700 dark:text-amber-400 font-medium',
+    icon: <Pause className="w-[1em] text-amber-500" />,
+  },
+  'resume': {
+    style: 'text-emerald-700 dark:text-emerald-400 font-medium',
+    icon: <Play className="w-[1em] text-emerald-500" />,
+  },
+  'status': {
+    style: 'text-blue-700 dark:text-blue-400',
+    icon: <Activity className="w-[1em] text-blue-500/70" />,
   },
 };
 
@@ -209,8 +217,6 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
       <div className={`prose prose-sm dark:prose-invert ${events[msg.type].style} w-full`}>
         {msg.type === 'output.artifact' ? (
           <ArtifactDisplay artifact={msg} />
-        ) : msg.type === 'reset' ? (
-          <p>Reset: {msg.what.join(', ')}</p>
         ) : msg.type === 'question.request' ? (
           <InlineQuestion request={msg} agentId={agentId} response={response} />
         ) : 'message' in msg ? (

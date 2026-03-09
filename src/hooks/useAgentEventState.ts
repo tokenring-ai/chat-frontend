@@ -4,11 +4,12 @@ import {z} from "zod";
 import { agentRPCClient } from '../rpc.ts';
 export function useAgentEventState(agentId: string) {
   const [messages, setMessages] = useState<AgentEventEnvelope[]>([]);
+  const [status, setStatus] = useState<string|null>(null);
   const [executionState, setExecutionState] = useState<z.output<typeof AgentExecutionStateSchema>>({
     type: 'agent.execution',
     running: false,
+    paused: false,
     busyWith: null,
-    statusLine: null,
     currentlyExecuting: null,
     waitingOn: [],
     inputQueue: [],
@@ -64,12 +65,19 @@ export function useAgentEventState(agentId: string) {
                 case 'output.error':
                 case 'question.request':
                 case 'question.response':
-                case 'reset':
                 case 'abort':
+                case 'pause':
+                case 'resume':
+                  currentMessages.push(event)
+                  messagesChanged = true;
+                  break;
+                case 'status':
+                  setStatus(event.message);
                   currentMessages.push(event)
                   messagesChanged = true;
                   break;
                 case 'input.handled':
+                  setStatus(null);
                   if (event.status === 'error') {
                     mergeMessage({
                       type: 'output.error',
@@ -119,5 +127,5 @@ export function useAgentEventState(agentId: string) {
     return () => abortController.abort();
   }, [agentId]);
 
-  return { messages, executionState, position };
+  return { messages, executionState, position, status };
 }

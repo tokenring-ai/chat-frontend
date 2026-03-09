@@ -13,7 +13,7 @@ export default {
   version: packageJSON.version,
   description: packageJSON.description,
   install(app, config) {
-    const indexHTML = path.resolve(app.packageDirectory,"frontend/chat/index.html");
+    const indexHTML = path.resolve(app.config.app.packageDirectory,"frontend/chat/index.html");
     if (! fs.existsSync(indexHTML)) {
       throw new Error(`Chat frontend not found at ${indexHTML}`);
     }
@@ -22,7 +22,7 @@ export default {
       webHostService.registerResource("Agent Chat Application", new SPAResource({
           type: 'spa',
           description: packageJSON.description,
-          file: path.resolve(app.packageDirectory,"frontend/chat/index.html"),
+          file: path.resolve(app.config.app.packageDirectory,"frontend/chat/index.html"),
           prefix: "/chat/"
       }));
     });

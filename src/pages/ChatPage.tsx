@@ -21,9 +21,15 @@ export default function ChatPage({ agentId }: { agentId: string }) {
     setPersistedInput(agentId, value);
   };
   
-  const { messages, executionState } = useAgentEventState(agentId);
-  const { busyWith, statusLine, waitingOn } = executionState;
-  const idle = executionState.inputQueue.length === 0 && executionState.waitingOn.length === 0 && executionState.running;
+  const { messages, executionState, status } = useAgentEventState(agentId);
+  const { busyWith, waitingOn, paused } = executionState;
+
+  const idle = executionState.inputQueue.length === 0 && executionState.waitingOn.length === 0 && executionState.running && !paused;
+
+  const statusMessage = idle || waitingOn.length > 0
+    ? 'Waiting for input'
+    : status ?? "Working";
+
   const commandHistory = useCommandHistory(agentId);
   const availableCommands = useAvailableCommands(agentId);
 
@@ -83,7 +89,8 @@ export default function ChatPage({ agentId }: { agentId: string }) {
           inputError={inputError}
           setInputError={setInputError}
           idle={idle}
-          statusLine={statusLine}
+          paused={paused}
+          statusMessage={ statusMessage }
           availableCommands={filteredAvailableCommands}
           commandHistory={commandHistory.data || []}
           showHistory={showHistory}
