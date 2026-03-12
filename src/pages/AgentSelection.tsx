@@ -106,7 +106,7 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
                     aria-label={`Select agent ${a.displayName}`}
                   >
                     <span className="text-sm font-medium text-primary truncate">{a.displayName}</span>
-                    <span className="text-2xs text-muted truncate mt-0.5">{a.statusMessage || (a.idle ? 'Idle' : 'Busy')}</span>
+                    <span className="text-2xs text-muted truncate mt-0.5">{a.currentActivity}</span>
                   </button>
                   <button
                     onClick={() => setConfirmDelete(a.id)}

@@ -1,12 +1,14 @@
 import type { ParsedTreeSelectQuestion, TreeLeaf } from '@tokenring-ai/agent/question';
 import { Check, ChevronDown, ChevronRight, X, Send } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
-import { agentRPCClient } from "../../../rpc.ts";
+import { sendInteractionResponse } from "../sendInteractionResponse.ts";
 
 interface TreeInlineProps {
   question: ParsedTreeSelectQuestion;
   agentId: string;
   requestId: string;
+  interactionId?: string;
+  onSubmitValue?: (value: string[] | null) => Promise<void> | void;
   onClose: () => void;
   autoFocus?: boolean;
 }
@@ -111,7 +113,15 @@ const CompactTreeNode: React.FC<{
   );
 };
 
-export default function TreeInlineQuestion({ question, agentId, requestId, onClose, autoFocus = true }: TreeInlineProps) {
+export default function TreeInlineQuestion({
+  question,
+  agentId,
+  requestId,
+  interactionId,
+  onSubmitValue,
+  onClose,
+  autoFocus = true
+}: TreeInlineProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set(question.defaultValue ?? []));
   const [expandedNodes, setExpandedNodes] = useState<Set<number>>(new Set([0]));
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -174,20 +184,31 @@ export default function TreeInlineQuestion({ question, agentId, requestId, onClo
     if (!isSelectionValid()) return;
     setIsSubmitting(true);
     const values = Array.from(selected);
-    await agentRPCClient.sendQuestionResponse({
-      agentId,
-      requestId,
-      response: { type: 'question.response', requestId, result: values.length > 0 ? values : null, timestamp: Date.now() },
-    });
+    const result = values.length > 0 ? values : null;
+    if (onSubmitValue) {
+      await onSubmitValue(result);
+    } else if (interactionId) {
+      await sendInteractionResponse({
+        agentId,
+        requestId,
+        interactionId,
+        result,
+      });
+    }
     onClose();
   };
 
   const handleCancel = async () => {
-    await agentRPCClient.sendQuestionResponse({
-      agentId,
-      requestId,
-      response: { type: 'question.response', requestId, result: null, timestamp: Date.now() },
-    });
+    if (onSubmitValue) {
+      await onSubmitValue(null);
+    } else if (interactionId) {
+      await sendInteractionResponse({
+        agentId,
+        requestId,
+        interactionId,
+        result: null,
+      });
+    }
     onClose();
   };
 

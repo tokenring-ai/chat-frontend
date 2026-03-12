@@ -1,44 +1,81 @@
-import {AgentEventEnvelope, AgentExecutionStateSchema} from "@tokenring-ai/agent/AgentEvents";
-import { useState, useEffect, useRef } from 'react';
+import {
+  AgentStatusSchema,
+  InputExecutionStateSchema,
+  type AgentEventEnvelope,
+} from "@tokenring-ai/agent/AgentEvents";
+import {useEffect, useRef, useState} from "react";
 import {z} from "zod";
-import { agentRPCClient } from '../rpc.ts';
+import {agentRPCClient} from "../rpc.ts";
+import type {ChatMessage, QuestionInteraction} from "../types/agent-events.ts";
+
+export type RemoteAgentStatus = Omit<AgentStatus, "status"> & {
+  status: AgentStatus["status"] | "connecting";
+};
+type AgentStatus = z.output<typeof AgentStatusSchema>;
+type InputExecutionState = z.output<typeof InputExecutionStateSchema>;
+
+const INITIAL_AGENT_STATUS: RemoteAgentStatus = {
+  type: "agent.status",
+  status: "connecting",
+  currentActivity: "Connecting to the agent...",
+  timestamp: 0,
+  inputExecutionQueue: []
+};
+
+function hasMessage(event: AgentEventEnvelope): event is Extract<AgentEventEnvelope, {message: string}> {
+  return "message" in event;
+}
+
 export function useAgentEventState(agentId: string) {
-  const [messages, setMessages] = useState<AgentEventEnvelope[]>([]);
-  const [status, setStatus] = useState<string|null>(null);
-  const [executionState, setExecutionState] = useState<z.output<typeof AgentExecutionStateSchema>>({
-    type: 'agent.execution',
-    running: false,
-    paused: false,
-    busyWith: null,
-    currentlyExecuting: null,
-    waitingOn: [],
-    inputQueue: [],
-    timestamp: 0,
-  });
-
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [agentStatus, setAgentStatus] = useState<RemoteAgentStatus>(INITIAL_AGENT_STATUS);
+  const [currentActivity, setCurrentActivity] = useState<string | null>(null);
   const [position, setPosition] = useState(0);
-  const stateRef = useRef({ messages: [] as AgentEventEnvelope[], position: 0 });
 
-  useEffect(() => {
-    stateRef.current = { messages, position };
-  }, [messages, position]);
+  const stateRef = useRef({
+    messages: [] as ChatMessage[],
+    position: 0,
+    agentStatus: INITIAL_AGENT_STATUS,
+    inputExecutions: new Map<string, InputExecutionState>(),
+    seenQuestionIds: new Set<string>(),
+  });
 
   useEffect(() => {
     const abortController = new AbortController();
-    
+
     (async () => {
       let fromPosition = stateRef.current.position;
       let currentMessages = [...stateRef.current.messages];
+      let currentAgentStatus = stateRef.current.agentStatus;
+      let inputExecutions = new Map(stateRef.current.inputExecutions);
+      let seenQuestionIds = new Set(stateRef.current.seenQuestionIds);
 
-      function mergeMessage(msg: AgentEventEnvelope) {
-        const last = currentMessages[currentMessages.length - 1];
-        if ("message" in msg && last?.type === msg.type) {
-          last.message += msg.message;
-          last.timestamp = msg.timestamp;
-        } else {
-          currentMessages.push(msg);
+      const appendMessage = (event: ChatMessage) => {
+        currentMessages.push(event);
+      };
+
+      const mergeStreamingMessage = (event: Extract<AgentEventEnvelope, {type: "output.chat" | "output.reasoning"}>) => {
+        const lastMessage = currentMessages[currentMessages.length - 1];
+        if (lastMessage && lastMessage.type === event.type && hasMessage(lastMessage)) {
+          lastMessage.message += event.message;
+          lastMessage.timestamp = event.timestamp;
+          return;
         }
-      }
+        appendMessage(event);
+      };
+
+      const addQuestionPrompts = (requestId: string, interactions: QuestionInteraction[] = []) => {
+        for (const interaction of interactions) {
+          const key = `${requestId}:${interaction.interactionId}`;
+          if (seenQuestionIds.has(key)) continue;
+
+          appendMessage({
+            ...interaction,
+            requestId,
+          });
+          seenQuestionIds.add(key);
+        }
+      };
 
       while (!abortController.signal.aborted) {
         try {
@@ -46,80 +83,76 @@ export function useAgentEventState(agentId: string) {
             agentId,
             fromPosition,
           }, abortController.signal)) {
-            
-            let messagesChanged = false;
-            
             for (const event of eventsData.events) {
               switch (event.type) {
-                case 'output.chat':
-                case 'output.reasoning':
-                  mergeMessage(event);
-                  messagesChanged = true;
+                case "output.chat":
+                case "output.reasoning":
+                  mergeStreamingMessage(event);
                   break;
-                case 'input.received':
-                case 'output.artifact':
-                case 'agent.created':
-                case 'agent.stopped':
-                case 'output.info':
-                case 'output.warning':
-                case 'output.error':
-                case 'question.request':
-                case 'question.response':
-                case 'abort':
-                case 'pause':
-                case 'resume':
-                  currentMessages.push(event)
-                  messagesChanged = true;
+                case "agent.created":
+                case "agent.stopped":
+                case "agent.response":
+                case "output.artifact":
+                case "output.info":
+                case "output.warning":
+                case "output.error":
+                case "input.received":
+                case "input.interaction":
+                  appendMessage(event);
                   break;
-                case 'status':
-                  setStatus(event.message);
-                  currentMessages.push(event)
-                  messagesChanged = true;
+                case "agent.status":
+                  currentAgentStatus = event;
                   break;
-                case 'input.handled':
-                  setStatus(null);
-                  if (event.status === 'error') {
-                    mergeMessage({
-                      type: 'output.error',
-                      message: event.message + "\n",
-                      timestamp: event.timestamp
-                    });
-                  } else if (event.status === 'cancelled') {
-                    mergeMessage({
-                      type: 'output.info',
-                      message: event.message + "\n",
-                      timestamp: event.timestamp
-                    });
+                case "input.execution":
+                  if (event.status === "finished") {
+                    inputExecutions.delete(event.requestId);
                   } else {
-                    currentMessages.push(event);
+                    const prevEvent = inputExecutions.get(event.requestId);
+                    inputExecutions.set(event.requestId, {
+                      ...prevEvent,
+                      ...event
+                    });
+                    addQuestionPrompts(
+                      event.requestId,
+                      (event.availableInteractions ?? []).filter(
+                        (interaction): interaction is QuestionInteraction => interaction.type === "question"
+                      )
+                    );
                   }
-                  messagesChanged = true;
                   break;
-                case 'agent.execution':
-                  setExecutionState(event);
-                  messagesChanged = true;
+                case "cancel":
                   break;
-                default:
-                  // noinspection JSUnusedLocalSymbols
-                  const foo: never = event;
-                  break;
+                default: {
+                  const exhaustiveCheck: never = event;
+                  return exhaustiveCheck;
+                }
               }
             }
 
             fromPosition = eventsData.position;
+            stateRef.current = {
+              messages: currentMessages,
+              position: eventsData.position,
+              agentStatus: currentAgentStatus,
+              inputExecutions,
+              seenQuestionIds,
+            };
 
-            if (messagesChanged) {
-              setMessages([...currentMessages]);
-            }
+            setMessages([...currentMessages]);
+            setAgentStatus(currentAgentStatus);
             setPosition(eventsData.position);
           }
-        } catch (e) {
-          if (!abortController.signal.aborted) {
-            console.error("Stream error, retrying...", e);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            fromPosition = stateRef.current.position;
-            currentMessages = [...stateRef.current.messages];
-          }
+        } catch (error) {
+          if (abortController.signal.aborted) return;
+
+          console.error("Stream error, retrying...", error);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+          fromPosition = stateRef.current.position;
+          currentMessages = [...stateRef.current.messages];
+          currentAgentStatus = stateRef.current.agentStatus;
+          inputExecutions = new Map(stateRef.current.inputExecutions);
+          seenQuestionIds = new Set(stateRef.current.seenQuestionIds);
         }
       }
     })();
@@ -127,5 +160,9 @@ export function useAgentEventState(agentId: string) {
     return () => abortController.abort();
   }, [agentId]);
 
-  return { messages, executionState, position, status };
+  return {
+    messages,
+    agentStatus,
+    position,
+  };
 }

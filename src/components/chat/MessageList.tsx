@@ -1,20 +1,22 @@
-import type {AgentEventEnvelope, QuestionResponse} from '@tokenring-ai/agent/AgentEvents';
+import type {RemoteAgentStatus} from "../../hooks/useAgentEventState.ts";
 import MessageComponent from './MessageComponent.tsx';
 import { useMemo } from 'react';
 import { Virtuoso } from 'react-virtuoso';
+import type {ChatMessage, InteractionResponseMessage} from '../../types/agent-events.ts';
+import {isQuestionPromptMessage} from '../../types/agent-events.ts';
 
 interface MessageListProps {
-  messages: AgentEventEnvelope[];
+  messages: ChatMessage[];
   agentId: string;
-  busyWith: string | null;
+  agentStatus: RemoteAgentStatus;
 }
 
-export default function MessageList({ messages, agentId, busyWith }: MessageListProps) {
+export default function MessageList({ messages, agentId, agentStatus }: MessageListProps) {
   const questionResponses = useMemo(() => {
-    const map = new Map<string, QuestionResponse>();
+    const map = new Map<string, InteractionResponseMessage>();
     for (const msg of messages) {
-      if (msg.type === 'question.response') {
-        map.set(msg.requestId, msg);
+      if (msg.type === 'input.interaction') {
+        map.set(msg.interactionId, msg);
       }
     }
     return map;
@@ -25,14 +27,14 @@ export default function MessageList({ messages, agentId, busyWith }: MessageList
       { type: 'header' }
     ];
     messages.forEach((msg, i) => {
-      if (msg.type === 'question.response') return;
+      if (msg.type === 'input.interaction') return;
       items.push({ type: 'message', data: msg, index: i });
     });
-    if (busyWith) {
-      items.push({ type: 'busy', data: busyWith });
+    if (agentStatus.inputExecutionQueue.length > 0) {
+      items.push({ type: 'busy', data: agentStatus.currentActivity });
     }
     return items;
-  }, [messages, busyWith]);
+  }, [messages, agentStatus.inputExecutionQueue.length, agentStatus.currentActivity]);
 
   return (
     <Virtuoso
@@ -69,7 +71,7 @@ export default function MessageList({ messages, agentId, busyWith }: MessageList
           );
         }
         const msg = item.data;
-        const response = msg.type === 'question.request' ? questionResponses.get(msg.requestId) : undefined;
+        const response = isQuestionPromptMessage(msg) ? questionResponses.get(msg.interactionId) : undefined;
         return (
           <MessageComponent
             msg={msg}

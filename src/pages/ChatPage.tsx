@@ -21,15 +21,21 @@ export default function ChatPage({ agentId }: { agentId: string }) {
     setPersistedInput(agentId, value);
   };
   
-  const { messages, executionState, status } = useAgentEventState(agentId);
-  const { busyWith, waitingOn, paused } = executionState;
+  const { messages, agentStatus } = useAgentEventState(agentId);
 
-  const idle = executionState.inputQueue.length === 0 && executionState.waitingOn.length === 0 && executionState.running && !paused;
+  const idle = agentStatus.status === "running" && agentStatus.inputExecutionQueue.length === 0;
 
-  const statusMessage = idle || waitingOn.length > 0
-    ? 'Waiting for input'
-    : status ?? "Working";
-
+  //const statusMessage = currentActivity;
+  /*const statusMessage = idle
+    ? "Waiting for input"
+    : agentStatus.status === "starting"
+      ? "Starting"
+      : agentStatus.status === "stopping"
+        ? "Stopping"
+        : agentStatus.status === "stopped"
+          ? "Stopped"
+          : currentActivity ?? "Working";
+*/
   const commandHistory = useCommandHistory(agentId);
   const availableCommands = useAvailableCommands(agentId);
 
@@ -58,10 +64,13 @@ export default function ChatPage({ agentId }: { agentId: string }) {
     clearInput(agentId);
     setInputError(false);
     try {
-      await agentRPCClient.sendInput({ 
-        agentId, 
-        message,
-        attachments,
+      await agentRPCClient.sendInput({
+        agentId,
+        input: {
+          from: "Chat webapp user",
+          message,
+          attachments,
+        },
       });
       const newHistory = [...(commandHistory.data || []), message].slice(-50);
       await commandHistory.mutate(newHistory);
@@ -79,7 +88,7 @@ export default function ChatPage({ agentId }: { agentId: string }) {
       />
       <div className="flex flex-col flex-1 overflow-hidden">
         <AutoScrollContainer>
-          <MessageList messages={messages} agentId={agentId} busyWith={busyWith} />
+          <MessageList messages={messages} agentId={agentId} agentStatus={agentStatus} />
         </AutoScrollContainer>
 
         <ChatFooter
@@ -89,8 +98,7 @@ export default function ChatPage({ agentId }: { agentId: string }) {
           inputError={inputError}
           setInputError={setInputError}
           idle={idle}
-          paused={paused}
-          statusMessage={ statusMessage }
+          statusMessage={agentStatus.currentActivity}
           availableCommands={filteredAvailableCommands}
           commandHistory={commandHistory.data || []}
           showHistory={showHistory}

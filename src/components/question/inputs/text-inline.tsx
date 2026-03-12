@@ -1,12 +1,13 @@
 import type { ParsedTextQuestion } from "@tokenring-ai/agent/question";
 import { X, Send } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
-import { agentRPCClient } from "../../../rpc.ts";
+import { sendInteractionResponse } from "../sendInteractionResponse.ts";
 
 interface TextInlineProps {
   question: ParsedTextQuestion;
   agentId: string;
   requestId: string;
+  interactionId: string;
   onClose: () => void;
   autoFocus?: boolean;
 }
@@ -15,6 +16,7 @@ export default function TextInlineQuestion({
   question: { label, required, defaultValue, expectedLines, masked },
   agentId,
   requestId,
+  interactionId,
   onClose,
   autoFocus = true,
 }: TextInlineProps) {
@@ -32,19 +34,21 @@ export default function TextInlineQuestion({
   const handleSubmit = async () => {
     if (required && !value.trim()) return;
     setIsSubmitting(true);
-    await agentRPCClient.sendQuestionResponse({
+    await sendInteractionResponse({
       agentId,
       requestId,
-      response: { type: 'question.response', requestId, result: value, timestamp: Date.now() },
+      interactionId,
+      result: value,
     });
     onClose();
   };
 
   const handleCancel = async () => {
-    await agentRPCClient.sendQuestionResponse({
+    await sendInteractionResponse({
       agentId,
       requestId,
-      response: { type: 'question.response', requestId, result: null, timestamp: Date.now() },
+      interactionId,
+      result: null,
     });
     onClose();
   };

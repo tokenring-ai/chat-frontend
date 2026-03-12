@@ -168,7 +168,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className={`text-sm font-medium truncate ${currentAgentId === agent.id ? 'text-primary' : 'text-secondary'}`}>{agent.displayName}</div>
-                        <div className="text-2xs text-muted mt-0.5 truncate">{agent.statusMessage || (agent.idle ? 'Idle' : 'Busy')}</div>
+                        <div className="text-2xs text-muted mt-0.5 truncate">{agent.currentActivity}</div>
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); setConfirmDelete(agent.id); }}

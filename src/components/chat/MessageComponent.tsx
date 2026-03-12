@@ -1,12 +1,13 @@
-import {type AgentEventEnvelope, type QuestionResponse, type InputAttachment} from "@tokenring-ai/agent/AgentEvents";
+import {type AgentEventEnvelope} from "@tokenring-ai/agent/AgentEvents";
 import { motion } from 'framer-motion';
-import { Check, Copy, ChevronDown, Code, FileText, FileJson, Image as ImageIcon, Layout, Download, Square, Zap, Pause, Play, Activity } from 'lucide-react';
+import { Check, Copy, ChevronDown, Code, FileText, FileJson, Image as ImageIcon, Layout, Download, Square, Zap, Activity, CircleSlash } from 'lucide-react';
 import React, {useState, useMemo} from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import InlineQuestion from '../question/InlineQuestion.tsx';
 import { Bot, FileCode, Info } from 'lucide-react';
 import AttachmentChip from './AttachmentChip';
+import type {ChatMessage, InteractionResponseMessage} from '../../types/agent-events.ts';
 
 const utf8decoder = new TextDecoder('utf-8'); // Specify the encoding (UTF-8 is default)
 
@@ -20,9 +21,9 @@ const formatTimestamp = (timestamp: number) => {
 };
 
 interface MessageComponentProps {
-  msg: AgentEventEnvelope;
+  msg: ChatMessage;
   agentId: string;
-  response?: QuestionResponse;
+  response?: InteractionResponseMessage;
 }
 
 interface EventConfig {
@@ -30,7 +31,7 @@ interface EventConfig {
   icon: React.ReactNode;
 }
 
-const events: Record<AgentEventEnvelope['type'], EventConfig> = {
+const events: Record<ChatMessage['type'], EventConfig> = {
   'agent.created': {
     style: 'text-emerald-700 dark:text-emerald-400 font-medium',
     icon: <div className="w-[1em] h-[1em] mt-1 rounded-full bg-emerald-500" />,
@@ -39,9 +40,13 @@ const events: Record<AgentEventEnvelope['type'], EventConfig> = {
     style: 'text-rose-800 dark:text-rose-400 font-medium',
     icon: <div className="w-[1em] h-[1em] mt-1 rounded-full bg-rose-500" />,
   },
-  'agent.execution': {
+  'agent.status': {
     style: 'text-blue-700 dark:text-blue-400',
     icon: <div className="w-[1em] h-[1em] mt-1 rounded-full bg-blue-500" />,
+  },
+  'agent.response': {
+    style: 'text-emerald-700 dark:text-emerald-400 font-medium',
+    icon: <span className="text-emerald-500 font-bold flex items-center">✓</span>,
   },
   'output.info': {
     style: 'text-secondary',
@@ -71,35 +76,42 @@ const events: Record<AgentEventEnvelope['type'], EventConfig> = {
     style: 'text-indigo-900 dark:text-indigo-100 font-medium',
     icon: <span className="text-indigo-500 font-bold flex items-center">&gt;</span>,
   },
-  'input.handled': {
-    style: 'text-emerald-700 dark:text-emerald-400 font-medium',
-    icon: <span className="text-emerald-500 font-bold flex items-center">✓</span>,
-  },
-  'question.request': {
-    style: 'text-cyan-800 dark:text-cyan-300',
-    icon: <span className="text-cyan-500 font-bold flex items-center">?</span>,
-  },
-  'question.response': {
-    style: 'text-cyan-800 bg-cyan-50 dark:text-cyan-300 dark:bg-cyan-950/30 px-2 py-1 rounded border border-cyan-100 dark:border-cyan-900/50',
-    icon: <span className="text-cyan-500 font-bold flex items-center">!</span>,
-  },
-  'abort': {
-    style: 'text-red-700 dark:text-red-400 font-medium',
-    icon: <Square className="w-[1em] text-red-500" />,
-  },
-  'pause': {
-    style: 'text-amber-700 dark:text-amber-400 font-medium',
-    icon: <Pause className="w-[1em] text-amber-500" />,
-  },
-  'resume': {
-    style: 'text-emerald-700 dark:text-emerald-400 font-medium',
-    icon: <Play className="w-[1em] text-emerald-500" />,
-  },
-  'status': {
+  'input.execution': {
     style: 'text-blue-700 dark:text-blue-400',
     icon: <Activity className="w-[1em] text-blue-500/70" />,
   },
+  'input.interaction': {
+    style: 'text-cyan-800 bg-cyan-50 dark:text-cyan-300 dark:bg-cyan-950/30 px-2 py-1 rounded border border-cyan-100 dark:border-cyan-900/50',
+    icon: <span className="text-cyan-500 font-bold flex items-center">!</span>,
+  },
+  'cancel': {
+    style: 'text-red-700 dark:text-red-400 font-medium',
+    icon: <CircleSlash className="w-[1em] text-red-500" />,
+  },
+  'question': {
+    style: 'text-cyan-800 dark:text-cyan-300',
+    icon: <span className="text-cyan-500 font-bold flex items-center">?</span>,
+  },
 };
+
+function getMessageText(msg: ChatMessage): string | null {
+  switch (msg.type) {
+    case 'input.received':
+      return msg.input.message.trim() || '[empty message]';
+    case 'question':
+    case 'agent.created':
+    case 'agent.stopped':
+    case 'agent.response':
+    case 'output.chat':
+    case 'output.reasoning':
+    case 'output.info':
+    case 'output.warning':
+    case 'output.error':
+      return msg.message.trim() || '[empty message]';
+    default:
+      return null;
+  }
+}
 
 function CodeBlock({ children, className }: { children: string; className?: string }) {
   const [copied, setCopied] = useState(false);
@@ -131,13 +143,14 @@ function CodeBlock({ children, className }: { children: string; className?: stri
   );
 }
 
-function MessageFooter({ msg, onDownload }: { msg: AgentEventEnvelope; onDownload?: () => void }) {
+function MessageFooter({ msg, onDownload }: { msg: ChatMessage; onDownload?: () => void }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    if ('message' in msg && msg.message) {
+    const messageText = getMessageText(msg);
+    if (messageText) {
       try {
-        await navigator.clipboard.writeText(msg.message);
+        await navigator.clipboard.writeText(messageText);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch (err) {
@@ -148,7 +161,7 @@ function MessageFooter({ msg, onDownload }: { msg: AgentEventEnvelope; onDownloa
 
   return (
     <div className="flex flex-row items-center gap-3 pb-2 text-xs text-primary font-mono">
-      {'message' in msg && msg.message && (
+      {getMessageText(msg) && (
         <button
           onClick={handleCopy}
           className="relative cursor-pointer transition-colors group focus-ring rounded"
@@ -191,10 +204,29 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
       if (mime === 'text/html') return <Layout className="w-[1em] text-orange-500" />;
       if (mime.startsWith('image/')) return <ImageIcon className="w-[1em] text-purple-500" />;
     }
+    if (msg.type === 'agent.response') {
+      if (msg.status === 'success') return <Check className="w-[1em] text-emerald-500" />;
+      if (msg.status === 'cancelled') return <Square className="w-[1em] text-amber-500" />;
+      return <Info className="w-[1em] text-red-500/70" />;
+    }
     return events[msg.type].icon;
   }, [msg]);
 
-  const hasAttachments = msg.type === 'input.received' && msg.attachments && msg.attachments.length > 0;
+  const messageStyle = useMemo(() => {
+    if (msg.type !== 'agent.response') return events[msg.type].style;
+    if (msg.status === 'success') return 'text-emerald-700 dark:text-emerald-400 font-medium';
+    if (msg.status === 'cancelled') return 'text-amber-700 dark:text-amber-400 font-medium';
+    return 'text-red-700 dark:text-red-400 font-medium';
+  }, [msg]);
+
+  const attachments = useMemo(() => {
+    if (msg.type === 'input.received') return msg.input.attachments ?? [];
+    if (msg.type === 'agent.response' && 'attachments' in msg) return msg.attachments ?? [];
+    return [];
+  }, [msg]);
+
+  const messageText = getMessageText(msg);
+  const hasAttachments = attachments.length > 0;
 
   return (
     <motion.div
@@ -214,12 +246,12 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
         {messageIcon}
       </div>
 
-      <div className={`prose prose-sm dark:prose-invert ${events[msg.type].style} w-full`}>
+      <div className={`prose prose-sm dark:prose-invert ${messageStyle} w-full`}>
         {msg.type === 'output.artifact' ? (
           <ArtifactDisplay artifact={msg} />
-        ) : msg.type === 'question.request' ? (
+        ) : msg.type === 'question' ? (
           <InlineQuestion request={msg} agentId={agentId} response={response} />
-        ) : 'message' in msg ? (
+        ) : messageText ? (
           <>
             {/* Message content */}
             <ReactMarkdown
@@ -235,14 +267,14 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
                 }
               }}
             >
-              {msg.message}
+              {messageText}
             </ReactMarkdown>
 
             {/* Attachments displayed below the message */}
             {hasAttachments && (
               <div className="not-prose mt-4 mb-2">
                 <div className="flex flex-wrap gap-2">
-                  {msg.attachments!.map((attachment, index) => (
+                  {attachments.map((attachment, index) => (
                     <AttachmentChip 
                       key={`${attachment.name}-${attachment.timestamp}-${index}`} 
                       attachment={attachment} 

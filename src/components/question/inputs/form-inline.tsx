@@ -3,17 +3,25 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
 import FileInlineQuestion from './file-inline.tsx';
 import TreeInlineQuestion from './tree-inline.tsx';
-import { agentRPCClient } from "../../../rpc.ts";
+import { sendInteractionResponse } from "../sendInteractionResponse.ts";
 
 interface FormInlineProps {
   agentId: string;
   question: ParsedFormQuestion;
   requestId: string;
+  interactionId: string;
   onClose: () => void;
   autoFocus?: boolean;
 }
 
-export default function FormInlineQuestion({ agentId, question, requestId, onClose, autoFocus = true }: FormInlineProps) {
+export default function FormInlineQuestion({
+  agentId,
+  question,
+  requestId,
+  interactionId,
+  onClose,
+  autoFocus = true
+}: FormInlineProps) {
   const [values, setValues] = useState<Record<string, any>>({});
   const [currentSection, setCurrentSection] = useState(0);
   const [currentField, setCurrentField] = useState(0);
@@ -54,10 +62,11 @@ export default function FormInlineQuestion({ agentId, question, requestId, onClo
       result[section.name][fieldKey] = value;
       
       setIsSubmitting(true);
-      await agentRPCClient.sendQuestionResponse({
+      await sendInteractionResponse({
         agentId,
         requestId,
-        response: { type: 'question.response', requestId, result, timestamp: Date.now() },
+        interactionId,
+        result,
       });
       onClose();
     } else if (isLastField) {
@@ -78,10 +87,11 @@ export default function FormInlineQuestion({ agentId, question, requestId, onClo
   };
 
   const handleCancel = async () => {
-    await agentRPCClient.sendQuestionResponse({
+    await sendInteractionResponse({
       agentId,
       requestId,
-      response: { type: 'question.response', requestId, result: getDefaultQuestionValue(question), timestamp: Date.now() },
+      interactionId,
+      result: getDefaultQuestionValue(question),
     });
     onClose();
   };
@@ -148,7 +158,8 @@ export default function FormInlineQuestion({ agentId, question, requestId, onClo
                 question={field}
                 agentId={agentId}
                 requestId={requestId}
-                onClose={() => handleFieldSubmit(null)}
+                onSubmitValue={handleFieldSubmit}
+                onClose={() => {}}
                 autoFocus={autoFocus}
               />
             </div>
@@ -164,7 +175,8 @@ export default function FormInlineQuestion({ agentId, question, requestId, onClo
                 question={field}
                 agentId={agentId}
                 requestId={requestId}
-                onClose={() => handleFieldSubmit(null)}
+                onSubmitValue={handleFieldSubmit}
+                onClose={() => {}}
                 autoFocus={autoFocus}
               />
             </div>

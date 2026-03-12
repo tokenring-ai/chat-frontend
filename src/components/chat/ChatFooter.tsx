@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { FolderOpen, History, Paperclip, Send, Pause, Play, Square, X, FileText, Image, FileCode, File } from 'lucide-react';
+import { FolderOpen, History, Paperclip, Send, Square, X, FileText, Image, FileCode, File } from 'lucide-react';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { agentRPCClient } from '../../rpc.ts';
 import type { InputAttachment } from '@tokenring-ai/agent/AgentEvents';
@@ -17,7 +17,6 @@ interface ChatFooterProps {
   inputError: boolean;
   setInputError: (value: boolean) => void;
   idle: boolean;
-  paused: boolean;
   statusMessage: string;
   availableCommands: string[];
   commandHistory: string[];
@@ -45,7 +44,6 @@ export default function ChatFooter({
   inputError,
   setInputError,
   idle,
-  paused,
   statusMessage,
   availableCommands,
   commandHistory,
@@ -89,6 +87,7 @@ export default function ChatFooter({
         const base64 = btoa(binary);
         
         const attachment: InputAttachment = {
+          type: 'attachment',
           name: file.name,
           encoding: 'base64',
           mimeType: file.type || 'application/octet-stream',
@@ -346,24 +345,7 @@ export default function ChatFooter({
 
           {/* Send/Abort button - moved to right of input */}
           <div className="shrink-0">
-            {paused ? (
-              <div className="flex items-center gap-1">
-                <button
-                  aria-label="Resume agent"
-                  onClick={() => agentRPCClient.resumeAgent({ agentId, message: 'User requested resume via the chat webapp' })}
-                  className="p-2 rounded hover:bg-hover transition-colors text-muted hover:text-emerald-400 focus-ring"
-                >
-                  <Play className="w-5 h-5" />
-                </button>
-                <button
-                  aria-label="Stop agent"
-                  onClick={() => agentRPCClient.abortAgent({ agentId, message: 'User aborted the operation while paused via the chat webapp' })}
-                  className="p-2 rounded hover:bg-hover transition-colors text-muted hover:text-red-400 focus-ring"
-                >
-                  <Square className="w-5 h-5" />
-                </button>
-              </div>
-            ) : idle ? (
+            {idle ? (
               <button
                 aria-label="Send message"
                 onClick={handleSubmitWithAttachments}
@@ -373,11 +355,11 @@ export default function ChatFooter({
               </button>
             ) : (
               <button
-                aria-label="Pause agent"
-                onClick={() => agentRPCClient.pauseAgent({ agentId, message: 'User requested pause via the chat webapp' })}
-                className="p-2 rounded hover:bg-hover transition-colors text-muted hover:text-amber-400 focus-ring"
+                aria-label="Abort current operation"
+                onClick={() => agentRPCClient.abortCurrentOperation({ agentId, message: 'User aborted the current operation via the chat webapp' })}
+                className="p-2 rounded hover:bg-hover transition-colors text-muted hover:text-red-400 focus-ring"
               >
-                <Pause className="w-5 h-5" />
+                <Square className="w-5 h-5" />
               </button>
             )}
           </div>

@@ -1,12 +1,15 @@
 import type { ParsedFileSelectQuestion } from "@tokenring-ai/agent/question";
 import { File, Folder, ChevronDown, ChevronRight, X, Send, RefreshCw } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
-import { agentRPCClient, filesystemRPCClient } from "../../../rpc.ts";
+import { filesystemRPCClient } from "../../../rpc.ts";
+import { sendInteractionResponse } from "../sendInteractionResponse.ts";
 
 interface FileInlineProps {
   question: ParsedFileSelectQuestion;
   agentId: string;
   requestId: string;
+  interactionId?: string;
+  onSubmitValue?: (value: string[] | null) => Promise<void> | void;
   onClose: () => void;
   autoFocus?: boolean;
 }
@@ -15,6 +18,8 @@ export default function FileInlineQuestion({
   question: { allowFiles, allowDirectories, minimumSelections, maximumSelections, defaultValue },
   agentId,
   requestId,
+  interactionId,
+  onSubmitValue,
   onClose,
   autoFocus = true,
 }: FileInlineProps) {
@@ -112,20 +117,31 @@ export default function FileInlineQuestion({
       return;
     }
     setIsSubmitting(true);
-    await agentRPCClient.sendQuestionResponse({
-      agentId,
-      requestId,
-      response: { type: 'question.response', requestId, result: Array.from(selected), timestamp: Date.now() },
-    });
+    const result = Array.from(selected);
+    if (onSubmitValue) {
+      await onSubmitValue(result);
+    } else if (interactionId) {
+      await sendInteractionResponse({
+        agentId,
+        requestId,
+        interactionId,
+        result,
+      });
+    }
     onClose();
   };
 
   const handleCancel = async () => {
-    await agentRPCClient.sendQuestionResponse({
-      agentId,
-      requestId,
-      response: { type: 'question.response', requestId, result: null, timestamp: Date.now() },
-    });
+    if (onSubmitValue) {
+      await onSubmitValue(null);
+    } else if (interactionId) {
+      await sendInteractionResponse({
+        agentId,
+        requestId,
+        interactionId,
+        result: null,
+      });
+    }
     onClose();
   };
 

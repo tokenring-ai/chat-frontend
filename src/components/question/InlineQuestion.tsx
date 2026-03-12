@@ -1,4 +1,3 @@
-import {type ParsedQuestionRequest, type QuestionResponse} from "@tokenring-ai/agent/AgentEvents";
 import { ChevronDown } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -6,11 +5,12 @@ import FileInlineQuestion from "./inputs/file-inline.tsx";
 import FormInlineQuestion from "./inputs/form-inline.tsx";
 import TextInlineQuestion from "./inputs/text-inline.tsx";
 import TreeInlineQuestion from "./inputs/tree-inline.tsx";
+import type {InteractionResponseMessage, QuestionPromptMessage} from "../../types/agent-events.ts";
 
 interface InlineQuestionProps {
-  request: ParsedQuestionRequest;
+  request: QuestionPromptMessage;
   agentId: string;
-  response?: QuestionResponse;
+  response?: InteractionResponseMessage;
 }
 
 function formatResponseResult(result: any) {
@@ -22,7 +22,7 @@ function formatResponseResult(result: any) {
   }
 
   if (typeof result === "string") return `Response: ${result}`;
-  return `Response: ${JSON.stringify(result.result)}`;
+  return `Response: ${JSON.stringify(result)}`;
 }
 
 export default function InlineQuestion({ request, agentId, response }: InlineQuestionProps) {
@@ -41,18 +41,18 @@ export default function InlineQuestion({ request, agentId, response }: InlineQue
 
   // Countdown timer
   useEffect(() => {
-    if (request.autoSubmitAfter <= 0) return;
+    const autoSubmitAt = request.autoSubmitAt;
+    if (!autoSubmitAt) return;
 
     const updateCountdown = () => {
-      const deadline = request.timestamp + request.autoSubmitAfter * 1000;
-      const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      const remaining = Math.max(0, Math.ceil((autoSubmitAt - Date.now()) / 1000));
       setCountdown(remaining);
     };
 
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, [request.timestamp, request.autoSubmitAfter]);
+  }, [request.autoSubmitAt]);
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -63,7 +63,7 @@ export default function InlineQuestion({ request, agentId, response }: InlineQue
   };
 
   return (
-    <div ref={containerRef} className="not-prose mb-2" role="region" aria-labelledby={`question-title-${request.requestId}`}>
+    <div ref={containerRef} className="not-prose mb-2" role="region" aria-labelledby={`question-title-${request.interactionId}`}>
       {/* Header - always visible */}
       <button
         ref={headerRef}
@@ -77,8 +77,8 @@ export default function InlineQuestion({ request, agentId, response }: InlineQue
         className="flex items-center gap-2 py-0.5 w-full text-left cursor-pointer group/header hover:opacity-80 transition-opacity"
         tabIndex={0}
         aria-expanded={isExpanded}
-        aria-controls={`question-content-${request.requestId}`}
-        id={`question-title-${request.requestId}`}
+        aria-controls={`question-content-${request.interactionId}`}
+        id={`question-title-${request.interactionId}`}
       >
         <div className={`transition-transform duration-150 ${isExpanded ? 'rotate-0' : '-rotate-90'}`}>
           <ChevronDown size={14} className="text-dim" />
@@ -106,10 +106,10 @@ export default function InlineQuestion({ request, agentId, response }: InlineQue
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            id={`question-content-${request.requestId}`}
+            id={`question-content-${request.interactionId}`}
             className="ml-1.5 mt-2 border-l border-primary/40 pl-4 py-1"
             role="region"
-            aria-labelledby={`question-title-${request.requestId}`}
+            aria-labelledby={`question-title-${request.interactionId}`}
             onKeyDown={handleKeyDown}
           >
           {question.type === 'treeSelect' && (
@@ -117,6 +117,7 @@ export default function InlineQuestion({ request, agentId, response }: InlineQue
               question={question}
               agentId={agentId}
               requestId={request.requestId}
+              interactionId={request.interactionId}
               onClose={() => setIsExpanded(false)}
             />
           )}
@@ -125,6 +126,7 @@ export default function InlineQuestion({ request, agentId, response }: InlineQue
               question={question}
               agentId={agentId}
               requestId={request.requestId}
+              interactionId={request.interactionId}
               onClose={() => setIsExpanded(false)}
             />
           )}
@@ -133,6 +135,7 @@ export default function InlineQuestion({ request, agentId, response }: InlineQue
               question={question}
               agentId={agentId}
               requestId={request.requestId}
+              interactionId={request.interactionId}
               onClose={() => setIsExpanded(false)}
             />
           )}
@@ -141,6 +144,7 @@ export default function InlineQuestion({ request, agentId, response }: InlineQue
               question={question}
               agentId={agentId}
               requestId={request.requestId}
+              interactionId={request.interactionId}
               onClose={() => setIsExpanded(false)}
             />
           )}

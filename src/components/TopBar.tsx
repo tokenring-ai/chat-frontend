@@ -70,7 +70,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
         className="flex items-center gap-2 focus-ring rounded-lg shrink-0 cursor-pointer"
         aria-label="TokenRing Home"
       >
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/10">
+        <div className="w-7 h-7 rounded-lg bg-linear-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/10">
           <Zap className="w-4 h-4 text-white" fill="currentColor" />
         </div>
         <span className="text-primary font-bold tracking-tight text-sm hidden sm:block">TokenRing</span>
@@ -134,7 +134,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-primary truncate">{agent.displayName}</div>
-                    <div className="text-2xs text-muted truncate">{agent.statusMessage || (agent.idle ? 'Idle' : 'Busy')}</div>
+                    <div className="text-2xs text-muted truncate">{agent.currentActivity}</div>
                   </div>
                 </button>
               ))
