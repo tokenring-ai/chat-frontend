@@ -1,4 +1,4 @@
-import type { ParsedTreeSelectQuestion, TreeLeaf } from '@tokenring-ai/agent/question';
+import { getTreeNodeValue, isTreeBranch, type ParsedTreeSelectQuestion, type TreeLeaf } from '@tokenring-ai/agent/question';
 import { Check, ChevronDown, ChevronRight, X, Send } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
 import { sendInteractionResponse } from "../sendInteractionResponse.ts";
@@ -24,9 +24,9 @@ const CompactTreeNode: React.FC<{
   canSelect: (value: string) => boolean;
   isFirstNode?: boolean;
 }> = ({ node, depth, selected, onToggle, onExpand, isExpanded, multiple, canSelect }) => {
-  const value = node.value || node.name;
+  const value = getTreeNodeValue(node);
   const isSelected = selected.has(value);
-  const hasChildren = !!node.children && node.children.length > 0;
+  const hasChildren = isTreeBranch(node) && node.children.length > 0;
   const isSelectable = !hasChildren || multiple;
 
   const handleClick = (e: React.MouseEvent) => {
@@ -94,7 +94,7 @@ const CompactTreeNode: React.FC<{
       </div>
       {isExpanded && hasChildren && (
         <div role="group">
-          {node.children!.map((child, idx) => (
+          {node.children.map((child: TreeLeaf, idx: number) => (
             <CompactTreeNode
               key={idx}
               node={child}

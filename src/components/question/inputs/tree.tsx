@@ -1,5 +1,5 @@
 import React, {Fragment, useState} from 'react';
-import {type TreeLeaf, type ParsedTreeSelectQuestion, type ResultTypeForQuestion} from '@tokenring-ai/agent/question';
+import {getTreeNodeValue, isTreeBranch, type TreeLeaf, type ParsedTreeSelectQuestion, type ResultTypeForQuestion} from '@tokenring-ai/agent/question';
 import {SelectionSummary} from './selection-summary.tsx';
 import {TreeSelectorActions} from './tree-selector-actions.tsx';
 
@@ -15,8 +15,9 @@ interface TreeNodeProps {
 
 const TreeNode: React.FC<TreeNodeProps> = ({ node, depth, selected, onToggle, multiple, initialExpanded, canSelect }) => {
     const [expanded, setExpanded] = useState(initialExpanded);
-    const value = node.value || node.name;
+    const value = getTreeNodeValue(node);
     const isSelected = selected.has(value);
+    const hasChildren = isTreeBranch(node);
 
     const handleToggle = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -33,7 +34,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, depth, selected, onToggle, mu
     return (
         <div className="flex flex-col" style={{ marginLeft: `${depth * 20}px` }}>
             <div className="flex items-center cursor-pointer py-1 hover:bg-hover rounded-lg px-2 transition-colors">
-                {node.children ? (
+                {hasChildren ? (
                     <span onClick={handleExpand} className="w-5 text-center text-tertiary select-none">
                         {expanded ? '▼' : '▶'}
                     </span>
@@ -42,7 +43,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, depth, selected, onToggle, mu
                 )}
                 <div
                     className={`flex-1 flex items-center gap-2 ${isSelected ? 'text-accent font-semibold' : 'text-primary'}`}
-                    onClick={multiple ? handleToggle : (node.children ? handleExpand : handleToggle)}
+                    onClick={multiple ? handleToggle : (hasChildren ? handleExpand : handleToggle)}
                 >
                     {multiple && (
                         <input
@@ -56,9 +57,9 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, depth, selected, onToggle, mu
                     {node.name}
                 </div>
             </div>
-            {expanded && node.children && (
+            {expanded && hasChildren && (
                 <div className="flex flex-col">
-                    {(node.children as TreeLeaf[]).map((child, index) => (
+                    {node.children.map((child, index) => (
                         <TreeNode
                             key={index}
                             node={child}
