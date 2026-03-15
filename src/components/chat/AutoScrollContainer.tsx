@@ -12,15 +12,36 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true);
+  const hasInitializedRef = useRef(false);
 
   const handleScroll = () => {
     if (!scrollRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
     const atBottom = scrollHeight - scrollTop - clientHeight < 20;
-    console.log('[handleScroll]', { scrollTop, scrollHeight, clientHeight, atBottom, diff: scrollHeight - scrollTop - clientHeight });
     isAtBottomRef.current = atBottom;
     setShowScrollButton(!atBottom);
   };
+
+  // Auto-scroll to bottom on mount if there's content
+  useEffect(() => {
+    if (!hasInitializedRef.current && scrollRef.current && contentRef.current) {
+      // Wait for content to be rendered
+      const timer = setTimeout(() => {
+        if (scrollRef.current && contentRef.current) {
+          const { scrollHeight } = scrollRef.current;
+          isAtBottomRef.current = true;
+          scrollRef.current.scrollTo({
+            top: scrollHeight,
+            behavior: 'instant'
+          });
+          setShowScrollButton(false);
+          hasInitializedRef.current = true;
+        }
+      }, 0);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     if (!contentRef.current || !scrollRef.current) return;

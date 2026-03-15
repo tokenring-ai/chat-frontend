@@ -1,6 +1,6 @@
 import type {RemoteAgentStatus} from "../../hooks/useAgentEventState.ts";
 import MessageComponent from './MessageComponent.tsx';
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import type {ChatMessage, InteractionResponseMessage} from '../../types/agent-events.ts';
 import {isQuestionPromptMessage} from '../../types/agent-events.ts';
@@ -12,6 +12,9 @@ interface MessageListProps {
 }
 
 export default function MessageList({ messages, agentId, agentStatus }: MessageListProps) {
+  const virtuosoRef = useRef<any>(null);
+  const hasInitializedRef = useRef(false);
+
   const questionResponses = useMemo(() => {
     const map = new Map<string, InteractionResponseMessage>();
     for (const msg of messages) {
@@ -36,11 +39,30 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
     return items;
   }, [messages, agentStatus.inputExecutionQueue.length, agentStatus.currentActivity]);
 
+  // Scroll to bottom on initial mount when there are messages
+  useEffect(() => {
+    if (!hasInitializedRef.current && virtuosoRef.current && allItems.length > 1) {
+      // Wait for the component to be rendered
+      const timer = setTimeout(() => {
+        if (virtuosoRef.current) {
+          virtuosoRef.current.scrollToIndex({
+            index: allItems.length - 1,
+            behavior: 'instant',
+            align: 'end'
+          });
+          hasInitializedRef.current = true;
+        }
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [allItems.length]);
+
   return (
     <Virtuoso
+      ref={virtuosoRef}
       data={allItems}
       followOutput="smooth"
-      initialTopMostItemIndex={allItems.length - 1}
+      initialTopMostItemIndex={allItems.length > 1 ? allItems.length - 1 : 0}
       itemContent={(index, item) => {
         if (item.type === 'header') {
           return (
