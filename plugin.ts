@@ -6,23 +6,27 @@ import path from "path";
 import {z} from "zod";
 import packageJSON from "./package.json" with {type: "json"};
 
-const packageConfigSchema = z.object({});
+const packageConfigSchema = z.object({
+  chatFrontend: z.object({
+    spaDirectory: z.string(),
+  })
+});
 
 export default {
   name: packageJSON.name,
   version: packageJSON.version,
   description: packageJSON.description,
   install(app, config) {
-    const indexHTML = path.resolve(app.config.app.packageDirectory,"frontend/chat/index.html");
-    if (! fs.existsSync(indexHTML)) {
-      throw new Error(`Chat frontend not found at ${indexHTML}`);
+    const indexFile = path.resolve(config.chatFrontend.spaDirectory,"index.html");
+    if (! fs.existsSync(indexFile)) {
+      throw new Error(`Chat frontend not found at ${indexFile}`);
     }
 
     app.waitForService(WebHostService, webHostService => {
       webHostService.registerResource("Agent Chat Application", new SPAResource({
           type: 'spa',
           description: packageJSON.description,
-          file: path.resolve(app.config.app.packageDirectory,"frontend/chat/index.html"),
+          file: indexFile,
           prefix: "/chat/"
       }));
     });
