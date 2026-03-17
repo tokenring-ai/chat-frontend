@@ -23,7 +23,7 @@ export default {
     }
 
     app.waitForService(WebHostService, webHostService => {
-      webHostService.registerResource("Agent Chat Application", new SPAResource({
+      webHostService.registerResource("Agent Web Interface", new SPAResource({
           type: 'spa',
           description: packageJSON.description,
           file: indexFile,
