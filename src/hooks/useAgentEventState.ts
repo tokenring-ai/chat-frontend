@@ -29,7 +29,6 @@ function hasMessage(event: AgentEventEnvelope): event is Extract<AgentEventEnvel
 export function useAgentEventState(agentId: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [agentStatus, setAgentStatus] = useState<RemoteAgentStatus>(INITIAL_AGENT_STATUS);
-  const [currentActivity, setCurrentActivity] = useState<string | null>(null);
   const [position, setPosition] = useState(0);
 
   const stateRef = useRef({
@@ -55,10 +54,10 @@ export function useAgentEventState(agentId: string) {
       };
 
       const mergeStreamingMessage = (event: Extract<AgentEventEnvelope, {type: "output.chat" | "output.reasoning"}>) => {
-        const lastMessage = currentMessages[currentMessages.length - 1];
+        const lastIndex = currentMessages.length - 1;
+        const lastMessage = currentMessages[lastIndex];
         if (lastMessage && lastMessage.type === event.type && hasMessage(lastMessage)) {
-          lastMessage.message += event.message;
-          lastMessage.timestamp = event.timestamp;
+          currentMessages[lastIndex] = { ...lastMessage, message: lastMessage.message + event.message, timestamp: event.timestamp };
           return;
         }
         appendMessage(event);
@@ -123,8 +122,8 @@ export function useAgentEventState(agentId: string) {
                 case "cancel":
                   break;
                 default: {
-                  const exhaustiveCheck: never = event;
-                  return exhaustiveCheck;
+                  const _exhaustive: never = event;
+                  throw new Error(`Unhandled event type: ${(_exhaustive as any).type}`);
                 }
               }
             }

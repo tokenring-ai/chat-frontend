@@ -78,11 +78,12 @@ export default function ChatFooter({
       reader.onload = () => {
         const arrayBuffer = reader.result as ArrayBuffer;
         const bytes = new Uint8Array(arrayBuffer);
-        
-        // Convert to base64
+
+        // Convert to base64 in chunks to avoid stack overflow on large files
+        const CHUNK = 8192;
         let binary = '';
-        for (let i = 0; i < bytes.byteLength; i++) {
-          binary += String.fromCharCode(bytes[i]);
+        for (let i = 0; i < bytes.length; i += CHUNK) {
+          binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
         }
         const base64 = btoa(binary);
         

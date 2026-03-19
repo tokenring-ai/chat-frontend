@@ -1,4 +1,5 @@
 import {type AgentEventEnvelope} from "@tokenring-ai/agent/AgentEvents";
+import safeParseJSON from "@tokenring-ai/utility/json/safeParse";
 import { motion } from 'framer-motion';
 import { Check, Copy, ChevronDown, Code, FileText, FileJson, Image as ImageIcon, Layout, Download, Square, Zap, Activity, CircleSlash } from 'lucide-react';
 import React, {useState, useMemo} from 'react';
@@ -115,7 +116,7 @@ function getMessageText(msg: ChatMessage): string | null {
 
 function CodeBlock({ children, className }: { children: string; className?: string }) {
   const [copied, setCopied] = useState(false);
-  className?.replace('language-', '');
+  className = className?.replace('language-', '');
 
   const handleCopy = async () => {
     try {
@@ -367,8 +368,8 @@ function ArtifactDisplay({ artifact }: { artifact: Extract<AgentEventEnvelope, {
           )}
           {mime === 'application/json' && (
             <pre className="text-[11px] font-mono text-secondary bg-tertiary/20 p-2 rounded-md overflow-x-auto">
-                  {JSON.stringify(JSON.parse(textBody), null, 2)}
-                </pre>
+              {JSON.stringify(safeParseJSON(textBody, null), null, 2)}
+            </pre>
           )}
           {mime === 'text/html' && (
             <div className="mt-2 border border-primary rounded-lg overflow-hidden">

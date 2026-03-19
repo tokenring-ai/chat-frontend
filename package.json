@@ -45,6 +45,7 @@
     "@tokenring-ai/workflow": "0.2.0",
     "@tokenring-ai/filesystem": "0.2.0",
     "@tokenring-ai/web-host": "0.2.0",
+    "@tokenring-ai/utility": "0.2.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",

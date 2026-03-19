@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, {useState, useMemo, useCallback, useEffect} from 'react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from './ui/dropdown-menu.tsx';
 import {chatRPCClient, useAvailableTools, useEnabledTools} from '../rpc.ts';
 import {
@@ -173,9 +173,9 @@ export default function ToolSelector({ agentId }: ToolSelectorProps) {
     return { grouped, categories };
   }, [filteredTools, tools]);
 
-  const enabledSet = new Set(enabledTools.data?.tools || []);
+  const enabledSet = useMemo(() => new Set(enabledTools.data?.tools || []), [enabledTools.data?.tools]);
 
-  useMemo(() => {
+  useEffect(() => {
     const categoriesWithEnabledTools = new Set<string>();
     enabledTools.data?.tools?.forEach(tool => {
       const match = tool.match(/^(.*)\//);

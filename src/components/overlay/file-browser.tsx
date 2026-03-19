@@ -1,31 +1,16 @@
-import React, { useState, useMemo, useRef } from 'react';
 import {FocusTrap} from 'focus-trap-react';
-import {
-  Folder,
-  FileText,
-  Search,
-  X,
-  ChevronRight,
-  Code,
-  Image as ImageIcon,
-  Check,
-  Plus,
-  Download,
-  Edit,
-  File,
-  Eye,
-  EyeOff,
-  Trash2, Save
-} from 'lucide-react';
-import MarkdownEditor from "../editor/MarkdownEditor.tsx";
+import {Check, ChevronRight, Code, Download, Edit, Eye, EyeOff, File, FileText, Folder, Image as ImageIcon, Plus, Save, Search, Trash2, X} from 'lucide-react';
+import React, {useMemo, useRef, useState} from 'react';
+import {cn} from '../../lib/utils.ts';
+import {filesystemRPCClient, useDirectoryListing, useFileContents, useSelectedFiles} from '../../rpc.ts';
 import CodeEditor from '../editor/CodeEditor.tsx';
-import { filesystemRPCClient, useDirectoryListing, useFileContents, useSelectedFiles } from '../../rpc.ts';
-import { cn } from '../../lib/utils.ts';
-import { toastManager } from '../ui/toast.tsx';
+import MarkdownEditor from "../editor/MarkdownEditor.tsx";
+import {toastManager} from '../ui/toast.tsx';
 
 interface FileBrowserOverlayProps {
     agentId: string;
-    isOpen: boolean;
+
+  isOpen: boolean;
     onClose: () => void;
 }
 
@@ -85,20 +70,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
         });
     }, [directoryListing.data?.files, debouncedSearch]);
 
-    React.useEffect(() => {
-      if (isResizing) {
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
-        return () => {
-          document.removeEventListener('mousemove', handleMouseMove);
-          document.removeEventListener('mouseup', handleMouseUp);
-        };
-      }
-    }, [isResizing]);
-
-    if (!isOpen) return null;
-
-    const handleSaveFile = async () => {
+  const handleSaveFile = async () => {
         if (!selectedFile) return;
         const fileToSave = selectedFile;
         const contentToSave = editorContent;
@@ -131,7 +103,20 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
         setIsResizing(false);
     };
 
-    const handleFileClick = async (file: string) => {
+  React.useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isResizing]);
+
+  if (!isOpen) return null;
+
+  const handleFileClick = async (file: string) => {
         const isDir = file.endsWith('/');
         const fullPath = isDir ? file.slice(0, -1) : file;
         try {

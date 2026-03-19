@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
-export function useConnectionStatus() {
+export function useConnectionStatus(staleThresholdMs = 30000) {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [lastActivity, setLastActivity] = useState(Date.now());
+  const [isStale, setIsStale] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -11,20 +12,27 @@ export function useConnectionStatus() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // Update stale status periodically
     const interval = setInterval(() => {
-      if (Date.now() - lastActivity > 30000) {
-        // No activity for 30 seconds, might be stale
-      }
-    }, 5000);
+      setIsStale(Date.now() - lastActivity > staleThresholdMs);
+    }, 1000);
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       clearInterval(interval);
     };
-  }, [lastActivity]);
+  }, [lastActivity, staleThresholdMs]);
 
-  const recordActivity = () => setLastActivity(Date.now());
+  const recordActivity = useCallback(() => {
+    setLastActivity(Date.now());
+    setIsStale(false);
+  }, []);
 
-  return { isOnline, recordActivity, lastActivity };
+  return {
+    isOnline,
+    isStale,
+    lastActivity,
+    recordActivity
+  };
 }

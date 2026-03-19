@@ -1,7 +1,7 @@
 import type {RemoteAgentStatus} from "../../hooks/useAgentEventState.ts";
 import MessageComponent from './MessageComponent.tsx';
 import { useMemo, useRef, useEffect } from 'react';
-import { Virtuoso } from 'react-virtuoso';
+import {Virtuoso, type VirtuosoHandle} from 'react-virtuoso';
 import type {ChatMessage, InteractionResponseMessage} from '../../types/agent-events.ts';
 import {isQuestionPromptMessage} from '../../types/agent-events.ts';
 
@@ -12,7 +12,7 @@ interface MessageListProps {
 }
 
 export default function MessageList({ messages, agentId, agentStatus }: MessageListProps) {
-  const virtuosoRef = useRef<any>(null);
+  const virtuosoRef = useRef<VirtuosoHandle>(null);
   const hasInitializedRef = useRef(false);
 
   const questionResponses = useMemo(() => {
@@ -47,7 +47,6 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
         if (virtuosoRef.current) {
           virtuosoRef.current.scrollToIndex({
             index: allItems.length - 1,
-            behavior: 'instant',
             align: 'end'
           });
           hasInitializedRef.current = true;

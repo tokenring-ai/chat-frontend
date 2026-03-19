@@ -140,7 +140,7 @@ class NotificationManager {
   }
 
   add(toast: Omit<ToastItem, 'id'>): string {
-    const id = Math.random().toString(36).substr(2, 9);
+    const id = Math.random().toString(36).slice(2, 11);
     const notification: NotificationItem = {...toast, id, timestamp: Date.now(), read: false};
 
     this.notifications.unshift(notification);

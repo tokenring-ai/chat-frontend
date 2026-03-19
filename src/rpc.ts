@@ -43,11 +43,11 @@ export function useWorkflows() {
 }
 
 export function useDirectoryListing(opts?: { path: string, showHidden?: boolean, agentId: string }) {
-  return useSWR(`/filesystem/listDirectory/${opts!.path}`, () => opts ? filesystemRPCClient.listDirectory({
-    path: opts!.path,
+  return useSWR(opts ? `/filesystem/listDirectory/${opts.path}` : null, () => opts ? filesystemRPCClient.listDirectory({
+    path: opts.path,
     recursive: false,
-    showHidden: opts!.showHidden ?? false,
-    agentId: opts!.agentId
+    showHidden: opts.showHidden ?? false,
+    agentId: opts.agentId
   }) : null, {refreshInterval: 5000});
 }
 

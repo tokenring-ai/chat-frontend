@@ -56,25 +56,9 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
     });
 
     resizeObserver.observe(contentRef.current);
-    
-    const mutationObserver = new MutationObserver(() => {
-      if (isAtBottomRef.current && scrollRef.current) {
-        scrollRef.current.scrollTo({
-          top: scrollRef.current.scrollHeight,
-          behavior: 'instant'
-        });
-      }
-    });
-
-    mutationObserver.observe(contentRef.current, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
 
     return () => {
       resizeObserver.disconnect();
-      mutationObserver.disconnect();
     };
   }, []);
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, {useState, useMemo, useCallback, useEffect} from 'react';
 import { Cpu, Check } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from './ui/dropdown-menu.tsx';
@@ -120,7 +120,7 @@ export default function ModelSelector({ agentId }: ModelSelectorProps) {
   }, [filteredModels, modelsByProvider]);
 
   // Auto-expand provider with currently selected model
-  useMemo(() => {
+  useEffect(() => {
     if (currentModel.data?.model) {
       const provider = allModels.find(m => m.modelId === currentModel.data?.model)?.provider;
       if (provider) {
