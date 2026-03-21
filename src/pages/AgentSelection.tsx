@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { agentRPCClient, useAgentList, useAgentTypes, useWorkflows, workflowRPCClient } from "../rpc.ts";
 import { toastManager } from "../components/ui/toast.tsx";
 import ConfirmDialog from "../components/overlay/confirm-dialog.tsx";
+import CheckpointBrowser from "../components/CheckpointBrowser.tsx";
 import { useState } from "react";
 
 interface AgentSelectionProps {
@@ -114,6 +115,9 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
               ))}
             </div>
           </div>
+
+          {/* Checkpoints */}
+          <CheckpointBrowser agents={agents} />
 
           {/* Workflows */}
           <div className="space-y-2">

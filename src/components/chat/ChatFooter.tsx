@@ -6,6 +6,7 @@ import type { InputAttachment } from '@tokenring-ai/agent/AgentEvents';
 import ModelSelector from '../ModelSelector.tsx';
 import ToolSelector from '../ToolSelector.tsx';
 import HookSelector from '../HookSelector.tsx';
+import SubAgentSelector from '../SubAgentSelector.tsx';
 
 interface FileAttachment {
   id: string;
@@ -400,6 +401,7 @@ export default function ChatFooter({
             <ModelSelector agentId={agentId} triggerVariant="icon" />
             <ToolSelector agentId={agentId} triggerVariant="icon" />
             <HookSelector agentId={agentId} triggerVariant="icon" />
+            <SubAgentSelector agentId={agentId} triggerVariant="icon" />
           </div>
           
           <div className="flex items-center gap-2 order-1 sm:order-2" aria-live="polite" aria-atomic="true">

@@ -12,7 +12,7 @@ import {
   RiCloudFill,
   RiDatabaseFill,
   RiOpenaiFill,
-  RiAlibabaCloudFill, RiGeminiFill, RiZhihuFill
+  RiAlibabaCloudFill, RiGeminiFill, RiZhihuFill, RiSearchLine
 } from "react-icons/ri";
 import {TbArrowsSplit2, TbBrandAzure} from "react-icons/tb";
 
@@ -166,13 +166,11 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
 
       {hasModels && (
         <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col bg-secondary border-primary shadow-xl" style={{ width: '450px' }} aria-label="Select AI model">
-          {/* Search Box */}
-          <div className="relative group px-3 py-2 shrink-0 border-b border-primary">
-            <div className="relative">
+          <div className="flex items-center gap-2 px-3 pt-1 pb-2 shrink-0 border-b border-primary">
+            <span className="text-sm flex-1 font-mono text-muted shrink-0">Models</span>
+            <div className="relative flex-1">
               <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none">
-                <svg className="w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <RiSearchLine className="w-4 h-4 text-muted" />
               </div>
               <input
                 type="text"
@@ -186,7 +184,7 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
           </div>
 
           {/* Tree List Body */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-1 space-y-0.5">
+          <div className="flex-1 overflow-y-auto custom-scrollbar py-1 space-y-0.5">
             {Object.entries(groupedModels).map(([provider, models]) => {
               const isProviderExpanded = expandedProviders.has(provider);
               const providerCode = models.length > 0 ? models[0]?.modelName.replace(/:.*/, '') : 'unknown';

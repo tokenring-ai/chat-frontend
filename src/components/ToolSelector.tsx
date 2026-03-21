@@ -31,7 +31,8 @@ import {
   RiQuestionAnswerFill,
   RiCheckboxCircleFill,
   RiCheckboxBlankCircleLine,
-  RiStackFill
+  RiStackFill,
+  RiSearchLine
 } from "react-icons/ri";
 
 interface ToolSelectorProps {
@@ -211,12 +212,11 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col bg-secondary border-primary shadow-xl" style={{ width: '450px' }} aria-label="Select AI tools">
-        <div className="relative group px-3 py-2 shrink-0 border-b border-primary">
-          <div className="relative">
+        <div className="flex items-center gap-2 px-3 pt-1 pb-2 shrink-0 border-b border-primary">
+          <span className="text-sm flex-1 font-mono text-muted shrink-0">Tools</span>
+          <div className="relative flex-1">
             <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none">
-              <svg className="w-4 h-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              <RiSearchLine className="w-4 h-4 text-muted" />
             </div>
             <input
               type="text"
@@ -247,7 +247,7 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
 
             return (
               <div key={category} className="flex flex-col">
-                <div className="flex items-center cursor-pointer py-1.5 hover:bg-hover rounded-md px-2 transition-colors group select-none">
+                <div className="flex items-center cursor-pointer py-1.5 hover:bg-hover rounded-md transition-colors group select-none">
                   <div
                     className="w-5 flex items-center justify-center text-muted group-hover:text-primary"
                     onClick={(e) => {

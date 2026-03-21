@@ -1,6 +1,7 @@
 import AgentRpcSchema from '@tokenring-ai/agent/rpc/schema';
 import AIClientRpcSchema from "@tokenring-ai/ai-client/rpc/schema";
 import ChatRpcSchema from "@tokenring-ai/chat/rpc/schema";
+import CheckpointRpcSchema from "@tokenring-ai/checkpoint/rpc/schema";
 import FileSystemRpcSchema from '@tokenring-ai/filesystem/rpc/schema';
 import LifecycleRpcSchema from '@tokenring-ai/lifecycle/rpc/schema';
 import WorkflowRpcSchema from '@tokenring-ai/workflow/rpc/schema';
@@ -12,6 +13,7 @@ const baseURL = new URL(window.location.origin);
 export const agentRPCClient = createWsRPCClient(baseURL, AgentRpcSchema);
 export const aiRPCClient = createWsRPCClient(baseURL, AIClientRpcSchema);
 export const chatRPCClient = createWsRPCClient(baseURL, ChatRpcSchema);
+export const checkpointRPCClient = createWsRPCClient(baseURL, CheckpointRpcSchema);
 export const filesystemRPCClient = createWsRPCClient(baseURL, FileSystemRpcSchema);
 export const lifecycleRPCClient = createWsRPCClient(baseURL, LifecycleRpcSchema);
 export const workflowRPCClient = createWsRPCClient(baseURL, WorkflowRpcSchema);
@@ -79,4 +81,16 @@ export function useAvailableHooks() {
 
 export function useEnabledHooks(agentId: string) {
   return useSWR(`/lifecycle/getEnabledHooks/${agentId}`, () => agentId ? lifecycleRPCClient.getEnabledHooks({ agentId }) : null, { refreshInterval: 5000 });
+}
+
+export function useAvailableSubAgents(agentId: string) {
+  return useSWR(`/agent/getAvailableSubAgents/${agentId}`, () => agentId ? agentRPCClient.getAvailableSubAgents({ agentId }) : null);
+}
+
+export function useEnabledSubAgents(agentId: string) {
+  return useSWR(`/agent/getEnabledSubAgents/${agentId}`, () => agentId ? agentRPCClient.getEnabledSubAgents({ agentId }) : null, { refreshInterval: 5000 });
+}
+
+export function useCheckpointList() {
+  return useSWR("/checkpoint/listCheckpoints", () => checkpointRPCClient.listCheckpoints({}), { refreshInterval: 5000 });
 }
