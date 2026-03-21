@@ -67,7 +67,7 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
           return (
             <>
               <div className="h-4" />
-              <div className="px-6 py-4 flex items-center gap-4 text-zinc-300 select-none">
+              <div className="px-6 py-4 flex items-center gap-4 text-zinc-700 dark:text-zinc-300  select-none">
                 <div className="h-px bg-zinc-600 flex-1" />
                 <span className="text-[10px] uppercase tracking-widest">
                   Session Start • {messages[0]?.timestamp ? new Date(messages[0].timestamp).toLocaleDateString() : 'New Session'}

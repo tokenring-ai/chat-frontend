@@ -18,6 +18,7 @@ import {TbArrowsSplit2, TbBrandAzure} from "react-icons/tb";
 
 interface ModelSelectorProps {
   agentId: string;
+  triggerVariant?: 'default' | 'icon';
 }
 
 // Provider icon mapping
@@ -52,12 +53,13 @@ const providerColors: Record<string, string> = {
 };
 
 
-export default function ModelSelector({ agentId }: ModelSelectorProps) {
+export default function ModelSelector({ agentId, triggerVariant = 'default' }: ModelSelectorProps) {
   const currentModel = useModel(agentId);
   const modelsData = useChatModelsByProvider();
   const [isSelecting, setIsSelecting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
+  const isIconTrigger = triggerVariant === 'icon';
 
   const handleSelectModel = useCallback(async (modelId: string) => {
     setIsSelecting(true);
@@ -132,25 +134,38 @@ export default function ModelSelector({ agentId }: ModelSelectorProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="flex items-center gap-2 px-2 py-1 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring" role="button" aria-haspopup="true" aria-expanded="false">
+        <button
+          type="button"
+          className={
+            isIconTrigger
+              ? 'flex items-center justify-center p-1.5 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring text-muted hover:text-primary'
+              : 'flex items-center gap-2 px-2 py-1 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring'
+          }
+          aria-label={currentModel.data?.model ? `Select model. Current model ${currentModel.data.model}` : 'Select model'}
+          title={currentModel.data?.model ?? 'Select model'}
+        >
           {isSelecting || currentModel.isLoading ? (
             <>
-              <Cpu className="w-3.5 h-3.5 text-muted animate-spin" />
-              <span className="text-xs font-mono text-muted truncate max-w-64">Loading...</span>
+              <Cpu className={`${isIconTrigger ? 'w-5 h-5' : 'w-3.5 h-3.5 text-muted'} animate-spin`} />
+              {!isIconTrigger && (
+                <span className="text-xs font-mono text-muted truncate max-w-64">Loading...</span>
+              )}
             </>
           ) : (
             <>
-              <Cpu className="w-3.5 h-3.5 text-muted group-hover:text-primary" />
-              <span className="text-xs font-mono text-muted group-hover:text-primary truncate max-w-64">
-                {currentModel.data?.model ?? 'Select model...'}
-              </span>
+              <Cpu className={isIconTrigger ? 'w-5 h-5' : 'w-3.5 h-3.5 text-muted group-hover:text-primary'} />
+              {!isIconTrigger && (
+                <span className="text-xs font-mono text-muted group-hover:text-primary truncate max-w-64">
+                  {currentModel.data?.model ?? 'Select model...'}
+                </span>
+              )}
             </>
           )}
-        </div>
+        </button>
       </DropdownMenuTrigger>
 
       {hasModels && (
-        <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col bg-secondary border-primary shadow-xl" style={{ width: '560px' }} aria-label="Select AI model">
+        <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col bg-secondary border-primary shadow-xl" style={{ width: '450px' }} aria-label="Select AI model">
           {/* Search Box */}
           <div className="relative group px-3 py-2 shrink-0 border-b border-primary">
             <div className="relative">

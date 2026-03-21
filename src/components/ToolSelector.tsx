@@ -36,6 +36,7 @@ import {
 
 interface ToolSelectorProps {
   agentId: string;
+  triggerVariant?: 'default' | 'icon';
 }
 
 // Package icon mapping
@@ -109,11 +110,12 @@ const packageColors: Record<string, string> = {
   default: 'text-muted',
 };
 
-export default function ToolSelector({ agentId }: ToolSelectorProps) {
+export default function ToolSelector({ agentId, triggerVariant = 'default' }: ToolSelectorProps) {
   const availableTools = useAvailableTools();
   const enabledTools = useEnabledTools(agentId);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const isIconTrigger = triggerVariant === 'icon';
 
   const tools = availableTools.data?.tools;
 
@@ -189,15 +191,26 @@ export default function ToolSelector({ agentId }: ToolSelectorProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div className="hidden md:flex items-center gap-2 px-2 py-1 rounded hover:bg-hover transition-colors cursor-pointer group">
-          <RiStackFill className="w-3.5 h-3.5 text-muted group-hover:text-primary" />
-          <span className="text-xs font-mono text-muted group-hover:text-primary truncate max-w-48">
-            {enabledTools.data?.tools?.length ?? 0} enabled
-          </span>
-        </div>
+        <button
+          type="button"
+          className={
+            isIconTrigger
+              ? 'flex items-center justify-center p-1.5 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring text-muted hover:text-primary'
+              : 'hidden md:flex items-center gap-2 px-2 py-1 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring'
+          }
+          aria-label={`Select tools. ${enabledTools.data?.tools?.length ?? 0} enabled`}
+          title={`${enabledTools.data?.tools?.length ?? 0} tools enabled`}
+        >
+          <RiStackFill className={isIconTrigger ? 'w-5 h-5' : 'w-3.5 h-3.5 text-muted group-hover:text-primary'} />
+          {!isIconTrigger && (
+            <span className="text-xs font-mono text-muted group-hover:text-primary truncate max-w-48">
+              {enabledTools.data?.tools?.length ?? 0} enabled
+            </span>
+          )}
+        </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col bg-secondary border-primary shadow-xl" style={{ width: '560px' }} aria-label="Select AI tools">
+      <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col bg-secondary border-primary shadow-xl" style={{ width: '450px' }} aria-label="Select AI tools">
         <div className="relative group px-3 py-2 shrink-0 border-b border-primary">
           <div className="relative">
             <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none">

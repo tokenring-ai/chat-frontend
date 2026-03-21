@@ -3,6 +3,8 @@ import { FolderOpen, History, Paperclip, Send, Square, X, FileText, Image, FileC
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { agentRPCClient } from '../../rpc.ts';
 import type { InputAttachment } from '@tokenring-ai/agent/AgentEvents';
+import ModelSelector from '../ModelSelector.tsx';
+import ToolSelector from '../ToolSelector.tsx';
 
 interface FileAttachment {
   id: string;
@@ -275,7 +277,7 @@ export default function ChatFooter({
           )}
         </AnimatePresence>
 
-        <div className="flex items-start gap-4 px-6 py-4">
+        <div className="flex items-start gap-4 px-6 pt-3 pb-2">
           <div className="shrink-0 h-lh items-center flex justify-center select-none text-lg">
             <span className="text-indigo-500 font-bold">&gt;</span>
           </div>
@@ -366,8 +368,8 @@ export default function ChatFooter({
           </div>
         </div>
 
-        <div className="min-h-10 py-2 bg-secondary border-t border-primary flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 gap-2 sm:gap-0">
-          <div className="flex items-center gap-2 order-2 sm:order-1">
+        <div className="min-h-10 pb-2 bg-secondary flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 gap-2 sm:gap-0">
+          <div className="flex flex-wrap items-center gap-2 order-2 sm:order-1">
             {/* Local file upload button */}
             <button
               aria-label="Attach file"
@@ -393,6 +395,9 @@ export default function ChatFooter({
             >
               <History className="w-5 h-5" />
             </button>
+            <div className="w-px h-5 bg-primary/70 mx-0.5" aria-hidden="true" />
+            <ModelSelector agentId={agentId} triggerVariant="icon" />
+            <ToolSelector agentId={agentId} triggerVariant="icon" />
           </div>
           
           <div className="flex items-center gap-2 order-1 sm:order-2" aria-live="polite" aria-atomic="true">
@@ -455,7 +460,7 @@ export default function ChatFooter({
           <span className="text-2xs text-muted font-mono line-clamp-1">{ statusMessage }</span>
           <span className="text-2xs text-dim font-mono">{input.length} chars</span>
         </div>
-        <div className="hidden sm:flex items-center gap-2 text-2xs text-dim">
+        <div className="flex items-center gap-2 text-2xs text-dim">
           <span className="hidden md:inline"><kbd className="px-1.5 py-0.5 bg-tertiary rounded text-primary font-mono">Enter</kbd> Send • <kbd className="px-1.5 py-0.5 bg-tertiary rounded text-primary font-mono">↑/↓</kbd> History • <kbd className="px-1.5 py-0.5 bg-tertiary rounded text-primary font-mono">Shift+Enter</kbd> New line</span>
           <span className="md:hidden">⏎ Send • ↑/↓ History</span>
         </div>

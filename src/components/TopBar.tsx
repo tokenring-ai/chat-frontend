@@ -67,13 +67,13 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
       {/* Logo */}
       <button
         onClick={() => navigate('/')}
-        className="flex items-center gap-2 focus-ring rounded-lg shrink-0 cursor-pointer"
+        className="hidden sm:flex items-center gap-2 focus-ring rounded-lg shrink-0 cursor-pointer"
         aria-label="TokenRing Home"
       >
         <div className="w-7 h-7 rounded-lg bg-linear-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/10">
           <Zap className="w-4 h-4 text-white" fill="currentColor" />
         </div>
-        <span className="text-primary font-bold tracking-tight text-sm hidden sm:block">TokenRing</span>
+        <span className="text-primary font-bold tracking-tight text-sm hidden md:block">TokenRing</span>
       </button>
 
       {/* Mobile Menu Button - Hidden on desktop */}
@@ -154,8 +154,8 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
       {/* Agent-specific controls (model selector, tool selector) */}
       {agentControls && (
         <>
-          <div className="w-px h-5 bg-primary shrink-0" />
-          <div className="flex items-center gap-1">{agentControls}</div>
+          <div className="w-px h-5 bg-primary shrink-0 hidden md:block" />
+          <div className="hidden md:flex items-center gap-1">{agentControls}</div>
         </>
       )}
 

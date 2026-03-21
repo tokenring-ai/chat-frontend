@@ -6,205 +6,204 @@
 /* Using Tailwind's native dark: variant with class strategy */
 
 @layer base {
-  :root {
-    /* Light mode - Paper theme */
-    --bg-primary: #fafaf9;
-    --bg-secondary: #f5f5f4;
-    --bg-sidebar: #ffffff;
-    --bg-tertiary: #e7e5e4;
-    --bg-hover: rgba(0, 0, 0, 0.05);
-    --bg-active: rgba(99, 102, 241, 0.1);
-    --bg-input: #ffffff;
-    --border-primary: #e7e5e4;
-    --accent-primary: #6366f1;
-    --text-primary: #1c1917;
-    --text-secondary: #44403c;
-    --text-muted: #78716c;
-    --text-dim: #a8a29e;
-  }
+ :root {
+  /* Light mode - Paper theme */
+  --bg-primary: #fafaf9;
+  --bg-secondary: #f5f5f4;
+  --bg-sidebar: #ffffff;
+  --bg-tertiary: #e7e5e4;
+  --bg-hover: rgba(0, 0, 0, 0.05);
+  --bg-active: rgba(99, 102, 241, 0.1);
+  --bg-input: #ffffff;
+  --border-primary: #e7e5e4;
+  --accent-primary: #6366f1;
+  --text-primary: #1c1917;
+  --text-secondary: #44403c;
+  --text-muted: #78716c;
+  --text-dim: #a8a29e;
+  --selection: rgba(99, 102, 241, 0.3);
+ }
 
-  .dark {
-    /* Dark mode - Charcoal theme */
-    --bg-primary: #0a0a0a;
-    --bg-secondary: #141414;
-    --bg-sidebar: #0a0a0a;
-    --bg-tertiary: #1a1a1a;
-    --bg-hover: rgba(255, 255, 255, 0.05);
-    --bg-active: #ffffff1c;
-    --bg-input: #1a1a1a;
-    --border-primary: #262626;
-    --accent-primary: #6366f1;
-    --text-primary: #fafafa;
-    --text-secondary: #e5e5e5;
-    --text-muted: #a3a3a3;
-    --text-dim: #737373;
-  }
+ .dark {
+  /* Dark mode - Charcoal theme */
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #141414;
+  --bg-sidebar: #0a0a0a;
+  --bg-tertiary: #1a1a1a;
+  --bg-hover: rgba(255, 255, 255, 0.05);
+  --bg-active: rgba(255, 255, 255, 0.11);
+  --bg-input: #1a1a1a;
+  --border-primary: #262626;
+  --accent-primary: #6366f1;
+  --text-primary: #fafafa;
+  --text-secondary: #e5e5e5;
+  --text-muted: #a3a3a3;
+  --text-dim: #737373;
+  --selection: rgba(99, 102, 241, 0.5);
+ }
 
-  html,
-  body {
-    background-color: var(--bg-primary);
-    color: var(--text-secondary);
-    @apply antialiased font-sans;
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-  }
+ html,
+ body {
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+  @apply antialiased font-sans;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+ }
 
-  /* Paper texture for light mode */
-  :root:not(.dark) body {
-    background-image: 
-      repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.01) 2px, rgba(0,0,0,0.01) 4px),
-      repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.01) 2px, rgba(0,0,0,0.01) 4px);
-  }
+ /* Paper texture for light mode */
+ :root:not(.dark) body {
+  background-image:
+   repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.01) 2px, rgba(0,0,0,0.01) 4px),
+   repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.01) 2px, rgba(0,0,0,0.01) 4px);
+ }
 
-  /* Selection style */
-  ::selection {
-    background-color: rgba(99, 102, 241, 0.3);
-    color: var(--text-primary);
-  }
-
-  /* Scrollbar theming */
-  .dark ::-webkit-scrollbar-thumb {
-    background: #262626;
-  }
-  
-  :root:not(.dark) ::-webkit-scrollbar-thumb {
-    background: #e7e5e4;
-  }
+ /* Selection style */
+ ::selection {
+  background-color: var(--selection);
+  color: var(--text-primary);
+ }
 }
 
 @layer utilities {
-  .bg-primary {
-    background-color: var(--bg-primary);
-  }
+ .bg-primary {
+  background-color: var(--bg-primary);
+ }
 
-  .bg-secondary {
-    background-color: var(--bg-secondary);
-  }
+ .bg-secondary {
+  background-color: var(--bg-secondary);
+ }
 
-  .bg-tertiary {
-    background-color: var(--bg-tertiary);
-  }
+ .bg-sidebar {
+  background-color: var(--bg-sidebar);
+ }
 
-  .bg-hover {
-    background-color: var(--bg-hover);
-  }
+ .bg-tertiary {
+  background-color: var(--bg-tertiary);
+ }
 
-  .bg-active {
-    background-color: var(--bg-active);
-  }
+ .bg-hover {
+  background-color: var(--bg-hover);
+ }
 
-  .bg-input {
-    background-color: var(--bg-input);
-  }
+ .bg-active {
+  background-color: var(--bg-active);
+ }
 
-  .border-primary {
-    border-color: var(--border-primary);
-  }
+ .bg-input {
+  background-color: var(--bg-input);
+ }
 
-  .text-primary {
-    color: var(--text-primary);
-  }
+ .bg-accent {
+  background-color: var(--accent-primary);
+ }
 
-  .text-secondary {
-    color: var(--text-secondary);
-  }
+ .border-primary {
+  border-color: var(--border-primary);
+ }
 
-  .text-muted {
-    color: var(--text-muted);
-  }
+ .text-primary {
+  color: var(--text-primary);
+ }
 
-  .text-dim {
-    color: var(--text-dim);
-  }
+ .text-secondary {
+  color: var(--text-secondary);
+ }
 
-  .accent-primary {
-    color: var(--accent-primary);
-  }
+ .text-muted {
+  color: var(--text-muted);
+ }
 
-  /* Typography scale */
-  .text-2xs { font-size: 0.625rem; line-height: 0.875rem; }
-  .text-xs { font-size: 0.75rem; line-height: 1rem; }
-  .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+ .text-dim {
+  color: var(--text-dim);
+ }
 
-  /* Icon sizes */
-  .icon-xs { @apply w-3 h-3; }
-  .icon-sm { @apply w-3.5 h-3.5; }
-  .icon-md { @apply w-4 h-4; }
-  .icon-lg { @apply w-5 h-5; }
-  .icon-xl { @apply w-6 h-6; }
+ .text-accent {
+  color: var(--accent-primary);
+ }
 
-  /* Button hover states */
-  .btn-ghost { 
-    @apply transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2;
-    --tw-ring-offset-color: var(--bg-primary);
-  }
-  .btn-ghost:hover {
-    background-color: var(--bg-hover);
-  }
-  .btn-icon {
-    @apply p-2 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2;
-    --tw-ring-offset-color: var(--bg-primary);
-  }
-  .btn-icon:hover {
-    background-color: var(--bg-hover);
-  }
+ /* Typography scale */
+ .text-2xs { font-size: 0.625rem; line-height: 0.875rem; }
+ .text-xs { font-size: 0.75rem; line-height: 1rem; }
+ .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
 
-  /* Consistent border-radius */
-  .rounded-card { @apply rounded-xl; }
-  .rounded-button { @apply rounded-lg; }
-  .rounded-input { @apply rounded-md; }
+ /* Icon sizes */
+ .icon-xs { @apply w-3 h-3; }
+ .icon-sm { @apply w-3.5 h-3.5; }
+ .icon-md { @apply w-4 h-4; }
+ .icon-lg { @apply w-5 h-5; }
+ .icon-xl { @apply w-6 h-6; }
 
-  .prose {
-    max-width: 100ch;
-    h1 {
-     font-size: 1.6em;
-    }
-    ol {
-      padding-left: 2.3em;
-    }
+ /* Button hover states */
+ .btn-ghost {
+  @apply transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500;
+ }
+ .btn-ghost:hover {
+  background-color: var(--bg-hover);
+ }
+ .btn-icon {
+  @apply p-2 transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500;
+ }
+ .btn-icon:hover {
+  background-color: var(--bg-hover);
+ }
+
+ /* Consistent border-radius */
+ .rounded-card { @apply rounded-xl; }
+ .rounded-button { @apply rounded-lg; }
+ .rounded-input { @apply rounded-md; }
+
+ .prose {
+  max-width: 100ch;
+  h1 {
+   font-size: 1.6em;
   }
+  ol {
+   padding-left: 2.3em;
+  }
+ }
 }
 
 @theme {
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+ --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+ --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+ width: 4px;
+ height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+ background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-primary);
-  border-radius: 10px;
+ background: var(--border-primary);
+ border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-dim);
+ background: var(--text-dim);
 }
 
 /* Custom animations */
 @keyframes pulse-indigo {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(0.95);
-  }
+ 0%, 100% {
+  opacity: 1;
+  transform: scale(1);
+ }
+ 50% {
+  opacity: 0.7;
+  transform: scale(0.95);
+ }
 }
 
 .animate-pulse-indigo {
-  animation: pulse-indigo 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  will-change: transform, opacity;
+ animation: pulse-indigo 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+ will-change: transform, opacity;
 }

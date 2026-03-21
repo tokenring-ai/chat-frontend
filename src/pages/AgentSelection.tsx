@@ -12,12 +12,6 @@ interface AgentSelectionProps {
   workflows: ReturnType<typeof useWorkflows>;
 }
 
-interface AgentItem {
-  id: string;
-  name: string;
-  idle: boolean;
-  statusMessage?: string;
-}
 
 export default function AgentSelection({ agents, agentTypes, workflows }: AgentSelectionProps) {
   const navigate = useNavigate();
