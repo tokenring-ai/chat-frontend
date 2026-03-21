@@ -5,6 +5,7 @@ import { agentRPCClient } from '../../rpc.ts';
 import type { InputAttachment } from '@tokenring-ai/agent/AgentEvents';
 import ModelSelector from '../ModelSelector.tsx';
 import ToolSelector from '../ToolSelector.tsx';
+import HookSelector from '../HookSelector.tsx';
 
 interface FileAttachment {
   id: string;
@@ -398,6 +399,7 @@ export default function ChatFooter({
             <div className="w-px h-5 bg-primary/70 mx-0.5" aria-hidden="true" />
             <ModelSelector agentId={agentId} triggerVariant="icon" />
             <ToolSelector agentId={agentId} triggerVariant="icon" />
+            <HookSelector agentId={agentId} triggerVariant="icon" />
           </div>
           
           <div className="flex items-center gap-2 order-1 sm:order-2" aria-live="polite" aria-atomic="true">

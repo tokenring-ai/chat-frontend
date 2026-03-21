@@ -2,6 +2,7 @@ import AgentRpcSchema from '@tokenring-ai/agent/rpc/schema';
 import AIClientRpcSchema from "@tokenring-ai/ai-client/rpc/schema";
 import ChatRpcSchema from "@tokenring-ai/chat/rpc/schema";
 import FileSystemRpcSchema from '@tokenring-ai/filesystem/rpc/schema';
+import LifecycleRpcSchema from '@tokenring-ai/lifecycle/rpc/schema';
 import WorkflowRpcSchema from '@tokenring-ai/workflow/rpc/schema';
 import createWsRPCClient from "@tokenring-ai/web-host/createWsRPCClient";
 import useSWR from "swr";
@@ -12,6 +13,7 @@ export const agentRPCClient = createWsRPCClient(baseURL, AgentRpcSchema);
 export const aiRPCClient = createWsRPCClient(baseURL, AIClientRpcSchema);
 export const chatRPCClient = createWsRPCClient(baseURL, ChatRpcSchema);
 export const filesystemRPCClient = createWsRPCClient(baseURL, FileSystemRpcSchema);
+export const lifecycleRPCClient = createWsRPCClient(baseURL, LifecycleRpcSchema);
 export const workflowRPCClient = createWsRPCClient(baseURL, WorkflowRpcSchema);
 
 export function useAvailableCommands(agentId: string) {
@@ -69,4 +71,12 @@ export function useAvailableTools() {
 
 export function useEnabledTools(agentId: string) {
   return useSWR(`/chat/getEnabledTools/${agentId}`, () => agentId ? chatRPCClient.getEnabledTools({ agentId }) : null, { refreshInterval: 5000 });
+}
+
+export function useAvailableHooks() {
+  return useSWR(`/lifecycle/getAvailableHooks`, () => lifecycleRPCClient.getAvailableHooks({}));
+}
+
+export function useEnabledHooks(agentId: string) {
+  return useSWR(`/lifecycle/getEnabledHooks/${agentId}`, () => agentId ? lifecycleRPCClient.getEnabledHooks({ agentId }) : null, { refreshInterval: 5000 });
 }
