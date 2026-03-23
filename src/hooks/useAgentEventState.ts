@@ -30,6 +30,7 @@ export function useAgentEventState(agentId: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [agentStatus, setAgentStatus] = useState<RemoteAgentStatus>(INITIAL_AGENT_STATUS);
   const [position, setPosition] = useState(0);
+  const [currentExecutionState, setCurrentExecutionState] = useState<InputExecutionState|null>();
 
   const stateRef = useRef({
     messages: [] as ChatMessage[],
@@ -101,6 +102,8 @@ export function useAgentEventState(agentId: string) {
                   break;
                 case "agent.status":
                   currentAgentStatus = event;
+                  setCurrentExecutionState(inputExecutions.get(event.inputExecutionQueue[0]))
+
                   break;
                 case "input.execution":
                   if (event.status === "finished") {
@@ -163,5 +166,6 @@ export function useAgentEventState(agentId: string) {
     messages,
     agentStatus,
     position,
+    currentExecutionState,
   };
 }

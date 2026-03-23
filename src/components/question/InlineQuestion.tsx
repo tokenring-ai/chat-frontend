@@ -5,12 +5,14 @@ import FileInlineQuestion from "./inputs/file-inline.tsx";
 import FormInlineQuestion from "./inputs/form-inline.tsx";
 import TextInlineQuestion from "./inputs/text-inline.tsx";
 import TreeInlineQuestion from "./inputs/tree-inline.tsx";
-import type {InteractionResponseMessage, QuestionPromptMessage} from "../../types/agent-events.ts";
+import type {InteractionResponseMessage, QuestionInteraction, QuestionPromptMessage} from "../../types/agent-events.ts";
 
 interface InlineQuestionProps {
-  request: QuestionPromptMessage;
+  request: QuestionInteraction;
   agentId: string;
+  requestId: string;
   response?: InteractionResponseMessage;
+  autoScroll?: boolean;
 }
 
 function formatResponseResult(result: any) {
@@ -25,7 +27,7 @@ function formatResponseResult(result: any) {
   return `Response: ${JSON.stringify(result)}`;
 }
 
-export default function InlineQuestion({ request, agentId, response }: InlineQuestionProps) {
+export default function InlineQuestion({ request, agentId, requestId, response, autoScroll = true }: InlineQuestionProps) {
   const [isExpanded, setIsExpanded] = useState(!response);
   const [countdown, setCountdown] = useState<number | null>(null);
   const question = request.question;
@@ -34,10 +36,10 @@ export default function InlineQuestion({ request, agentId, response }: InlineQue
 
   // Focus on the header when the question is rendered
   useEffect(() => {
-    if (containerRef.current) {
+    if (autoScroll && containerRef.current) {
       containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-  }, []);
+  }, [autoScroll]);
 
   // Countdown timer
   useEffect(() => {
@@ -116,7 +118,7 @@ export default function InlineQuestion({ request, agentId, response }: InlineQue
             <TreeInlineQuestion
               question={question}
               agentId={agentId}
-              requestId={request.requestId}
+              requestId={requestId}
               interactionId={request.interactionId}
               onClose={() => setIsExpanded(false)}
             />
@@ -125,7 +127,7 @@ export default function InlineQuestion({ request, agentId, response }: InlineQue
             <TextInlineQuestion
               question={question}
               agentId={agentId}
-              requestId={request.requestId}
+              requestId={requestId}
               interactionId={request.interactionId}
               onClose={() => setIsExpanded(false)}
             />
@@ -134,7 +136,7 @@ export default function InlineQuestion({ request, agentId, response }: InlineQue
             <FileInlineQuestion
               question={question}
               agentId={agentId}
-              requestId={request.requestId}
+              requestId={requestId}
               interactionId={request.interactionId}
               onClose={() => setIsExpanded(false)}
             />
@@ -143,7 +145,7 @@ export default function InlineQuestion({ request, agentId, response }: InlineQue
             <FormInlineQuestion
               question={question}
               agentId={agentId}
-              requestId={request.requestId}
+              requestId={requestId}
               interactionId={request.interactionId}
               onClose={() => setIsExpanded(false)}
             />

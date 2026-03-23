@@ -1,13 +1,14 @@
+import type {InputAttachment} from '@tokenring-ai/agent/AgentEvents';
 import {useMemo, useState} from 'react';
 import AutoScrollContainer from '../components/chat/AutoScrollContainer.tsx';
 import ChatFooter from '../components/chat/ChatFooter.tsx';
 import MessageList from '../components/chat/MessageList.tsx';
+import PendingQuestions from "../components/chat/PendingQuestions.tsx";
+import {useChatInput} from '../components/ChatInputContext.tsx';
 import FileBrowserOverlay from '../components/overlay/file-browser.tsx';
+import {toastManager} from '../components/ui/toast.tsx';
 import {useAgentEventState} from '../hooks/useAgentEventState.ts';
 import {agentRPCClient, useAvailableCommands, useCommandHistory} from '../rpc.ts';
-import { useChatInput } from '../components/ChatInputContext.tsx';
-import { toastManager } from '../components/ui/toast.tsx';
-import type { InputAttachment } from '@tokenring-ai/agent/AgentEvents';
 
 export default function ChatPage({ agentId }: { agentId: string }) {
   const { getInput, setInput: setPersistedInput, clearInput } = useChatInput();
@@ -20,22 +21,11 @@ export default function ChatPage({ agentId }: { agentId: string }) {
     setInputState(value);
     setPersistedInput(agentId, value);
   };
-  
-  const { messages, agentStatus } = useAgentEventState(agentId);
+
+  const {messages, agentStatus, currentExecutionState} = useAgentEventState(agentId);
 
   const idle = agentStatus.status === "running" && agentStatus.inputExecutionQueue.length === 0;
 
-  //const statusMessage = currentActivity;
-  /*const statusMessage = idle
-    ? "Waiting for input"
-    : agentStatus.status === "starting"
-      ? "Starting"
-      : agentStatus.status === "stopping"
-        ? "Stopping"
-        : agentStatus.status === "stopped"
-          ? "Stopped"
-          : currentActivity ?? "Working";
-*/
   const commandHistory = useCommandHistory(agentId);
   const availableCommands = useAvailableCommands(agentId);
 
@@ -88,8 +78,23 @@ export default function ChatPage({ agentId }: { agentId: string }) {
       />
       <div className="flex flex-col flex-1 overflow-hidden">
         <AutoScrollContainer>
-          <MessageList messages={messages} agentId={agentId} agentStatus={agentStatus} />
+          <MessageList
+            messages={messages}
+            agentId={agentId}
+            agentStatus={agentStatus}
+          />
         </AutoScrollContainer>
+
+        {/* Pending Questions displayed at the end of chat, before input */}
+        <PendingQuestions
+          questions={currentExecutionState?.availableInteractions
+            ?.filter((interaction) => interaction.type === 'question')
+            .map((question) => ({
+              ...question,
+              requestId: currentExecutionState.requestId
+            })) || []}
+          agentId={agentId}
+        />
 
         <ChatFooter
           agentId={agentId}

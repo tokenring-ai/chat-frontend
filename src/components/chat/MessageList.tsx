@@ -2,7 +2,7 @@ import type {RemoteAgentStatus} from "../../hooks/useAgentEventState.ts";
 import MessageComponent from './MessageComponent.tsx';
 import { useMemo, useRef, useEffect } from 'react';
 import {Virtuoso, type VirtuosoHandle} from 'react-virtuoso';
-import type {ChatMessage, InteractionResponseMessage} from '../../types/agent-events.ts';
+import type {ChatMessage, InteractionResponseMessage, QuestionPromptMessage} from '../../types/agent-events.ts';
 import {isQuestionPromptMessage} from '../../types/agent-events.ts';
 
 interface MessageListProps {
@@ -11,42 +11,71 @@ interface MessageListProps {
   agentStatus: RemoteAgentStatus;
 }
 
+// Paired interaction for display
+interface QuestionWithResponse {
+  type: 'question-pair';
+  question: QuestionPromptMessage;
+  response?: InteractionResponseMessage;
+}
+
 export default function MessageList({ messages, agentId, agentStatus }: MessageListProps) {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const hasInitializedRef = useRef(false);
 
-  const questionResponses = useMemo(() => {
-    const map = new Map<string, InteractionResponseMessage>();
-    for (const msg of messages) {
-      if (msg.type === 'input.interaction') {
-        map.set(msg.interactionId, msg);
-      }
-    }
-    return map;
-  }, [messages]);
-
-  const allItems = useMemo(() => {
-    const items: Array<{ type: 'header' | 'message' | 'busy'; data?: any; index?: number }> = [
+  // Build question-response pairs
+  const displayItems = useMemo(() => {
+    const items: Array<{ type: 'header' | 'message' | 'question-pair' | 'busy'; data?: any; index?: number }> = [
       { type: 'header' }
     ];
-    messages.forEach((msg, i) => {
-      if (msg.type === 'input.interaction') return;
-      items.push({ type: 'message', data: msg, index: i });
-    });
+
+    // First, build a map of interactionId -> response
+    const responseMap = new Map<string, InteractionResponseMessage>();
+    for (const msg of messages) {
+      if (msg.type === 'input.interaction') {
+        responseMap.set(msg.interactionId, msg);
+      }
+    }
+
+    // Then process messages in order, pairing questions with responses
+    for (const msg of messages) {
+      if (isQuestionPromptMessage(msg)) {
+        // Check if this question has been answered
+        const response = responseMap.get(msg.interactionId);
+        
+        if (response) {
+          // Question has been answered - show as a pair
+          items.push({ 
+            type: 'question-pair', 
+            data: { question: msg, response } 
+          });
+        } else {
+          // Question is still pending - don't show in stream (will be shown in PendingQuestions)
+          // We skip unanswered questions from the stream
+        }
+      } else if (msg.type === 'input.interaction') {
+        // Skip standalone responses - they're already shown with their questions
+        continue;
+      } else {
+        // Regular message
+        items.push({ type: 'message', data: msg, index: messages.indexOf(msg) });
+      }
+    }
+
+    // Add busy indicator if agent is processing
     if (agentStatus.inputExecutionQueue.length > 0) {
       items.push({ type: 'busy', data: agentStatus.currentActivity });
     }
+
     return items;
   }, [messages, agentStatus.inputExecutionQueue.length, agentStatus.currentActivity]);
 
   // Scroll to bottom on initial mount when there are messages
   useEffect(() => {
-    if (!hasInitializedRef.current && virtuosoRef.current && allItems.length > 1) {
-      // Wait for the component to be rendered
+    if (!hasInitializedRef.current && virtuosoRef.current && displayItems.length > 1) {
       const timer = setTimeout(() => {
         if (virtuosoRef.current) {
           virtuosoRef.current.scrollToIndex({
-            index: allItems.length - 1,
+            index: displayItems.length - 1,
             align: 'end'
           });
           hasInitializedRef.current = true;
@@ -54,23 +83,24 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [allItems.length]);
+  }, [displayItems.length]);
 
   return (
     <Virtuoso
       ref={virtuosoRef}
-      data={allItems}
+      data={displayItems}
       followOutput="smooth"
-      initialTopMostItemIndex={allItems.length > 1 ? allItems.length - 1 : 0}
+      initialTopMostItemIndex={displayItems.length > 1 ? displayItems.length - 1 : 0}
       itemContent={(index, item) => {
         if (item.type === 'header') {
+          const firstMessage = messages.find(m => !isQuestionPromptMessage(m) && m.type !== 'input.interaction');
           return (
             <>
               <div className="h-4" />
-              <div className="px-6 py-4 flex items-center gap-4 text-zinc-700 dark:text-zinc-300  select-none">
+              <div className="px-6 py-4 flex items-center gap-4 text-zinc-700 dark:text-zinc-300 select-none">
                 <div className="h-px bg-zinc-600 flex-1" />
                 <span className="text-[10px] uppercase tracking-widest">
-                  Session Start • {messages[0]?.timestamp ? new Date(messages[0].timestamp).toLocaleDateString() : 'New Session'}
+                  Session Start • {firstMessage?.timestamp ? new Date(firstMessage.timestamp).toLocaleDateString() : 'New Session'}
                 </span>
                 <div className="h-px bg-zinc-600 flex-1" />
               </div>
@@ -91,13 +121,20 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
             </div>
           );
         }
-        const msg = item.data;
-        const response = isQuestionPromptMessage(msg) ? questionResponses.get(msg.interactionId) : undefined;
+        if (item.type === 'question-pair') {
+          return (
+            <MessageComponent
+              msg={item.data.question}
+              agentId={agentId}
+              response={item.data.response}
+            />
+          );
+        }
+
         return (
           <MessageComponent
-            msg={msg}
+            msg={item.data}
             agentId={agentId}
-            response={response}
           />
         );
       }}

@@ -1,30 +1,45 @@
 import {type AgentEventEnvelope} from "@tokenring-ai/agent/AgentEvents";
 import safeParseJSON from "@tokenring-ai/utility/json/safeParse";
-import { motion } from 'framer-motion';
-import { Check, Copy, ChevronDown, Code, FileText, FileJson, Image as ImageIcon, Layout, Download, Square, Zap, Activity, CircleSlash } from 'lucide-react';
-import React, {useState, useMemo} from 'react';
+import {motion} from 'framer-motion';
+import {
+  Activity,
+  Bot,
+  Check,
+  ChevronDown,
+  CircleSlash,
+  Code,
+  Copy,
+  Download,
+  FileCode,
+  FileJson,
+  FileText,
+  Image as ImageIcon,
+  Info,
+  Layout,
+  Square,
+  Zap
+} from 'lucide-react';
+import React, {useMemo, useState} from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import InlineQuestion from '../question/InlineQuestion.tsx';
-import { Bot, FileCode, Info } from 'lucide-react';
+import type {ChatMessage, InteractionResponseMessage, QuestionPromptMessage} from '../../types/agent-events.ts';
 import AttachmentChip from './AttachmentChip';
-import type {ChatMessage, InteractionResponseMessage} from '../../types/agent-events.ts';
 
-const utf8decoder = new TextDecoder('utf-8'); // Specify the encoding (UTF-8 is default)
+const utf8decoder = new TextDecoder('utf-8');
 
 const formatTimestamp = (timestamp: number) => {
-  return new Date(timestamp).toLocaleTimeString([], { 
-    hour12: false, 
-    hour: '2-digit', 
-    minute: '2-digit', 
-    second: '2-digit' 
+  return new Date(timestamp).toLocaleTimeString([], {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
   });
 };
 
 interface MessageComponentProps {
   msg: ChatMessage;
   agentId: string;
-  response?: InteractionResponseMessage;
+  response?: InteractionResponseMessage; // Optional response for question-pair display
 }
 
 interface EventConfig {
@@ -82,8 +97,8 @@ const events: Record<ChatMessage['type'], EventConfig> = {
     icon: <Activity className="w-[1em] text-blue-500/70" />,
   },
   'input.interaction': {
-    style: 'text-cyan-800 bg-cyan-50 dark:text-cyan-300 dark:bg-cyan-950/30 px-2 py-1 rounded border border-cyan-100 dark:border-cyan-900/50',
-    icon: <span className="text-cyan-500 font-bold flex items-center">!</span>,
+    style: 'text-emerald-800 dark:text-emerald-300 font-medium',
+    icon: <span className="text-emerald-500 font-bold flex items-center">❖</span>,
   },
   'cancel': {
     style: 'text-red-700 dark:text-red-400 font-medium',
@@ -144,25 +159,116 @@ function CodeBlock({ children, className }: { children: string; className?: stri
   );
 }
 
+function QuestionWithResponseDisplay({
+  question,
+  response
+}: {
+  question: QuestionPromptMessage;
+  response?: InteractionResponseMessage;
+}) {
+  const formatResult = (result: unknown): string => {
+    if (result === null || result === undefined) return "Cancelled";
+
+    if (typeof result === 'string') return result;
+
+    if (Array.isArray(result)) {
+      if (result.length === 0) return "Nothing selected";
+      if (result.length === 1) {
+        const item = result[0];
+        return typeof item === 'string' ? item : JSON.stringify(item);
+      }
+      return result.map(item => String(item)).join(', ');
+    }
+
+    if (typeof result === 'object') {
+      return JSON.stringify(result, null, 2);
+    }
+
+    return String(result);
+  };
+
+  return (
+    <div className="not-prose font-medium">
+      {/* Question part */}
+      <div className="text-slate-800 dark:text-slate-300">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {question.message}
+        </ReactMarkdown>
+      </div>
+
+      {/* Response part (if exists) */}
+      {response && (
+        <div className="py-3 text-emerald-700 dark:text-emerald-300">
+              {formatResult(response.result)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InteractionResponseDisplay({ msg }: { msg: InteractionResponseMessage }) {
+  const result = msg.result;
+
+  let displayText: string;
+
+  if (result === null) {
+    displayText = 'Cancelled';
+  } else if (Array.isArray(result)) {
+    if (result.length === 0) {
+      displayText = 'Nothing selected';
+    } else if (result.length === 1) {
+      displayText = String(result[0]);
+    } else {
+      displayText = result.map(item => String(item)).join(', ');
+    }
+  } else if (typeof result === 'string') {
+    displayText = result;
+  } else if (typeof result === 'object') {
+    displayText = JSON.stringify(result, null, 2);
+  } else {
+    displayText = String(result);
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 text-xs text-muted font-mono">
+        <span>Interaction ID:</span>
+        <code className="bg-secondary px-1.5 py-0.5 rounded">{msg.interactionId}</code>
+      </div>
+      <div className="flex items-center gap-2 text-xs text-muted font-mono">
+        <span>Request ID:</span>
+        <code className="bg-secondary px-1.5 py-0.5 rounded">{msg.requestId}</code>
+      </div>
+      <div className="mt-2 p-3 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/30 dark:border-emerald-900/30 rounded-lg">
+        <div className="text-xs text-emerald-700 dark:text-emerald-400 font-medium mb-1">
+          Response Result:
+        </div>
+        <div className="text-sm text-emerald-900 dark:text-emerald-100 font-mono break-words whitespace-pre-wrap">
+          {displayText}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MessageFooter({ msg, onDownload }: { msg: ChatMessage; onDownload?: () => void }) {
   const [copied, setCopied] = useState(false);
 
+  const messageText = getMessageText(msg);
+
   const handleCopy = async () => {
-    const messageText = getMessageText(msg);
-    if (messageText) {
-      try {
-        await navigator.clipboard.writeText(messageText);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        console.error('Failed to copy:', err);
-      }
+    try {
+      await navigator.clipboard.writeText(messageText!);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
     }
   };
 
   return (
     <div className="flex flex-row items-center gap-3 pb-2 text-xs text-primary font-mono">
-      {getMessageText(msg) && (
+      {messageText && (
         <button
           onClick={handleCopy}
           className="relative cursor-pointer transition-colors group focus-ring rounded"
@@ -195,7 +301,7 @@ function MessageFooter({ msg, onDownload }: { msg: ChatMessage; onDownload?: () 
   );
 }
 
-export default function MessageComponent({ msg, agentId, response }: MessageComponentProps) {
+export default function MessageComponent({msg, agentId, response}: MessageComponentProps) {
   const messageIcon = useMemo(() => {
     if (msg.type === 'output.artifact') {
       const mime = msg.mimeType;
@@ -228,6 +334,7 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
 
   const messageText = getMessageText(msg);
   const hasAttachments = attachments.length > 0;
+  const isQuestionWithResponse = msg.type === 'question' && response;
 
   return (
     <motion.div
@@ -240,21 +347,31 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
       className={`group relative flex flex-row items-start gap-3 px-3 py-3 transition-colors border-l-2 ${
         msg.type === 'input.received' 
           ? 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-500/50' 
+          : isQuestionWithResponse
+          ? 'bg-cyan-50/30 dark:bg-cyan-500/5 border-cyan-500/30'
+          : msg.type === 'input.interaction'
+          ? 'bg-emerald-50/30 dark:bg-emerald-500/5 border-emerald-500/30'
           : 'hover:bg-hover border-transparent hover:border-primary'
       }`}
     >
       <div className="shrink-0 w-6 flex justify-center items-center prose prose-sm">
-        {messageIcon}
+        {isQuestionWithResponse ? (
+          <span className="text-cyan-500 font-bold flex items-center">?</span>
+        ) : messageIcon}
       </div>
 
       <div className={`prose prose-sm dark:prose-invert ${messageStyle} w-full`}>
         {msg.type === 'output.artifact' ? (
           <ArtifactDisplay artifact={msg} />
-        ) : msg.type === 'question' ? (
-          <InlineQuestion request={msg} agentId={agentId} response={response} />
+        ) : isQuestionWithResponse ? (
+          <QuestionWithResponseDisplay
+            question={msg as QuestionPromptMessage}
+            response={response}
+          />
+        ) : msg.type === 'input.interaction' ? (
+          <InteractionResponseDisplay msg={msg as InteractionResponseMessage} />
         ) : messageText ? (
           <>
-            {/* Message content */}
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
@@ -271,14 +388,13 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
               {messageText}
             </ReactMarkdown>
 
-            {/* Attachments displayed below the message */}
             {hasAttachments && (
               <div className="not-prose mt-4 mb-2">
                 <div className="flex flex-wrap gap-2">
                   {attachments.map((attachment, index) => (
-                    <AttachmentChip 
-                      key={`${attachment.name}-${attachment.timestamp}-${index}`} 
-                      attachment={attachment} 
+                    <AttachmentChip
+                      key={`${attachment.name}-${attachment.timestamp}-${index}`}
+                      attachment={attachment}
                     />
                   ))}
                 </div>
@@ -286,8 +402,8 @@ export default function MessageComponent({ msg, agentId, response }: MessageComp
             )}
           </>
         ) : null}
-        <MessageFooter 
-          msg={msg} 
+        <MessageFooter
+          msg={msg}
           onDownload={msg.type === 'output.artifact' ? () => {
             const decodedBody = msg.encoding === 'base64' ? Buffer.from(msg.body, 'base64') : msg.body;
             const blob = new Blob([decodedBody], { type: msg.mimeType });
