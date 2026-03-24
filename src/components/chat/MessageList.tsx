@@ -11,57 +11,46 @@ interface MessageListProps {
   agentStatus: RemoteAgentStatus;
 }
 
-// Paired interaction for display
-interface QuestionWithResponse {
-  type: 'question-pair';
-  question: QuestionPromptMessage;
-  response?: InteractionResponseMessage;
-}
+type DisplayItem =
+  | { type: 'header' }
+  | { type: 'message'; data: ChatMessage }
+  | { type: 'question-pair'; data: { question: QuestionPromptMessage; response: InteractionResponseMessage } }
+  | { type: 'busy'; data?: string };
 
 export default function MessageList({ messages, agentId, agentStatus }: MessageListProps) {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const hasInitializedRef = useRef(false);
 
-  // Build question-response pairs
   const displayItems = useMemo(() => {
-    const items: Array<{ type: 'header' | 'message' | 'question-pair' | 'busy'; data?: any; index?: number }> = [
-      { type: 'header' }
-    ];
+    const items: DisplayItem[] = [{ type: 'header' }];
+    const questionMap = new Map<string, QuestionPromptMessage>();
 
-    // First, build a map of interactionId -> response
-    const responseMap = new Map<string, InteractionResponseMessage>();
-    for (const msg of messages) {
-      if (msg.type === 'input.interaction') {
-        responseMap.set(msg.interactionId, msg);
-      }
-    }
-
-    // Then process messages in order, pairing questions with responses
     for (const msg of messages) {
       if (isQuestionPromptMessage(msg)) {
-        // Check if this question has been answered
-        const response = responseMap.get(msg.interactionId);
-        
-        if (response) {
-          // Question has been answered - show as a pair
-          items.push({ 
-            type: 'question-pair', 
-            data: { question: msg, response } 
-          });
-        } else {
-          // Question is still pending - don't show in stream (will be shown in PendingQuestions)
-          // We skip unanswered questions from the stream
-        }
-      } else if (msg.type === 'input.interaction') {
-        // Skip standalone responses - they're already shown with their questions
-        continue;
-      } else {
-        // Regular message
-        items.push({ type: 'message', data: msg, index: messages.indexOf(msg) });
+        questionMap.set(msg.interactionId, msg);
       }
     }
 
-    // Add busy indicator if agent is processing
+    for (const msg of messages) {
+      if (isQuestionPromptMessage(msg)) {
+        // Pending questions are rendered above the input, not inline in the timeline.
+        continue;
+      }
+
+      if (msg.type === 'input.interaction') {
+        const question = questionMap.get(msg.interactionId);
+        if (question) {
+          items.push({
+            type: 'question-pair',
+            data: { question, response: msg }
+          });
+          continue;
+        }
+      }
+
+      items.push({ type: 'message', data: msg });
+    }
+
     if (agentStatus.inputExecutionQueue.length > 0) {
       items.push({ type: 'busy', data: agentStatus.currentActivity });
     }
@@ -124,8 +113,9 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
         if (item.type === 'question-pair') {
           return (
             <MessageComponent
-              msg={item.data.question}
+              msg={item.data.response}
               agentId={agentId}
+              question={item.data.question}
               response={item.data.response}
             />
           );

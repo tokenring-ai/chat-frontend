@@ -39,7 +39,8 @@ const formatTimestamp = (timestamp: number) => {
 interface MessageComponentProps {
   msg: ChatMessage;
   agentId: string;
-  response?: InteractionResponseMessage; // Optional response for question-pair display
+  question?: QuestionPromptMessage;
+  response?: InteractionResponseMessage;
 }
 
 interface EventConfig {
@@ -301,7 +302,7 @@ function MessageFooter({ msg, onDownload }: { msg: ChatMessage; onDownload?: () 
   );
 }
 
-export default function MessageComponent({msg, agentId, response}: MessageComponentProps) {
+export default function MessageComponent({msg, agentId, question, response}: MessageComponentProps) {
   const messageIcon = useMemo(() => {
     if (msg.type === 'output.artifact') {
       const mime = msg.mimeType;
@@ -334,7 +335,8 @@ export default function MessageComponent({msg, agentId, response}: MessageCompon
 
   const messageText = getMessageText(msg);
   const hasAttachments = attachments.length > 0;
-  const isQuestionWithResponse = msg.type === 'question' && response;
+  const pairedQuestion = question ?? (msg.type === 'question' ? msg : undefined);
+  const isQuestionWithResponse = Boolean(pairedQuestion && response);
 
   return (
     <motion.div
@@ -365,7 +367,7 @@ export default function MessageComponent({msg, agentId, response}: MessageCompon
           <ArtifactDisplay artifact={msg} />
         ) : isQuestionWithResponse ? (
           <QuestionWithResponseDisplay
-            question={msg as QuestionPromptMessage}
+            question={pairedQuestion!}
             response={response}
           />
         ) : msg.type === 'input.interaction' ? (
