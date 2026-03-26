@@ -1,11 +1,11 @@
-import { ChevronDown } from 'lucide-react';
-import React, { useState, useEffect, useRef } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import {AnimatePresence, motion} from 'framer-motion';
+import {Check, ChevronDown} from 'lucide-react';
+import React, {useEffect, useRef, useState} from 'react';
+import type {InteractionResponseMessage, QuestionInteraction} from "../../types/agent-events.ts";
 import FileInlineQuestion from "./inputs/file-inline.tsx";
 import FormInlineQuestion from "./inputs/form-inline.tsx";
 import TextInlineQuestion from "./inputs/text-inline.tsx";
 import TreeInlineQuestion from "./inputs/tree-inline.tsx";
-import type {InteractionResponseMessage, QuestionInteraction, QuestionPromptMessage} from "../../types/agent-events.ts";
 
 interface InlineQuestionProps {
   request: QuestionInteraction;
@@ -13,6 +13,8 @@ interface InlineQuestionProps {
   requestId: string;
   response?: InteractionResponseMessage;
   autoScroll?: boolean;
+  isUrgent?: boolean;
+  urgencyLevel?: number | null;
 }
 
 function formatResponseResult(result: any) {
@@ -27,9 +29,11 @@ function formatResponseResult(result: any) {
   return `Response: ${JSON.stringify(result)}`;
 }
 
-export default function InlineQuestion({ request, agentId, requestId, response, autoScroll = true }: InlineQuestionProps) {
+export default function InlineQuestion({request, agentId, requestId, response, autoScroll = true, isUrgent = false}: InlineQuestionProps) {
   const [isExpanded, setIsExpanded] = useState(!response);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [autoSubmitted, setAutoSubmitted] = useState(false);
+  const [totalTime, setTotalTime] = useState<number | null>(null);
   const question = request.question;
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLButtonElement>(null);
@@ -46,15 +50,25 @@ export default function InlineQuestion({ request, agentId, requestId, response, 
     const autoSubmitAt = request.autoSubmitAt;
     if (!autoSubmitAt) return;
 
+    // Calculate total timeout duration on first render
+    if (totalTime === null) {
+      const timeoutDuration = Math.ceil((autoSubmitAt - Date.now()) / 1000);
+      setTotalTime(timeoutDuration > 0 ? timeoutDuration : 60);
+    }
+
     const updateCountdown = () => {
       const remaining = Math.max(0, Math.ceil((autoSubmitAt - Date.now()) / 1000));
       setCountdown(remaining);
+      // Detect when auto-submit occurs
+      if (remaining === 0 && !autoSubmitted) {
+        setAutoSubmitted(true);
+      }
     };
 
     updateCountdown();
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, [request.autoSubmitAt]);
+  }, [request.autoSubmitAt, autoSubmitted, totalTime]);
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -76,7 +90,9 @@ export default function InlineQuestion({ request, agentId, requestId, response, 
             setIsExpanded(!isExpanded);
           }
         }}
-        className="flex items-center gap-2 py-0.5 w-full text-left cursor-pointer group/header hover:opacity-80 transition-opacity"
+        className={`flex items-center gap-2 py-0.5 w-full text-left cursor-pointer group/header hover:opacity-80 transition-opacity ${
+          autoSubmitted ? 'bg-success/10 rounded' : ''
+        }`}
         tabIndex={0}
         aria-expanded={isExpanded}
         aria-controls={`question-content-${request.interactionId}`}
@@ -85,16 +101,51 @@ export default function InlineQuestion({ request, agentId, requestId, response, 
         <div className={`transition-transform duration-150 ${isExpanded ? 'rotate-0' : '-rotate-90'}`}>
           <ChevronDown size={14} className="text-dim" />
         </div>
-        <div className="flex items-center gap-2 flex-1">
-          <span className="text-sm font-medium text-primary truncate leading-none">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {isUrgent && (
+            <span className="inline-block w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse flex-shrink-0" title="Urgent - auto-submit pending"/>
+          )}
+          <span className="text-sm font-medium text-primary truncate leading-none flex-1">
             {request.message}
           </span>
-          <span className="text-[10px] font-mono text-dim opacity-0 group-hover/header:opacity-100 transition-opacity leading-none pt-0.5">
+          <span className="text-[10px] font-mono text-dim opacity-0 group-hover/header:opacity-100 transition-opacity leading-none pt-0.5 flex-shrink-0">
             {question.type}
           </span>
           {countdown !== null && countdown > 0 && (
-            <span className="text-[10px] text-accent font-medium leading-none pt-0.5">
-              {countdown}s
+            <>
+              <span
+                className={`text-[10px] font-medium leading-none pt-0.5 flex-shrink-0 ${
+                  countdown <= 5 ? 'text-red-500 dark:text-red-400 font-bold animate-pulse' :
+                    countdown <= 15 ? 'text-orange-500 dark:text-orange-400' :
+                      'text-accent'
+                }`}
+              >
+                {countdown}s
+              </span>
+              {/* Visual progress indicator for urgency */}
+              {totalTime !== null && totalTime > 0 && (
+                <div className="w-8 h-0.5 bg-dim/30 rounded-full overflow-hidden flex-shrink-0" title={`Time remaining: ${countdown}s of ${totalTime}s`}>
+                  <div
+                    className={`h-full rounded-full transition-all duration-1000 ${
+                      countdown <= 5 ? 'bg-red-500' :
+                        countdown <= 15 ? 'bg-orange-500' :
+                          'bg-accent'
+                    }`}
+                    style={{width: `${(countdown / totalTime) * 100}%`}}
+                  />
+                </div>
+              )}
+            </>
+          )}
+          {countdown !== null && countdown === 0 && !autoSubmitted && (
+            <span className="text-[10px] text-warning font-medium leading-none pt-0.5 animate-pulse flex-shrink-0">
+              Submitting...
+            </span>
+          )}
+          {autoSubmitted && (
+            <span className="text-[10px] text-success font-medium leading-none pt-0.5 flex-shrink-0 flex items-center gap-0.5">
+              <Check size={10} className="inline"/>
+              Auto-submitted
             </span>
           )}
         </div>

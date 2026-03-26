@@ -1,8 +1,4 @@
-import {
-  AgentStatusSchema,
-  InputExecutionStateSchema,
-  type AgentEventEnvelope,
-} from "@tokenring-ai/agent/AgentEvents";
+import {type AgentEventEnvelope, AgentStatusSchema, InputExecutionStateSchema,} from "@tokenring-ai/agent/AgentEvents";
 import {useEffect, useRef, useState} from "react";
 import {z} from "zod";
 import {agentRPCClient} from "../rpc.ts";
@@ -125,6 +121,7 @@ export function useAgentEventState(agentId: string) {
                 case "cancel":
                   break;
                 default: {
+                  // noinspection UnnecessaryLocalVariableJS
                   const _exhaustive: never = event;
                   throw new Error(`Unhandled event type: ${(_exhaustive as any).type}`);
                 }

@@ -1,9 +1,9 @@
-import { getDefaultQuestionValue, type ParsedFormQuestion } from '@tokenring-ai/agent/question';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import React, { useState, useRef, useEffect } from 'react';
+import {getDefaultQuestionValue, type ParsedFormQuestion} from '@tokenring-ai/agent/question';
+import {ChevronLeft, ChevronRight, X} from 'lucide-react';
+import React, {useEffect, useRef, useState} from 'react';
+import {sendInteractionResponse} from "../sendInteractionResponse.ts";
 import FileInlineQuestion from './file-inline.tsx';
 import TreeInlineQuestion from './tree-inline.tsx';
-import { sendInteractionResponse } from "../sendInteractionResponse.ts";
 
 interface FormInlineProps {
   agentId: string;
@@ -26,6 +26,8 @@ export default function FormInlineQuestion({
   const [currentSection, setCurrentSection] = useState(0);
   const [currentField, setCurrentField] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isInvalid, setIsInvalid] = useState(false);
+  const [showErrorAnimation, setShowErrorAnimation] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -48,6 +50,17 @@ export default function FormInlineQuestion({
   }, [currentSection, currentField, field.type]);
 
   const handleFieldSubmit = async (value: any) => {
+    // Validate required fields
+    if (field.type === 'text' && field.required && !value) {
+      setIsInvalid(true);
+      setShowErrorAnimation(true);
+      inputRef.current?.focus();
+      // Reset animation after it completes
+      setTimeout(() => setShowErrorAnimation(false), 500);
+      return;
+    }
+
+    setIsInvalid(false);
     setValues((prev) => ({ ...prev, [`${section.name}.${fieldKey}`]: value }));
     
     if (isLastField && isLastSection) {
@@ -96,6 +109,12 @@ export default function FormInlineQuestion({
     onClose();
   };
 
+  // Reset validation state when field changes
+  useEffect(() => {
+    setIsInvalid(false);
+    setShowErrorAnimation(false);
+  }, [currentSection, currentField]);
+
   const canGoPrevious = currentSection > 0 || currentField > 0;
   const currentFieldValue = values[`${section.name}.${fieldKey}`];
 
@@ -129,6 +148,11 @@ export default function FormInlineQuestion({
               {field.required && <span className="text-error ml-1">*</span>}
             </label>
             {field.description && <p className="text-xs text-muted">{field.description}</p>}
+            {isInvalid && (
+              <p className="text-xs text-error flex items-center gap-1" role="alert">
+                <span>This field is required</span>
+              </p>
+            )}
             <input
               ref={inputRef}
               id={`form-field-${fieldKey}`}
@@ -137,15 +161,16 @@ export default function FormInlineQuestion({
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  if (e.currentTarget.value) {
-                    handleFieldSubmit(e.currentTarget.value);
-                  }
+                  handleFieldSubmit(e.currentTarget.value);
                 } else if (e.key === 'Escape') {
                   handleCancel();
                 }
               }}
-              className="w-full bg-primary border border-primary rounded-lg text-primary text-sm p-2.5 outline-none focus:border-accent transition-colors"
+              className={`w-full bg-primary border rounded-lg text-primary text-sm p-2.5 outline-none transition-colors ${
+                isInvalid ? 'border-error focus:border-error' : 'border-primary focus:border-accent'
+              } ${showErrorAnimation ? 'animate-shake' : ''}`}
               aria-required={field.required}
+              aria-invalid={isInvalid}
             />
           </div>
         )}
@@ -212,10 +237,20 @@ export default function FormInlineQuestion({
               const input = e.currentTarget.parentElement?.parentElement?.querySelector('input') as HTMLInputElement;
               if (input?.value) handleFieldSubmit(input.value);
             }}
+            disabled={isSubmitting}
             className="flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
           >
-            {isLastField && isLastSection ? 'Submit' : 'Next'}
-            <ChevronRight size={14} />
+            {isSubmitting ? (
+              <>
+                <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
+                <span>{isLastField && isLastSection ? 'Submitting...' : 'Processing...'}</span>
+              </>
+            ) : (
+              <>
+                {isLastField && isLastSection ? 'Submit' : 'Next'}
+                <ChevronRight size={14}/>
+              </>
+            )}
           </button>
         )}
       </div>

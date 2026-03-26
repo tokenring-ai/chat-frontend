@@ -1,12 +1,7 @@
-import React, {useState, useMemo, useCallback, useEffect} from 'react';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from './ui/dropdown-menu.tsx';
+import React, {useCallback, useMemo, useState} from 'react';
+import {RiCheckLine, RiCloseCircleLine, RiCloseLine, RiFlashlightLine, RiSearchLine} from "react-icons/ri";
 import {lifecycleRPCClient, useAvailableHooks, useEnabledHooks} from '../rpc.ts';
-import {
-  RiFlashlightLine,
-  RiCheckLine,
-  RiCloseLine,
-  RiSearchLine
-} from "react-icons/ri";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from './ui/dropdown-menu.tsx';
 
 interface HookSelectorProps {
   agentId: string;
@@ -17,6 +12,7 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
   const availableHooks = useAvailableHooks();
   const enabledHooks = useEnabledHooks(agentId);
   const [searchQuery, setSearchQuery] = useState('');
+  const [focusedIndex, setFocusedIndex] = useState<number>(-1);
   const isIconTrigger = triggerVariant === 'icon';
 
   const hooks = availableHooks.data?.hooks;
@@ -45,12 +41,38 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
     ));
   }, [hooks, searchQuery]);
 
+  const filteredHookNames = useMemo(() => Object.keys(filteredHooks ?? []), [filteredHooks]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent, hookName: string) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      e.stopPropagation();
+      handleToggleHook(hookName);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setFocusedIndex((prev) => {
+        const next = prev + 1;
+        return next < filteredHookNames.length ? next : 0;
+      });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setFocusedIndex((prev) => {
+        const next = prev - 1;
+        return next >= 0 ? next : filteredHookNames.length - 1;
+      });
+    }
+  }, [handleToggleHook, filteredHookNames.length]);
+
+  const handleItemFocus = useCallback((index: number) => {
+    setFocusedIndex(index);
+  }, []);
+
   const enabledSet = useMemo(() => new Set(enabledHooks.data?.hooks || []), [enabledHooks.data?.hooks]);
 
   const hookCount = Object.keys(hooks ?? {}).length;
   const enabledCount = enabledHooks.data?.hooks?.length ?? 0;
   const allEnabled = hookCount > 0 && enabledCount === hookCount;
-  const allDisabled = enabledCount === 0;
+
 
   return (
     <DropdownMenu>
@@ -62,13 +84,13 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
               ? 'flex items-center justify-center p-1.5 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring text-muted hover:text-primary'
               : 'hidden md:flex items-center gap-2 px-2 py-1 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring'
           }
-          aria-label={`Select hooks. ${enabledCount} enabled`}
-          title={`${enabledCount} hooks enabled`}
+          aria-label={`Select hooks. ${enabledCount} of ${hookCount} enabled`}
+          title={`${enabledCount} of ${hookCount} hooks enabled`}
         >
           <RiFlashlightLine className={isIconTrigger ? 'w-5 h-5' : 'w-3.5 h-3.5 text-muted group-hover:text-primary'} />
           {!isIconTrigger && (
             <span className="text-xs font-mono text-muted group-hover:text-primary truncate max-w-48">
-              {enabledCount} enabled
+              {enabledCount}/{hookCount} enabled
             </span>
           )}
         </button>
@@ -86,9 +108,32 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
               placeholder="Filter hooks..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-input border border-primary rounded-lg py-1.5 pl-9 pr-3 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  e.stopPropagation();
+                  if (searchQuery) {
+                    setSearchQuery('');
+                  } else {
+                    // Let the dropdown handle closing when search is empty
+                  }
+                }
+              }}
+              className="w-full bg-input border border-primary rounded-lg py-1.5 pl-9 pr-8 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
               onClick={(e) => e.stopPropagation()}
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSearchQuery('');
+                }}
+                className="absolute inset-y-0 right-2 flex items-center text-muted hover:text-primary transition-colors"
+                aria-label="Clear search"
+              >
+                <RiCloseCircleLine className="w-4 h-4"/>
+              </button>
+            )}
           </div>
         </div>
 
@@ -117,17 +162,29 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar py-1 space-y-0.5">
-          {Object.entries(filteredHooks ?? {}).map(([hookName, hook]) => {
+        <div className="flex-1 overflow-y-auto custom-scrollbar py-1 space-y-0.5" role="listbox" aria-label="Available hooks">
+          {Object.entries(filteredHooks ?? {}).map(([hookName, hook], index) => {
             const isEnabled = enabledSet.has(hookName);
+            const isFocused = focusedIndex === index;
             return (
               <div
                 key={hookName}
+                role="option"
+                aria-selected={isEnabled}
+                aria-focused={isFocused}
+                tabIndex={0}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleToggleHook(hookName);
                 }}
-                className="flex items-center cursor-pointer py-2 hover:bg-hover rounded-md px-3 transition-colors group"
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  handleKeyDown(e, hookName);
+                }}
+                onFocus={() => handleItemFocus(index)}
+                className={`flex items-center cursor-pointer py-2 rounded-md px-3 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500/50 ${
+                  isFocused ? 'bg-hover ring-2 ring-indigo-500/30' : 'hover:bg-hover'
+                }`}
               >
                 <div
                   className={`w-1.5 h-1.5 rounded-full mr-3 shrink-0 shadow-[0_0_6px_rgba(0,0,0,0.1)] dark:shadow-[0_0_6px_rgba(0,0,0,0.3)] ${
@@ -160,7 +217,7 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
           })}
 
           {Object.keys(filteredHooks ?? {}).length === 0 && (
-            <div className="px-3 py-4 text-center text-xs text-muted">
+            <div className="px-3 py-4 text-center text-xs text-muted" role="status">
               No hooks found matching "{searchQuery}"
             </div>
           )}

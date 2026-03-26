@@ -144,16 +144,26 @@ function CodeBlock({ children, className }: { children: string; className?: stri
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleCopy();
+    }
+  };
+
   return (
     <div className="relative group">
       <button
         onClick={handleCopy}
-        className="absolute top-2 right-2 p-1.5 rounded bg-secondary hover:bg-hover opacity-0 group-hover:opacity-100 transition-opacity z-10 focus-ring"
-        title="Copy code"
+        onKeyDown={handleKeyDown}
+        className="absolute top-2 right-2 p-1.5 rounded-md bg-secondary hover:bg-hover opacity-0 group-hover:opacity-100 transition-opacity z-10 focus-ring"
+        title="Copy code (Press Enter or Space)"
+        aria-label="Copy code to clipboard"
+        role="button"
       >
         {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-muted" />}
       </button>
-      <pre className={`${className} bg-tertiary p-4 rounded-lg border border-primary`}>
+      <pre className={`${className} bg-tertiary p-4 rounded-lg border border-primary shadow-sm`}>
         <code>{children}</code>
       </pre>
     </div>
@@ -234,17 +244,17 @@ function InteractionResponseDisplay({ msg }: { msg: InteractionResponseMessage }
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-xs text-muted font-mono">
         <span>Interaction ID:</span>
-        <code className="bg-secondary px-1.5 py-0.5 rounded">{msg.interactionId}</code>
+        <code className="bg-tertiary border border-primary px-1.5 py-0.5 rounded-md">{msg.interactionId}</code>
       </div>
       <div className="flex items-center gap-2 text-xs text-muted font-mono">
         <span>Request ID:</span>
-        <code className="bg-secondary px-1.5 py-0.5 rounded">{msg.requestId}</code>
+        <code className="bg-tertiary border border-primary px-1.5 py-0.5 rounded-md">{msg.requestId}</code>
       </div>
-      <div className="mt-2 p-3 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/30 dark:border-emerald-900/30 rounded-lg">
-        <div className="text-xs text-emerald-700 dark:text-emerald-400 font-medium mb-1">
+      <div className="mt-2 p-3 bg-secondary border border-primary rounded-lg">
+        <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1">
           Response Result:
         </div>
-        <div className="text-sm text-emerald-900 dark:text-emerald-100 font-mono break-words whitespace-pre-wrap">
+        <div className="text-sm text-primary font-mono break-words whitespace-pre-wrap">
           {displayText}
         </div>
       </div>
@@ -259,7 +269,18 @@ function MessageFooter({ msg, onDownload }: { msg: ChatMessage; onDownload?: () 
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(messageText!);
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(messageText!);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = messageText!;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -267,31 +288,43 @@ function MessageFooter({ msg, onDownload }: { msg: ChatMessage; onDownload?: () 
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleCopy();
+    }
+  };
+
   return (
-    <div className="flex flex-row items-center gap-3 pb-2 text-xs text-primary font-mono">
+    <div className="not-prose flex flex-row items-center gap-3 pb-2 text-xs text-muted font-mono">
       {messageText && (
         <button
+          type="button"
           onClick={handleCopy}
-          className="relative cursor-pointer transition-colors group focus-ring rounded"
-          title={copied ? 'Copied!' : 'Copy message'}
+          onKeyDown={handleKeyDown}
+          className="relative cursor-pointer transition-colors group focus-ring rounded-md flex items-center gap-1.5 hover:text-primary"
+          title={copied ? 'Copied!' : 'Copy message to clipboard'}
           aria-label={copied ? 'Message copied to clipboard' : 'Copy message to clipboard'}
         >
           {copied ? (
             <>
               <Check className="w-3.5 h-3.5 text-emerald-500" />
-              <span className="absolute -top-6 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-2xs px-2 py-1 rounded whitespace-nowrap">
+              <span
+                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-emerald-600 text-white text-2xs px-2 py-1 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                 Copied!
               </span>
             </>
           ) : (
-            <Copy className="w-3.5 h-3.5 text-muted group-hover:text-primary" />
+            <>
+              <Copy className="w-3.5 h-3.5 text-muted group-hover:text-primary"/>
+            </>
           )}
         </button>
       )}
       {onDownload && (
         <button
           onClick={onDownload}
-          className="cursor-pointer transition-colors focus-ring rounded"
+          className="cursor-pointer transition-colors focus-ring rounded-md"
           title="Download"
         >
           <Download className="w-3.5 h-3.5 text-muted hover:text-primary" />
@@ -302,7 +335,7 @@ function MessageFooter({ msg, onDownload }: { msg: ChatMessage; onDownload?: () 
   );
 }
 
-export default function MessageComponent({msg, agentId, question, response}: MessageComponentProps) {
+export default function MessageComponent({msg, question, response}: MessageComponentProps) {
   const messageIcon = useMemo(() => {
     if (msg.type === 'output.artifact') {
       const mime = msg.mimeType;
@@ -485,12 +518,12 @@ function ArtifactDisplay({ artifact }: { artifact: Extract<AgentEventEnvelope, {
             </div>
           )}
           {mime === 'application/json' && (
-            <pre className="text-[11px] font-mono text-secondary bg-tertiary/20 p-2 rounded-md overflow-x-auto">
+            <pre className="text-[11px] font-mono text-secondary bg-tertiary p-2 rounded-md overflow-x-auto border border-primary/20">
               {JSON.stringify(safeParseJSON(textBody, null), null, 2)}
             </pre>
           )}
           {mime === 'text/html' && (
-            <div className="mt-2 border border-primary rounded-lg overflow-hidden">
+            <div className="mt-2 border border-primary rounded-lg overflow-hidden shadow-sm">
               <iframe
                 srcDoc={textBody}
                 className="w-full h-80 bg-white"
@@ -503,7 +536,7 @@ function ArtifactDisplay({ artifact }: { artifact: Extract<AgentEventEnvelope, {
               <img
                 src={URL.createObjectURL(new Blob([decodedBody], { type: mime }))}
                 alt={artifact.name}
-                className="max-w-full rounded border border-primary"
+                className="max-w-full rounded-lg border border-primary shadow-sm"
               />
             </div>
           )}

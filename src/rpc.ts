@@ -4,8 +4,8 @@ import ChatRpcSchema from "@tokenring-ai/chat/rpc/schema";
 import CheckpointRpcSchema from "@tokenring-ai/checkpoint/rpc/schema";
 import FileSystemRpcSchema from '@tokenring-ai/filesystem/rpc/schema';
 import LifecycleRpcSchema from '@tokenring-ai/lifecycle/rpc/schema';
-import WorkflowRpcSchema from '@tokenring-ai/workflow/rpc/schema';
 import createWsRPCClient from "@tokenring-ai/web-host/createWsRPCClient";
+import WorkflowRpcSchema from '@tokenring-ai/workflow/rpc/schema';
 import useSWR from "swr";
 
 const baseURL = new URL(window.location.origin);
@@ -28,10 +28,6 @@ export function useCommandHistory(agentId: string) {
 
 export function useAgentList() {
   return useSWR("/agent/listAgents", () => agentRPCClient.listAgents({}), { refreshInterval: 1000 });
-}
-
-export function useAgent(agentId: string) {
-  return useSWR(`/agent/getAgent/${agentId}`, () => agentId ? agentRPCClient.getAgent({ agentId }) : null, { refreshInterval: 15000 });
 }
 
 export function useModel(agentId: string) {

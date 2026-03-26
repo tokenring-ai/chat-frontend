@@ -36,6 +36,8 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
     const [uploadingFiles, setUploadingFiles] = useState<string[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const initialFocusRef = useRef<HTMLDivElement>(null);
+  const fileTableRef = useRef<HTMLTableElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
     const directoryListing = useDirectoryListing({ path, showHidden: showHiddenFiles, agentId });
     const selectedFiles = useSelectedFiles(agentId);
@@ -47,11 +49,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
         }
     }, [isOpen]);
 
-    React.useEffect(() => {
-        const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
-        return () => clearTimeout(timer);
-    }, [searchQuery]);
-
+  // Keyboard navigation for file list
     // Sort files: directories first, then files, all alphabetically
     const sortedFiles = useMemo(() => {
         if (!directoryListing.data?.files) return [];
@@ -69,6 +67,80 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
             return a.localeCompare(b);
         });
     }, [directoryListing.data?.files, debouncedSearch]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!fileTableRef.current) return;
+
+      const rows = Array.from(fileTableRef.current.querySelectorAll<HTMLTableRowElement>('tbody tr'));
+      const currentIndex = rows.findIndex((row) => row.classList.contains('ring-2') && row.classList.contains('ring-indigo-500'));
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          const nextIndex = currentIndex < rows.length - 1 ? currentIndex + 1 : 0;
+          const nextRow = rows[nextIndex];
+          if (nextRow) {
+            nextRow.focus();
+            nextRow.scrollIntoView({block: 'nearest'});
+          }
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          const prevIndex = currentIndex > 0 ? currentIndex - 1 : rows.length - 1;
+          const prevRow = rows[prevIndex];
+          if (prevRow) {
+            prevRow.focus();
+            prevRow.scrollIntoView({block: 'nearest'});
+          }
+          break;
+        case 'Home':
+          e.preventDefault();
+          if (rows.length > 0) {
+            rows[0].focus();
+            rows[0].scrollIntoView({block: 'start'});
+          }
+          break;
+        case 'End':
+          e.preventDefault();
+          if (rows.length > 0) {
+            rows[rows.length - 1].focus();
+            rows[rows.length - 1].scrollIntoView({block: 'end'});
+          }
+          break;
+        case 'Escape':
+          // Only close if search input is not focused
+          if (document.activeElement !== searchInputRef.current) {
+            e.preventDefault();
+            onClose();
+          }
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose, sortedFiles.length]);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Handle Escape key to clear search when search input is focused
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && document.activeElement === searchInputRef.current && searchQuery) {
+        e.preventDefault();
+        e.stopPropagation();
+        setSearchQuery('');
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [searchQuery]);
 
   const handleSaveFile = async () => {
         if (!selectedFile) return;
@@ -156,7 +228,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
             toastManager.info(`Removed ${getBasename(file)} from chat`, { duration: 2000 });
         } catch (error) {
             console.error('Failed to remove file:', error);
-            toastManager.error('Failed to remove file from chat', { duration: 3000 });
+          toastManager.error('Failed to remove file to chat', {duration: 3000});
         }
     }
 
@@ -232,15 +304,28 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <div className="relative group">
+                      <div className="relative group">
                             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" size={14} />
                             <input
+                              ref={searchInputRef}
                                 type="text"
                                 placeholder="Search files..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="bg-input border border-primary rounded-md py-1.5 pl-8 pr-3 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 w-48 transition-all focus-ring"
+                              className="bg-input border border-primary rounded-md py-1.5 pl-8 pr-8 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 w-48 transition-all focus-ring"
                             />
+                        {searchQuery && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSearchQuery('');
+                            }}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition-colors p-0.5 rounded focus-ring"
+                            aria-label="Clear search (or press Escape)"
+                          >
+                            <X size={12}/>
+                          </button>
+                        )}
                         </div>
                         <button
                             onClick={onClose}
@@ -313,7 +398,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
 
                         {/* File List */}
                         <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
-                            <table className="w-full text-left border-collapse">
+                          <table ref={fileTableRef} className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="text-2xs text-muted font-semibold border-b border-primary">
                                         <th className="pl-2 pr-4 py-2 font-medium w-8">
@@ -336,8 +421,8 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                                 key={i}
                                                 onClick={() => handleFileClick(file)}
                                                 className={cn(
-                                                    "group transition-colors border-b border-primary cursor-pointer focus-ring",
-                                                    isSelected ? "bg-active" : "hover:bg-hover"
+                                                  "group transition-colors border-b border-primary cursor-pointer focus-ring outline-none",
+                                                  isSelected ? "bg-active ring-2 ring-indigo-500 ring-inset" : "hover:bg-hover"
                                                 )}
                                                 tabIndex={0}
                                                 role="button"
@@ -372,37 +457,57 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                                         isSelected ? "text-indigo-400" : isDir ? "text-primary" : "text-secondary"
                                                     )}>
                                                         {getFileIcon(file, isDir)}
-                                                        {displayName}
+                                                      <span className={cn(
+                                                        uploadingFiles.includes(displayName) && "text-indigo-400"
+                                                      )}>
+                                                            {displayName}
+                                                        </span>
+                                                      {uploadingFiles.includes(displayName) && (
+                                                        <div className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin ml-1"
+                                                             title="Uploading...">
+                                                          <span className="sr-only">Uploading</span>
+                                                        </div>
+                                                      )}
                                                     </div>
                                                 </td>
                                                 <td className="px-2 py-2 text-muted hidden sm:table-cell">
-                                                    {isDir ? '-' : '---'}
+                                                  {isDir ? '-' : (uploadingFiles.includes(displayName) ? 'Uploading...' : '---')}
                                                 </td>
                                                 <td className="px-2 py-2 text-muted hidden sm:table-cell">
+                                                  {uploadingFiles.includes(displayName) ? (
+                                                    <div className="flex items-center gap-2">
+                                                      <div className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"
+                                                           title="Uploading...">
+                                                        <span className="sr-only">Uploading</span>
+                                                      </div>
+                                                      <span className="text-indigo-400 text-xs">Uploading</span>
+                                                    </div>
+                                                  ) : (
                                                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        {!isDir && (
-                                                            <button
-                                                                onClick={(e) => handleDownload(file, e)}
-                                                                className="p-1 hover:text-primary focus-ring rounded"
-                                                                aria-label={`Download ${displayName}`}
-                                                            >
-                                                                <Download size={14} />
-                                                            </button>
-                                                        )}
+                                                      {!isDir && (
                                                         <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                isInChat ? handleRemoveFile(file) : handleAddFile(file);
-                                                            }}
-                                                            className={cn(
-                                                                "p-1 focus-ring rounded",
-                                                                isInChat ? "text-red-400 hover:text-red-300" : "text-indigo-400 hover:text-indigo-300"
-                                                            )}
-                                                            aria-label={isInChat ? `Remove ${displayName} from chat` : `Add ${displayName} to chat`}
+                                                          onClick={(e) => handleDownload(file, e)}
+                                                          className="p-1 hover:text-primary focus-ring rounded"
+                                                          aria-label={`Download ${displayName}`}
                                                         >
-                                                            {isInChat ? <Trash2 size={14} /> : <Plus size={14} />}
+                                                          <Download size={14}/>
                                                         </button>
+                                                      )}
+                                                      <button
+                                                        onClick={(e) => {
+                                                          e.stopPropagation();
+                                                          isInChat ? handleRemoveFile(file) : handleAddFile(file);
+                                                        }}
+                                                        className={cn(
+                                                          "p-1 focus-ring rounded",
+                                                          isInChat ? "text-red-400 hover:text-red-300" : "text-indigo-400 hover:text-indigo-300"
+                                                        )}
+                                                        aria-label={isInChat ? `Remove ${displayName} from chat` : `Add ${displayName} to chat`}
+                                                      >
+                                                        {isInChat ? <Trash2 size={14}/> : <Plus size={14}/>}
+                                                      </button>
                                                     </div>
+                                                  )}
                                                 </td>
                                             </tr>
                                         );

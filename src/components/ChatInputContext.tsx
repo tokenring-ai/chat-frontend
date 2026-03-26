@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import React, {createContext, type ReactNode, useContext, useEffect, useState} from 'react';
 
 interface ChatInputState {
   [agentId: string]: string;
@@ -8,6 +8,9 @@ interface ChatInputContextType {
   getInput: (agentId: string) => string;
   setInput: (agentId: string, value: string) => void;
   clearInput: (agentId: string) => void;
+  getStorageError: () => string | null;
+  hasStorageError: () => boolean;
+  dismissStorageError: () => void;
 }
 
 const ChatInputContext = createContext<ChatInputContextType | undefined>(undefined);
@@ -24,10 +27,17 @@ export function ChatInputProvider({ children }: { children: ReactNode }) {
     }
   });
 
+  const [storageError, setStorageError] = useState<string | null>(null);
+  const [errorDismissed, setErrorDismissed] = useState(false);
+
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(inputs));
+      setStorageError(null);
+      setErrorDismissed(false);
     } catch (e) {
+      // User-friendly error message with actionable guidance
+      setStorageError('Chat input history disabled (localStorage unavailable). Clear your browser cache and refresh if this persists.');
       console.error('Failed to persist chat inputs:', e);
     }
   }, [inputs]);
@@ -46,8 +56,16 @@ export function ChatInputProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const getStorageError = () => (errorDismissed ? null : storageError);
+
+  const hasStorageError = () => storageError !== null && !errorDismissed;
+
+  const dismissStorageError = () => {
+    setErrorDismissed(true);
+  };
+
   return (
-    <ChatInputContext.Provider value={{ getInput, setInput, clearInput }}>
+    <ChatInputContext.Provider value={{getInput, setInput, clearInput, getStorageError, hasStorageError, dismissStorageError}}>
       {children}
     </ChatInputContext.Provider>
   );

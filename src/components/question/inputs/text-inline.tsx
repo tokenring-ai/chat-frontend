@@ -1,7 +1,7 @@
-import type { ParsedTextQuestion } from "@tokenring-ai/agent/question";
-import { X, Send } from 'lucide-react';
-import React, { useState, useRef, useEffect } from 'react';
-import { sendInteractionResponse } from "../sendInteractionResponse.ts";
+import type {ParsedTextQuestion} from "@tokenring-ai/agent/question";
+import {Send, X} from 'lucide-react';
+import React, {useEffect, useRef, useState} from 'react';
+import {sendInteractionResponse} from "../sendInteractionResponse.ts";
 
 interface TextInlineProps {
   question: ParsedTextQuestion;
@@ -34,6 +34,10 @@ export default function TextInlineQuestion({
   const handleSubmit = async () => {
     if (required && !value.trim()) return;
     setIsSubmitting(true);
+    // Disable input immediately for visual feedback
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
     await sendInteractionResponse({
       agentId,
       requestId,
@@ -72,30 +76,40 @@ export default function TextInlineQuestion({
       )}
       <div className="relative">
         {expectedLines > 1 ? (
-          <textarea
-            ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            rows={Math.min(expectedLines, 4)}
-            style={masked ? { WebkitTextSecurity: 'disc' } as React.CSSProperties & { WebkitTextSecurity: string } : {}}
-            placeholder={required ? "Required..." : "Optional..."}
-            disabled={isSubmitting}
-            className="w-full bg-primary border border-primary rounded-lg text-primary text-sm p-3 outline-none focus:border-accent transition-colors resize-none disabled:opacity-50"
-            aria-required={required}
-          />
+          <div className="relative">
+            <textarea
+              ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              rows={Math.min(expectedLines, 4)}
+              style={masked ? {WebkitTextSecurity: 'disc'} as React.CSSProperties & { WebkitTextSecurity: string } : {}}
+              placeholder={required ? "Required..." : "Optional..."}
+              disabled={isSubmitting}
+              className={`w-full bg-primary border rounded-lg text-primary text-sm p-3 outline-none focus:border-accent transition-colors resize-none disabled:opacity-50 ${
+                isSubmitting ? 'border-accent animate-pulse' : 'border-primary'
+              }`}
+              aria-required={required}
+              aria-busy={isSubmitting}
+            />
+          </div>
         ) : (
-          <input
-            ref={inputRef as React.RefObject<HTMLInputElement>}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            type={masked ? 'password' : 'text'}
-            placeholder={required ? "Required..." : "Optional..."}
-            disabled={isSubmitting}
-            className="w-full bg-primary border border-primary rounded-lg text-primary text-sm p-2.5 outline-none focus:border-accent transition-colors disabled:opacity-50"
-            aria-required={required}
-          />
+          <div className="relative">
+            <input
+              ref={inputRef as React.RefObject<HTMLInputElement>}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              type={masked ? 'password' : 'text'}
+              placeholder={required ? "Required..." : "Optional..."}
+              disabled={isSubmitting}
+              className={`w-full bg-primary border rounded-lg text-primary text-sm p-2.5 outline-none focus:border-accent transition-colors disabled:opacity-50 ${
+                isSubmitting ? 'border-accent animate-pulse' : 'border-primary'
+              }`}
+              aria-required={required}
+              aria-busy={isSubmitting}
+            />
+          </div>
         )}
       </div>
       <div className="flex items-center justify-between">

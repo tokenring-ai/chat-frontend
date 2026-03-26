@@ -1,12 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
-import { Zap, ChevronDown, Pause, Settings, User, WifiOff, Menu } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAgentList } from '../rpc.ts';
-import { LightDarkSelector } from './ui/light-dark-selector.tsx';
+import {ChevronDown, Loader2, Menu, Pause, Settings, User, WifiOff, Zap} from 'lucide-react';
+import React, {useEffect, useRef, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {useConnectionStatus} from '../hooks/useConnectionStatus.ts';
+import {useAgentList} from '../rpc.ts';
+import {useSidebar} from './SidebarContext.tsx';
+import {LightDarkSelector} from './ui/light-dark-selector.tsx';
 import NotificationMenu from './ui/notification-menu.tsx';
-import { useConnectionStatus } from '../hooks/useConnectionStatus.ts';
-import { useSidebar } from './SidebarContext.tsx';
 
 interface TopBarProps {
   currentAgentId: string | null;
@@ -98,7 +97,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
           {currentAgent ? (
             <>
               <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${currentAgent.idle ? 'bg-indigo-500' : 'bg-amber-500'}`} />
-              <span className="text-primary font-medium max-w-48 truncate">{currentAgent.displayName}</span>
+              <span className="text-primary font-medium max-w-48 truncate" title={currentAgent.displayName}>{currentAgent.displayName}</span>
             </>
           ) : (
             <span className="text-muted">Select agent</span>
@@ -116,37 +115,62 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
                 <Loader2 className="w-5 h-5 text-muted animate-spin" />
               </div>
             ) : agentList.length === 0 ? (
-              <div className="px-4 py-4 text-xs text-muted text-center">No active agents</div>
+              <>
+                <div className="px-4 py-4 text-xs text-muted text-center">No active agents</div>
+                <div className="border-t border-primary">
+                  <button
+                    onClick={() => {
+                      navigate('/');
+                      setOpen(false);
+                    }}
+                    className="w-full px-3 py-2 text-xs flex items-center gap-2 text-primary hover:bg-hover transition-colors text-left cursor-pointer"
+                    aria-label="Create new agent or workflow"
+                  >
+                    <span className="text-cyan-400 font-semibold">+</span>
+                    <span>Create New Agent</span>
+                  </button>
+                </div>
+              </>
             ) : (
-              agentList.map(agent => (
-                <button
-                  key={agent.id}
-                  role="option"
-                  aria-selected={agent.id === currentAgentId}
-                  onClick={() => { navigate(`/agent/${agent.id}`); setOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-hover transition-colors cursor-pointer ${agent.id === currentAgentId ? 'bg-active' : ''}`}
-                >
-                  <div className="shrink-0">
-                    {agent.idle
-                      ? <Pause className="w-3.5 h-3.5 text-muted" />
-                      : <div className="w-3.5 h-3.5 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
-                    }
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-primary truncate">{agent.displayName}</div>
-                    <div className="text-2xs text-muted truncate">{agent.currentActivity}</div>
-                  </div>
-                </button>
-              ))
+              <>
+                {agentList.map(agent => (
+                  <button
+                    key={agent.id}
+                    role="option"
+                    aria-selected={agent.id === currentAgentId}
+                    onClick={() => {
+                      navigate(`/agent/${agent.id}`);
+                      setOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-hover transition-colors cursor-pointer ${agent.id === currentAgentId ? 'bg-active' : ''}`}
+                  >
+                    <div className="shrink-0">
+                      {agent.idle
+                        ? <Pause className="w-3.5 h-3.5 text-muted"/>
+                        : <div className="w-3.5 h-3.5 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin"/>
+                      }
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-primary truncate">{agent.displayName}</div>
+                      <div className="text-2xs text-muted truncate">{agent.currentActivity}</div>
+                    </div>
+                  </button>
+                ))}
+                <div className="border-t border-primary">
+                  <button
+                    onClick={() => {
+                      navigate('/');
+                      setOpen(false);
+                    }}
+                    className="w-full px-3 py-2 text-xs flex items-center gap-2 text-primary hover:bg-hover transition-colors text-left cursor-pointer"
+                    aria-label="Create new agent or workflow"
+                  >
+                    <span className="text-cyan-400 font-semibold">+</span>
+                    <span>Create New Agent</span>
+                  </button>
+                </div>
+              </>
             )}
-            <div className="border-t border-primary">
-              <button
-                onClick={() => { navigate('/'); setOpen(false); }}
-                className="w-full px-3 py-2 text-xs text-muted hover:text-primary hover:bg-hover transition-colors text-left cursor-pointer"
-              >
-                + New agent / workflows
-              </button>
-            </div>
           </div>
         )}
       </div>

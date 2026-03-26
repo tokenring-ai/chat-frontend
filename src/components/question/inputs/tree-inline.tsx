@@ -1,7 +1,7 @@
-import { getTreeNodeValue, isTreeBranch, type ParsedTreeSelectQuestion, type TreeLeaf } from '@tokenring-ai/agent/question';
-import { Check, ChevronDown, ChevronRight, X, Send } from 'lucide-react';
-import React, { useState, useRef, useEffect } from 'react';
-import { sendInteractionResponse } from "../sendInteractionResponse.ts";
+import {getTreeNodeValue, isTreeBranch, type ParsedTreeSelectQuestion, type TreeLeaf} from '@tokenring-ai/agent/question';
+import {Check, ChevronDown, ChevronRight, Send, X} from 'lucide-react';
+import React, {useEffect, useRef, useState} from 'react';
+import {sendInteractionResponse} from "../sendInteractionResponse.ts";
 
 interface TreeInlineProps {
   question: ParsedTreeSelectQuestion;
@@ -18,12 +18,16 @@ const CompactTreeNode: React.FC<{
   depth: number;
   selected: Set<string>;
   onToggle: (value: string) => void;
-  onExpand: () => void;
+  onExpand: (nodeValue: string) => void;
   isExpanded: boolean;
   multiple: boolean;
   canSelect: (value: string) => boolean;
-  isFirstNode?: boolean;
-}> = ({ node, depth, selected, onToggle, onExpand, isExpanded, multiple, canSelect }) => {
+  focusedValue: string | null;
+  isFocused: boolean;
+  onFocus: (value: string) => void;
+  onNavigate: (direction: 'up' | 'down') => void;
+  isExpandedChild: (value: string) => boolean;
+}> = ({node, depth, selected, onToggle, onExpand, isExpanded, multiple, canSelect, focusedValue, isFocused, onFocus, onNavigate, isExpandedChild}) => {
   const value = getTreeNodeValue(node);
   const isSelected = selected.has(value);
   const hasChildren = isTreeBranch(node) && node.children.length > 0;
@@ -32,7 +36,7 @@ const CompactTreeNode: React.FC<{
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (hasChildren && !multiple) {
-      onExpand();
+      onExpand(value);
     } else if (canSelect(value)) {
       onToggle(value);
     }
@@ -42,22 +46,43 @@ const CompactTreeNode: React.FC<{
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       if (hasChildren && !multiple) {
-        onExpand();
+        onExpand(value);
       } else if (canSelect(value)) {
         onToggle(value);
       }
     } else if (e.key === 'ArrowRight' && !isExpanded && hasChildren) {
       e.preventDefault();
-      onExpand();
+      onExpand(value);
     } else if (e.key === 'ArrowLeft' && isExpanded) {
       e.preventDefault();
-      onExpand();
+      onExpand(value);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      onNavigate('down');
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      onNavigate('up');
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      // Focus will be handled by parent
+      const firstElement = document.querySelector('[data-tree-value]') as HTMLElement;
+      firstElement?.focus();
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      // Focus will be handled by parent
+      const allElements = document.querySelectorAll('[data-tree-value]');
+      const lastElement = allElements[allElements.length - 1] as HTMLElement;
+      lastElement?.focus();
     }
   };
 
   const handleExpandClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onExpand();
+    onExpand(value);
+  };
+
+  const handleFocus = () => {
+    onFocus(value);
   };
 
   return (
@@ -67,25 +92,29 @@ const CompactTreeNode: React.FC<{
         aria-expanded={hasChildren ? isExpanded : undefined}
         aria-selected={isSelected}
         tabIndex={isSelectable ? 0 : -1}
+        data-tree-value={value}
         className={`flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505] ${
-          isSelected ? 'bg-accent/20' : 'hover:bg-hover'
+          isFocused ? 'bg-accent/10' : ''
+        } ${isSelected && !isFocused ? 'bg-accent/20' : ''} ${
+          !isSelected && !isFocused ? 'hover:bg-hover' : ''
         }`}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
       >
         {hasChildren ? (
           <span
             onClick={handleExpandClick}
-            className="text-tertiary hover:text-primary transition-colors"
+            className="text-tertiary hover:text-accent transition-colors"
             aria-hidden="true"
           >
-            {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+            {isExpanded ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
           </span>
         ) : (
-          <span className="w-[12px]" aria-hidden="true"></span>
+          <span className="w-[14px]" aria-hidden="true"></span>
         )}
-        <span className={`text-sm ${isSelected ? 'text-accent font-medium' : 'text-primary'}`}>
+        <span className={`text-sm ${isFocused ? 'text-accent font-medium' : isSelected ? 'text-accent font-medium' : 'text-primary'}`}>
           {node.name}
         </span>
         {isSelected && (
@@ -94,19 +123,27 @@ const CompactTreeNode: React.FC<{
       </div>
       {isExpanded && hasChildren && (
         <div role="group">
-          {node.children.map((child: TreeLeaf, idx: number) => (
-            <CompactTreeNode
-              key={idx}
-              node={child}
-              depth={depth + 1}
-              selected={selected}
-              onToggle={onToggle}
-              onExpand={() => {}}
-              isExpanded={false}
-              multiple={multiple}
-              canSelect={canSelect}
-            />
-          ))}
+          {node.children.map((child: TreeLeaf) => {
+            const childValue = getTreeNodeValue(child);
+            return (
+              <CompactTreeNode
+                key={childValue}
+                node={child}
+                depth={depth + 1}
+                selected={selected}
+                onToggle={onToggle}
+                onExpand={onExpand}
+                isExpanded={isExpandedChild(childValue)}
+                multiple={multiple}
+                canSelect={canSelect}
+                focusedValue={focusedValue}
+                isFocused={focusedValue === childValue}
+                onFocus={onFocus}
+                onNavigate={onNavigate}
+                isExpandedChild={isExpandedChild}
+              />
+            );
+          })}
         </div>
       )}
     </div>
@@ -123,8 +160,9 @@ export default function TreeInlineQuestion({
   autoFocus = true
 }: TreeInlineProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set(question.defaultValue ?? []));
-  const [expandedNodes, setExpandedNodes] = useState<Set<number>>(new Set([0]));
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [focusedValue, setFocusedValue] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { minimumSelections, maximumSelections } = question;
@@ -134,6 +172,13 @@ export default function TreeInlineQuestion({
   useEffect(() => {
     if (autoFocus && containerRef.current) {
       containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      // Focus the first selectable item
+      const firstFocusable = containerRef.current.querySelector('[tabindex="0"]') as HTMLElement;
+      if (firstFocusable) {
+        firstFocusable.focus();
+        const value = firstFocusable.getAttribute('data-tree-value');
+        if (value) setFocusedValue(value);
+      }
     }
   }, [autoFocus]);
 
@@ -161,16 +206,57 @@ export default function TreeInlineQuestion({
     });
   };
 
-  const toggleExpand = (index: number) => {
+  const toggleExpand = (nodeValue: string) => {
     setExpandedNodes((prev) => {
       const next = new Set(prev);
-      if (next.has(index)) {
-        next.delete(index);
+      if (next.has(nodeValue)) {
+        next.delete(nodeValue);
       } else {
-        next.add(index);
+        next.add(nodeValue);
       }
       return next;
     });
+  };
+
+  // Auto-expand first root node on mount
+  useEffect(() => {
+    if (question.tree.length > 0 && expandedNodes.size === 0) {
+      const firstValue = getTreeNodeValue(question.tree[0]);
+      setExpandedNodes(new Set([firstValue]));
+    }
+  }, [question.tree]);
+
+  // Handle keyboard navigation between tree items
+  const handleNavigate = (direction: 'up' | 'down') => {
+    const allFocusable = Array.from(
+      containerRef.current?.querySelectorAll('[data-tree-value][tabindex="0"]') || []
+    ) as HTMLElement[];
+
+    if (allFocusable.length === 0) return;
+
+    const currentIndex = allFocusable.findIndex(el => el.getAttribute('data-tree-value') === focusedValue);
+    let newIndex: number;
+
+    if (direction === 'up') {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : allFocusable.length - 1;
+    } else {
+      newIndex = currentIndex < allFocusable.length - 1 ? currentIndex + 1 : 0;
+    }
+
+    const nextElement = allFocusable[newIndex];
+    if (nextElement) {
+      nextElement.focus();
+      const value = nextElement.getAttribute('data-tree-value');
+      if (value) {
+        setFocusedValue(value);
+        // Scroll the focused element into view
+        nextElement.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+      }
+    }
+  };
+
+  const handleNodeFocus = (value: string) => {
+    setFocusedValue(value);
   };
 
   const isSelectionValid = () => {
@@ -222,20 +308,27 @@ export default function TreeInlineQuestion({
         aria-label="Select from tree"
         className="max-h-[300px] overflow-y-auto custom-scrollbar border border-primary/50 rounded-lg bg-primary"
       >
-        {question.tree.map((root, index) => (
-          <CompactTreeNode
-            key={index}
-            node={root}
-            depth={0}
-            selected={selected}
-            onToggle={handleToggle}
-            onExpand={() => toggleExpand(index)}
-            isExpanded={expandedNodes.has(index)}
-            multiple={multiple}
-            canSelect={canSelect}
-            isFirstNode={index === 0}
-          />
-        ))}
+        {question.tree.map((root) => {
+          const rootValue = getTreeNodeValue(root);
+          return (
+            <CompactTreeNode
+              key={rootValue}
+              node={root}
+              depth={0}
+              selected={selected}
+              onToggle={handleToggle}
+              onExpand={toggleExpand}
+              isExpanded={expandedNodes.has(rootValue)}
+              multiple={multiple}
+              canSelect={canSelect}
+              focusedValue={focusedValue}
+              isFocused={focusedValue === rootValue}
+              onFocus={handleNodeFocus}
+              onNavigate={handleNavigate}
+              isExpandedChild={(value: string) => expandedNodes.has(value)}
+            />
+          );
+        })}
       </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

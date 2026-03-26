@@ -16,6 +16,7 @@ export default function ChatPage({ agentId }: { agentId: string }) {
   const [showHistory, setShowHistory] = useState(false);
   const [showFileBrowser, setShowFileBrowser] = useState(false);
   const [inputError, setInputError] = useState(false);
+  const [submitFeedback, setSubmitFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   
   const setInput = (value: string) => {
     setInputState(value);
@@ -64,8 +65,15 @@ export default function ChatPage({ agentId }: { agentId: string }) {
       });
       const newHistory = [...(commandHistory.data || []), message].slice(-50);
       await commandHistory.mutate(newHistory);
+      // Show success feedback if attachments were sent
+      if (attachments && attachments.length > 0) {
+        setSubmitFeedback({message: `Sent ${attachments.length} attachment(s)`, type: 'success'});
+        setTimeout(() => setSubmitFeedback(null), 2000);
+      }
     } catch (error: any) {
       toastManager.error(error.message || 'Failed to send message', { duration: 5000 });
+      setSubmitFeedback({message: 'Failed to send', type: 'error'});
+      setTimeout(() => setSubmitFeedback(null), 2000);
     }
   };
 
@@ -110,6 +118,7 @@ export default function ChatPage({ agentId }: { agentId: string }) {
           setShowHistory={setShowHistory}
           setShowFileBrowser={setShowFileBrowser}
           onSubmit={handleSubmit}
+          submitFeedback={submitFeedback}
         />
       </div>
     </div>

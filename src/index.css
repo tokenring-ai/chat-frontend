@@ -26,14 +26,14 @@
 
  .dark {
   /* Dark mode - Charcoal theme */
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #141414;
-  --bg-sidebar: #0a0a0a;
+  --bg-primary: #171717;
+  --bg-secondary: #242424;
+  --bg-sidebar: #242424;
   --bg-tertiary: #1a1a1a;
   --bg-hover: rgba(255, 255, 255, 0.05);
   --bg-active: rgba(255, 255, 255, 0.11);
   --bg-input: #1a1a1a;
-  --border-primary: #262626;
+  --border-primary: #444;
   --accent-primary: #6366f1;
   --text-primary: #fafafa;
   --text-secondary: #e5e5e5;
@@ -101,8 +101,16 @@
   background-color: var(--accent-primary);
  }
 
+ .bg-focus {
+  background-color: var(--bg-active);
+ }
+
  .border-primary {
   border-color: var(--border-primary);
+ }
+
+ .ring-focus {
+  --tw-ring-color: var(--accent-primary);
  }
 
  .text-primary {
@@ -123,6 +131,35 @@
 
  .text-accent {
   color: var(--accent-primary);
+ }
+
+ /* Consistent shadow utilities */
+ .shadow-card {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+ }
+
+ .dark .shadow-card {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+ }
+
+ .shadow-button {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.025);
+ }
+
+ .dark .shadow-button {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.05);
+ }
+
+ .shadow-button-primary {
+  @apply shadow-lg shadow-indigo-600/20;
+ }
+
+ .shadow-button-emerald {
+  @apply shadow-lg shadow-emerald-600/20;
+ }
+
+ .shadow-button-red {
+  @apply shadow-lg shadow-red-500/20;
  }
 
  /* Typography scale */
@@ -156,6 +193,10 @@
  .rounded-button { @apply rounded-lg; }
  .rounded-input { @apply rounded-md; }
 
+ .rounded-sm {
+  @apply rounded;
+ }
+
  .prose {
   max-width: 100ch;
   h1 {
@@ -170,6 +211,7 @@
 @theme {
  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+ --color-shadow-primary: var(--bg-primary);
 }
 
 /* Scrollbar styling */
@@ -206,4 +248,22 @@
 .animate-pulse-indigo {
  animation: pulse-indigo 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
  will-change: transform, opacity;
+}
+
+/* Shake animation for validation errors */
+@keyframes shake {
+ 0%, 100% {
+  transform: translateX(0);
+ }
+ 10%, 30%, 50%, 70%, 90% {
+  transform: translateX(-4px);
+ }
+ 20%, 40%, 60%, 80% {
+  transform: translateX(4px);
+ }
+}
+
+.animate-shake {
+ animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+ will-change: transform;
 }

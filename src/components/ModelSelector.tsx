@@ -1,20 +1,23 @@
-import React, {useState, useMemo, useCallback, useEffect} from 'react';
-import { Cpu, Check } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from './ui/dropdown-menu.tsx';
-import {chatRPCClient, useChatModelsByProvider, useModel} from '../rpc.ts';
-import { toastManager } from './ui/toast.tsx';
+import {AnimatePresence, motion} from 'framer-motion';
+import {Check, Cpu} from 'lucide-react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
+  RiAlibabaCloudFill,
   RiAnthropicFill,
-  RiCpuFill,
-  RiCodeBoxFill,
-  RiFlashlightFill,
   RiCloudFill,
+  RiCodeBoxFill,
+  RiCpuFill,
   RiDatabaseFill,
+  RiFlashlightFill,
+  RiGeminiFill,
   RiOpenaiFill,
-  RiAlibabaCloudFill, RiGeminiFill, RiZhihuFill, RiSearchLine
+  RiSearchLine,
+  RiZhihuFill
 } from "react-icons/ri";
 import {TbArrowsSplit2, TbBrandAzure} from "react-icons/tb";
+import {chatRPCClient, useChatModelsByProvider, useModel} from '../rpc.ts';
+import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from './ui/dropdown-menu.tsx';
+import {toastManager} from './ui/toast.tsx';
 
 interface ModelSelectorProps {
   agentId: string;
@@ -57,29 +60,37 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
   const currentModel = useModel(agentId);
   const modelsData = useChatModelsByProvider();
   const [isSelecting, setIsSelecting] = useState(false);
+  const [selectingModelId, setSelectingModelId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
+  const [isOpen, setIsOpen] = useState(false);
+  const [focusedModelIndex, setFocusedModelIndex] = useState<number>(-1);
   const isIconTrigger = triggerVariant === 'icon';
 
   const handleSelectModel = useCallback(async (modelId: string) => {
+    if (isSelecting) return; // Prevent double-clicks
+    setSelectingModelId(modelId);
     setIsSelecting(true);
     try {
       await chatRPCClient.setModel({ agentId, model: modelId });
       currentModel.mutate({ model: modelId });
       setIsSelecting(false);
+      setSelectingModelId(null);
+      setIsOpen(false);
       toastManager.success(`Model changed to ${modelId.split('/').pop()}`, { duration: 3000 });
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to select model';
       console.error('Failed to set model:', error);
       toastManager.error(errorMessage, { duration: 5000 });
       setIsSelecting(false);
+      setSelectingModelId(null);
     }
-  }, [agentId, currentModel]);
+  }, [agentId, currentModel, isSelecting]);
 
   const modelsByProvider = modelsData.data?.modelsByProvider || {};
   const hasModels = Object.keys(modelsByProvider).length > 0;
 
-// Flatten models for search
+  // Flatten models for search
   const allModels = useMemo(() => {
     return Object.entries(modelsByProvider).flatMap(([provider, models]) =>
       Object.entries(models)
@@ -121,6 +132,13 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
     return groups;
   }, [filteredModels, modelsByProvider]);
 
+  // Flatten all models for keyboard navigation
+  const allFlatModels = useMemo(() => {
+    return Object.entries(groupedModels).flatMap(([provider, models]) =>
+      models.map(model => ({...model, provider}))
+    );
+  }, [groupedModels]);
+
   // Auto-expand provider with currently selected model
   useEffect(() => {
     if (currentModel.data?.model) {
@@ -132,7 +150,7 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
   }, [currentModel.data?.model, allModels]);
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
@@ -176,7 +194,25 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
                 type="text"
                 placeholder="Filter models..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setFocusedModelIndex(-1); // Reset focus when filtering
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setFocusedModelIndex((prev) =>
+                      prev < allFlatModels.length - 1 ? prev + 1 : 0 // Wrap to first
+                    );
+                  } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setFocusedModelIndex((prev) => prev > 0 ? prev - 1 : allFlatModels.length - 1); // Wrap to last
+                  } else if (e.key === 'Enter' && focusedModelIndex >= 0) {
+                    e.preventDefault();
+                    const model = allFlatModels[focusedModelIndex];
+                    if (model) handleSelectModel(model.modelId);
+                  }
+                }}
                 className="w-full bg-input border border-primary rounded-lg py-1.5 pl-9 pr-3 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
                 onClick={(e) => e.stopPropagation()}
               />
@@ -239,41 +275,56 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
                         transition={{ duration: 0.15 }}
                         className="flex flex-col pl-5 mt-0.5 space-y-0.5 border-l border-primary ml-2 overflow-hidden"
                       >
-                    {models.map((model) => (
-                      <div
-                        key={model.modelId}
-                        onClick={() => handleSelectModel(model.modelId)}
-                        className="flex items-center cursor-pointer py-1.5 hover:bg-hover rounded-md px-3 transition-colors group focus-ring"
-                        tabIndex={0}
-                        role="button"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            handleSelectModel(model.modelId);
-                          }
-                        }}
-                      >
-                        <div
-                          className={`w-1.5 h-1.5 rounded-full mr-2.5 shrink-0 shadow-[0_0_6px_rgba(0,0,0,0.1)] dark:shadow-[0_0_6px_rgba(0,0,0,0.3)] ${
-                            currentModel.data?.model === model.modelId
-                              ? 'bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.6)]'
-                              : model.available
-                                ? 'bg-emerald-500'
-                                : 'bg-tertiary'
-                          }`}
-                        />
-                        <span className={`flex-1 text-xs font-mono truncate ${
-                          currentModel.data?.model === model.modelId 
-                            ? 'text-indigo-600 dark:text-indigo-400 font-medium' 
-                            : 'text-muted group-hover:text-primary'
-                        }`}>
-                          {model.modelName}
-                        </span>
-                        {currentModel.data?.model === model.modelId && (
-                          <Check className="w-3 h-3 text-indigo-400 ml-2 shrink-0" aria-label="Currently selected" />
-                        )}
-                      </div>
-                    ))}
+                        {models.map((model) => {
+                          const globalIndex = allFlatModels.findIndex(m => m.modelId === model.modelId);
+                          const isFocused = focusedModelIndex === globalIndex;
+
+                          return (
+                            <div
+                              key={model.modelId}
+                              ref={isFocused ? (el) => {
+                                if (el) el.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+                              } : undefined}
+                              onClick={() => handleSelectModel(model.modelId)}
+                              className={`flex items-center cursor-pointer py-1.5 rounded-md px-3 transition-colors group focus-ring ${
+                                isSelecting && selectingModelId === model.modelId ? 'opacity-75' : ''
+                              } ${isFocused ? 'bg-hover' : 'hover:bg-hover'}`}
+                              tabIndex={0}
+                              role="button"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  handleSelectModel(model.modelId);
+                                }
+                              }}
+                              onFocus={() => setFocusedModelIndex(globalIndex)}
+                            >
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full mr-2.5 shrink-0 shadow-[0_0_6px_rgba(0,0,0,0.1)] dark:shadow-[0_0_6px_rgba(0,0,0,0.3)] ${
+                                  currentModel.data?.model === model.modelId
+                                    ? 'bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.6)]'
+                                    : model.available
+                                      ? 'bg-emerald-500'
+                                      : 'bg-tertiary'
+                                }`}
+                              />
+                              <span className={`flex-1 text-xs font-mono truncate ${
+                                currentModel.data?.model === model.modelId
+                                  ? 'text-indigo-600 dark:text-indigo-400 font-medium'
+                                  : isFocused
+                                    ? 'text-primary font-medium'
+                                    : 'text-muted group-hover:text-primary'
+                              }`}>
+                            {model.modelName}
+                          </span>
+                              {isSelecting && selectingModelId === model.modelId ? (
+                                <Cpu className="w-3 h-3 text-indigo-400 ml-2 shrink-0 animate-spin" aria-label="Selecting..."/>
+                              ) : currentModel.data?.model === model.modelId ? (
+                                <Check className="w-3 h-3 text-indigo-400 ml-2 shrink-0" aria-label="Currently selected"/>
+                              ) : null}
+                            </div>
+                          );
+                        })}
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -284,6 +335,13 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
             {filteredModels.length === 0 && (
               <div className="px-3 py-4 text-center text-xs text-muted">
                 No models found matching "{searchQuery}"
+              </div>
+            )}
+
+            {/* Keyboard navigation hint */}
+            {allFlatModels.length > 0 && (
+              <div className="px-3 py-2 text-xs text-muted border-t border-primary">
+                Use ↑↓ to navigate, Enter to select
               </div>
             )}
           </div>

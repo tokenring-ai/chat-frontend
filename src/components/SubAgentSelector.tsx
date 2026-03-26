@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {GiMegabot, GiRobotGrab} from "react-icons/gi";
-import {RiCheckLine, RiCloseLine, RiRobotLine, RiSearchLine} from "react-icons/ri";
-import {SiProbot} from "react-icons/si";
+import {GiMegabot} from "react-icons/gi";
+import {RiCheckLine, RiCloseLine, RiLoader4Line, RiSearchLine} from "react-icons/ri";
 import {agentRPCClient, useAvailableSubAgents, useEnabledSubAgents} from '../rpc.ts';
 import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from './ui/dropdown-menu.tsx';
 
@@ -14,11 +13,14 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
   const availableSubAgents = useAvailableSubAgents(agentId);
   const enabledSubAgents = useEnabledSubAgents(agentId);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loadingAgent, setLoadingAgent] = useState<string | null>(null);
+  const [loadingAll, setLoadingAll] = useState(false);
   const isIconTrigger = triggerVariant === 'icon';
 
   const agents = availableSubAgents.data?.agents;
 
   const handleToggleAgent = useCallback(async (agentType: string) => {
+    setLoadingAgent(agentType);
     try {
       const isEnabled = enabledSubAgents.data?.agents?.includes(agentType);
       if (isEnabled) {
@@ -29,6 +31,8 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
       enabledSubAgents.mutate();
     } catch (error) {
       console.error('Failed to toggle sub-agent:', error);
+    } finally {
+      setLoadingAgent(null);
     }
   }, [agentId, enabledSubAgents]);
 
@@ -47,7 +51,7 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
   const agentCount = agents?.length ?? 0;
   const enabledCount = enabledSubAgents.data?.agents?.length ?? 0;
   const allEnabled = agentCount > 0 && enabledCount === agentCount;
-  const allDisabled = enabledCount === 0;
+
 
   return (
     <DropdownMenu>
@@ -87,6 +91,24 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
               className="w-full bg-input border border-primary rounded-lg py-1.5 pl-9 pr-3 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
               onClick={(e) => e.stopPropagation()}
             />
+            {searchQuery && (
+              <div className="absolute inset-y-0 right-2 flex items-center gap-2">
+                <span className="text-xs text-muted font-mono">
+                  {filteredAgents.length} {filteredAgents.length === 1 ? 'result' : 'results'}
+                </span>
+                {(() => {
+                  const filteredEnabledCount = filteredAgents.filter(a => enabledSet.has(a.type)).length;
+                  if (filteredEnabledCount > 0) {
+                    return (
+                      <span className="text-xs text-purple-600 dark:text-purple-400 font-mono">
+                        ({filteredEnabledCount} enabled)
+                      </span>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            )}
           </div>
         </div>
 
@@ -94,23 +116,33 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
         {agentCount > 1 && (
           <div className="border-b border-primary pl-4">
             <button
-              onClick={() => {
-                const allAgentTypes = (agents ?? []).map(a => a.type);
-                if (allEnabled) {
-                  agentRPCClient.disableSubAgents({agentId, agents: allAgentTypes});
-                } else {
-                  agentRPCClient.enableSubAgents({agentId, agents: allAgentTypes});
+              onClick={async () => {
+                setLoadingAll(true);
+                try {
+                  const allAgentTypes = (agents ?? []).map(a => a.type);
+                  if (allEnabled) {
+                    await agentRPCClient.disableSubAgents({agentId, agents: allAgentTypes});
+                  } else {
+                    await agentRPCClient.enableSubAgents({agentId, agents: allAgentTypes});
+                  }
+                  enabledSubAgents.mutate();
+                } finally {
+                  setLoadingAll(false);
                 }
-                enabledSubAgents.mutate();
               }}
               className="w-full flex items-center justify-between px-3 py-1.5 rounded hover:bg-hover transition-colors text-xs font-mono"
+              disabled={loadingAll}
             >
               <span className="text-muted">
-                {allEnabled ? 'Disable all sub-agents' : 'Enable all sub-agents'}
+                {loadingAll ? 'Processing...' : (allEnabled ? 'Disable all sub-agents' : 'Enable all sub-agents')}
               </span>
-              <span className="text-muted">
-                {enabledCount}/{agentCount}
-              </span>
+              {loadingAll ? (
+                <RiLoader4Line className="w-3.5 h-3.5 text-purple-600 dark:text-purple-500 animate-spin" aria-label="Loading"/>
+              ) : (
+                <span className="text-muted">
+                  {enabledCount}/{agentCount}
+                </span>
+              )}
             </button>
           </div>
         )}
@@ -148,7 +180,9 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
                     </div>
                   )}
                 </div>
-                {isEnabled ? (
+                {loadingAgent === agent.type ? (
+                  <RiLoader4Line className="w-3.5 h-3.5 text-purple-600 dark:text-purple-500 ml-2 shrink-0 animate-spin" aria-label="Loading"/>
+                ) : isEnabled ? (
                   <RiCheckLine className="w-3.5 h-3.5 text-purple-600 dark:text-purple-500 ml-2 shrink-0" aria-label="Enabled"/>
                 ) : (
                   <RiCloseLine className="w-3.5 h-3.5 text-muted ml-2 shrink-0" aria-label="Disabled"/>
@@ -158,8 +192,16 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
           })}
 
           {filteredAgents.length === 0 && searchQuery && (
-            <div className="px-3 py-4 text-center text-xs text-muted">
-              No sub-agents found matching "{searchQuery}"
+            <div className="px-3 py-4 text-center">
+              <div className="text-xs text-muted mb-1">
+                No sub-agents found matching "{searchQuery}"
+              </div>
+              <button
+                onClick={() => setSearchQuery('')}
+                className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-mono transition-colors"
+              >
+                Clear search
+              </button>
             </div>
           )}
 

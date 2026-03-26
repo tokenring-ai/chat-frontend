@@ -1,12 +1,12 @@
-import { AnimatePresence, motion } from 'framer-motion';
-import { FolderOpen, History, Paperclip, Send, Square, X, FileText, Image, FileCode, File } from 'lucide-react';
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { agentRPCClient } from '../../rpc.ts';
-import type { InputAttachment } from '@tokenring-ai/agent/AgentEvents';
-import ModelSelector from '../ModelSelector.tsx';
-import ToolSelector from '../ToolSelector.tsx';
+import type {InputAttachment} from '@tokenring-ai/agent/AgentEvents';
+import {AnimatePresence, motion} from 'framer-motion';
+import {File, FileCode, FileText, FolderOpen, History, Image, Paperclip, Send, Square, X} from 'lucide-react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {agentRPCClient} from '../../rpc.ts';
 import HookSelector from '../HookSelector.tsx';
+import ModelSelector from '../ModelSelector.tsx';
 import SubAgentSelector from '../SubAgentSelector.tsx';
+import ToolSelector from '../ToolSelector.tsx';
 
 interface FileAttachment {
   id: string;
@@ -28,6 +28,7 @@ interface ChatFooterProps {
   setShowHistory: (value: boolean) => void;
   setShowFileBrowser: (value: boolean) => void;
   onSubmit: (attachments?: InputAttachment[]) => void;
+  submitFeedback: { message: string; type: 'success' | 'error' } | null;
 }
 
 // Get file icon based on mime type
@@ -40,6 +41,13 @@ function getFileIcon(mimeType: string) {
 
 // Maximum file size (5MB)
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+// Format file size with appropriate units
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} bytes`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)}MB`;
+}
 
 export default function ChatFooter({
   agentId,
@@ -55,13 +63,17 @@ export default function ChatFooter({
   setShowHistory,
   setShowFileBrowser,
   onSubmit,
+                                     submitFeedback,
 }: ChatFooterProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
   const [selectedSuggestion, setSelectedSuggestion] = useState(0);
   const [historyIndex, setHistoryIndex] = useState<number | null>(null);
   const [historyBuffer, setHistoryBuffer] = useState('');
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
+  const [isProcessingFiles, setIsProcessingFiles] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const isNavigatingHistoryRef = useRef(false);
 
   // Reset history navigation when user manually types
@@ -73,6 +85,21 @@ export default function ChatFooter({
     // Reset the ref after the effect runs
     isNavigatingHistoryRef.current = false;
   }, [input, historyIndex]);
+
+  // Handle drag and drop
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isProcessingFiles && idle) {
+      setIsDragOver(true);
+    }
+  }, [isProcessingFiles, idle]);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
 
   // Read file and convert to InputAttachment
   const readFileAsAttachment = useCallback(async (file: File): Promise<FileAttachment> => {
@@ -112,30 +139,71 @@ export default function ChatFooter({
     });
   }, []);
 
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const files = Array.from(e.dataTransfer.files || []);
+    if (files.length === 0) return;
+
+    setIsProcessingFiles(true);
+    const newAttachments: FileAttachment[] = [];
+
+    const processFiles = async () => {
+      for (const file of files) {
+        // Check file size
+        if (file.size > MAX_FILE_SIZE) {
+          console.warn(`File ${file.name} exceeds 5MB limit`);
+          continue;
+        }
+
+        try {
+          const attachment = await readFileAsAttachment(file);
+          newAttachments.push(attachment);
+        } catch (error) {
+          console.error(`Failed to read file ${file.name}:`, error);
+        }
+      }
+
+      if (newAttachments.length > 0) {
+        setAttachments(prev => [...prev, ...newAttachments]);
+      }
+      setIsProcessingFiles(false);
+    };
+
+    processFiles();
+  }, [readFileAsAttachment]);
+
   // Handle file selection
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    
+
+    setIsProcessingFiles(true);
     const newAttachments: FileAttachment[] = [];
-    
-    for (const file of Array.from(files)) {
-      // Check file size
-      if (file.size > MAX_FILE_SIZE) {
-        console.warn(`File ${file.name} exceeds 5MB limit`);
-        continue;
+
+    try {
+      for (const file of Array.from(files)) {
+        // Check file size
+        if (file.size > MAX_FILE_SIZE) {
+          console.warn(`File ${file.name} exceeds 5MB limit`);
+          continue;
+        }
+
+        try {
+          const attachment = await readFileAsAttachment(file);
+          newAttachments.push(attachment);
+        } catch (error) {
+          console.error(`Failed to read file ${file.name}:`, error);
+        }
       }
-      
-      try {
-        const attachment = await readFileAsAttachment(file);
-        newAttachments.push(attachment);
-      } catch (error) {
-        console.error(`Failed to read file ${file.name}:`, error);
+
+      if (newAttachments.length > 0) {
+        setAttachments(prev => [...prev, ...newAttachments]);
       }
-    }
-    
-    if (newAttachments.length > 0) {
-      setAttachments(prev => [...prev, ...newAttachments]);
+    } finally {
+      setIsProcessingFiles(false);
     }
     
     // Reset file input
@@ -228,7 +296,44 @@ export default function ChatFooter({
   };
 
   return (
-    <footer className="shrink-0 bg-secondary border-t border-primary relative">
+    <footer
+      ref={footerRef}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`shrink-0 bg-secondary border-t border-primary relative transition-all duration-200 ${
+        isDragOver ? 'ring-2 ring-indigo-500 ring-inset bg-indigo-500/10' : ''
+      }`}
+    >
+      {/* Drag and drop overlay */}
+      <AnimatePresence>
+        {isDragOver && (
+          <motion.div
+            initial={{opacity: 0}}
+            animate={{opacity: 1}}
+            exit={{opacity: 0}}
+            className="absolute inset-0 bg-indigo-500/10 backdrop-blur-sm flex items-center justify-center z-50 pointer-events-none"
+          >
+            <div className="flex flex-col items-center gap-3 p-6">
+              <motion.div
+                animate={{scale: [1, 1.1, 1]}}
+                transition={{duration: 0.5, repeat: Infinity}}
+              >
+                <Paperclip className="w-12 h-12 text-indigo-400"/>
+              </motion.div>
+              <div className="text-center">
+                <p className="text-lg font-mono text-indigo-300 font-semibold">
+                  Drop files to attach
+                </p>
+                <p className="text-sm text-indigo-400/70 font-mono mt-1">
+                  Maximum 5MB per file
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="relative">
         {/* Hidden file input for local file upload */}
         <input
@@ -249,6 +354,19 @@ export default function ChatFooter({
               exit={{ opacity: 0, height: 0 }}
               className="border-b border-primary overflow-hidden"
             >
+              {/* Processing indicator */}
+              {isProcessingFiles && (
+                <div className="px-6 pt-3 pb-2 flex items-center gap-2 text-amber-400">
+                  <motion.div
+                    animate={{rotate: 360}}
+                    transition={{duration: 1, repeat: Infinity, ease: "linear"}}
+                    className="w-4 h-4"
+                  >
+                    <Paperclip className="w-4 h-4"/>
+                  </motion.div>
+                  <span className="text-2xs font-mono">Processing files...</span>
+                </div>
+              )}
               <div className="flex flex-wrap gap-2 px-6 py-2">
                 {attachments.map(({ id, file, attachment }) => {
                   const Icon = getFileIcon(attachment.mimeType);
@@ -258,11 +376,14 @@ export default function ChatFooter({
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.8 }}
-                      className="flex items-center gap-2 bg-tertiary px-3 py-1.5 rounded-md group"
+                      className="flex items-center gap-2 bg-tertiary px-3 py-1.5 rounded group"
                     >
                       <Icon className="w-4 h-4 text-muted" />
                       <span className="text-xs text-primary font-mono max-w-[150px] truncate">
                         {file.name}
+                      </span>
+                      <span className="text-2xs text-muted font-mono">
+                        ({formatFileSize(file.size)})
                       </span>
                       <button
                         onClick={() => removeAttachment(id)}
@@ -275,6 +396,20 @@ export default function ChatFooter({
                   );
                 })}
               </div>
+              {/* Total size indicator */}
+              <div className="px-6 pb-2 flex items-center gap-2">
+                <span className="text-2xs text-muted font-mono">Total:</span>
+                <span className={`text-2xs font-mono ${
+                  attachments.reduce((sum, a) => sum + a.file.size, 0) > MAX_FILE_SIZE * 0.8
+                    ? 'text-amber-400'
+                    : 'text-muted'
+                }`}>
+                  {attachments.reduce((sum, a) => sum + a.file.size, 0).toLocaleString()} bytes
+                </span>
+                {attachments.reduce((sum, a) => sum + a.file.size, 0) > MAX_FILE_SIZE && (
+                  <span className="text-2xs text-red-400 font-mono">Exceeds 5MB limit</span>
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -286,33 +421,35 @@ export default function ChatFooter({
 
           <div className="flex-1 relative pt-0.75">
             <label htmlFor="chat-input" className="sr-only">Command or message input</label>
-            <textarea
-              ref={textareaRef}
-              id="chat-input"
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value);
-                setInputError(false);
-              }}
-              onKeyDown={handleKeyDown}
-              disabled={!idle }
-              rows={1}
-              className={`w-full bg-transparent border-none focus:ring-0 resize-none text-sm font-mono text-primary placeholder-muted p-0 leading-relaxed outline-none disabled:opacity-50 ${
-                inputError ? 'placeholder:text-red-400/50' : ''
-              }`}
-              placeholder={inputError ? 'Please enter a message or command...' : 'Execute command or send message...'}
-              spellCheck="false"
-              aria-label="Command or message input"
-              aria-describedby={availableCommands.length > 0 ? 'command-suggestions' : undefined}
-              aria-invalid={inputError}
-              aria-required="true"
-              style={{ height: 'auto', minHeight: '1.5rem', maxHeight: '12rem' }}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = 'auto';
-                target.style.height = `${target.scrollHeight}px`;
-              }}
-            />
+            <div className="relative">
+              <textarea
+                ref={textareaRef}
+                id="chat-input"
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  setInputError(false);
+                }}
+                onKeyDown={handleKeyDown}
+                disabled={!idle}
+                rows={1}
+                className={`w-full bg-transparent border-none focus:ring-0 resize-none text-sm font-mono text-primary placeholder-muted p-0 leading-relaxed outline-none transition-opacity ${
+                  inputError ? 'placeholder:text-red-400/50' : ''
+                } ${!idle ? 'opacity-60' : ''}`}
+                placeholder={inputError ? 'Please enter a message or command...' : 'Execute command or send message...'}
+                spellCheck="false"
+                aria-label="Command or message input"
+                aria-describedby={availableCommands.length > 0 ? 'command-suggestions' : undefined}
+                aria-invalid={inputError}
+                aria-required="true"
+                style={{height: 'auto', minHeight: '1.5rem', maxHeight: '12rem'}}
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = `${target.scrollHeight}px`;
+                }}
+              />
+            </div>
 
             <AnimatePresence>
               {availableCommands.length > 0 && (
@@ -376,10 +513,21 @@ export default function ChatFooter({
             <button
               aria-label="Attach file"
               onClick={() => fileInputRef.current?.click()}
-              disabled={!idle}
-              className="p-1.5 rounded hover:bg-hover transition-colors text-muted hover:text-primary focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!idle || isProcessingFiles}
+              className="p-1.5 rounded hover:bg-hover transition-colors text-muted hover:text-primary focus-ring disabled:opacity-50 disabled:cursor-not-allowed relative"
+              title={isProcessingFiles ? 'Processing files...' : 'Attach file'}
             >
-              <Paperclip className="w-5 h-5" />
+              {isProcessingFiles ? (
+                <motion.div
+                  animate={{rotate: 360}}
+                  transition={{duration: 1, repeat: Infinity, ease: "linear"}}
+                  className="w-5 h-5"
+                >
+                  <Paperclip className="w-5 h-5"/>
+                </motion.div>
+              ) : (
+                <Paperclip className="w-5 h-5"/>
+              )}
             </button>
             {/* Remote file browser button */}
             <button
@@ -424,7 +572,7 @@ export default function ChatFooter({
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute bottom-full left-6 right-6 mb-2 p-3 bg-secondary/95 border border-primary rounded-md shadow-xl z-30 max-h-64 overflow-y-auto"
+              className="absolute bottom-full left-6 right-6 mb-2 p-3 bg-secondary border border-primary rounded-md shadow-xl z-30 max-h-64 overflow-y-auto"
               role="dialog"
               aria-labelledby="history-title"
             >
@@ -439,20 +587,29 @@ export default function ChatFooter({
                 </button>
               </div>
               <div className="space-y-1" role="listbox" aria-label="Previous commands">
-                {commandHistory.slice().reverse().map((cmd, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      setInput(cmd);
-                      textareaRef.current?.focus();
-                      setShowHistory(false);
-                    }}
-                    className="w-full text-left text-xs font-mono bg-tertiary hover:bg-hover px-3 py-2 rounded text-primary transition-colors focus-ring"
-                    role="option"
-                  >
-                    {cmd}
-                  </button>
-                ))}
+                {commandHistory.slice().reverse().map((cmd, idx) => {
+                  const actualIndex = commandHistory.length - 1 - idx;
+                  const isSelected = historyIndex === actualIndex;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setInput(cmd);
+                        textareaRef.current?.focus();
+                        setShowHistory(false);
+                      }}
+                      className={`w-full text-left text-xs font-mono px-3 py-2 rounded text-primary transition-colors focus-ring ${
+                        isSelected
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-tertiary hover:bg-hover'
+                      }`}
+                      role="option"
+                      aria-selected={isSelected}
+                    >
+                      {cmd}
+                    </button>
+                  );
+                })}
               </div>
             </motion.div>
           )}
@@ -463,6 +620,13 @@ export default function ChatFooter({
         <div className="flex items-center gap-4">
           <span className="text-2xs text-muted font-mono line-clamp-1">{ statusMessage }</span>
           <span className="text-2xs text-dim font-mono">{input.length} chars</span>
+          {submitFeedback && (
+            <span className={`text-2xs font-mono ${
+              submitFeedback.type === 'success' ? 'text-green-400' : 'text-red-400'
+            }`}>
+              {submitFeedback.message}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2 text-2xs text-dim">
           <span className="hidden md:inline"><kbd className="px-1.5 py-0.5 bg-tertiary rounded text-primary font-mono">Enter</kbd> Send • <kbd className="px-1.5 py-0.5 bg-tertiary rounded text-primary font-mono">↑/↓</kbd> History • <kbd className="px-1.5 py-0.5 bg-tertiary rounded text-primary font-mono">Shift+Enter</kbd> New line</span>

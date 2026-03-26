@@ -1,11 +1,11 @@
-import { Trash2, Play, Cpu, User, Loader2, Pause } from 'lucide-react';
-import { RiGithubFill, RiTwitterXFill } from 'react-icons/ri';
-import { useNavigate } from "react-router-dom";
-import { agentRPCClient, useAgentList, useAgentTypes, useWorkflows, workflowRPCClient } from "../rpc.ts";
-import { toastManager } from "../components/ui/toast.tsx";
-import ConfirmDialog from "../components/overlay/confirm-dialog.tsx";
+import {Cpu, Loader2, Pause, Play, Trash2, User} from 'lucide-react';
+import {useState} from "react";
+import {RiGithubFill, RiTwitterXFill} from 'react-icons/ri';
+import {useNavigate} from "react-router-dom";
 import CheckpointBrowser from "../components/CheckpointBrowser.tsx";
-import { useState } from "react";
+import ConfirmDialog from "../components/overlay/confirm-dialog.tsx";
+import {toastManager} from "../components/ui/toast.tsx";
+import {agentRPCClient, useAgentList, useAgentTypes, useWorkflows, workflowRPCClient} from "../rpc.ts";
 
 interface AgentSelectionProps {
   agents: ReturnType<typeof useAgentList>;
@@ -87,8 +87,20 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {(agents.data?.length ?? 0) === 0 ? (
-                <div className="col-span-full px-4 py-6 text-center border border-dashed border-primary rounded-lg text-xs text-muted italic">
-                  No agents currently active
+                <div className="col-span-full px-4 py-6 text-center border-2 border-dashed border-primary/50 rounded-lg bg-secondary/30">
+                  <Cpu className="w-8 h-8 text-muted mx-auto mb-3 opacity-50"/>
+                  <p className="text-sm font-medium text-primary mb-2">No agents currently active</p>
+                  <p className="text-2xs text-muted max-w-md mx-auto mb-4">
+                    Create a new agent or spawn a workflow below to get started with TokenRing
+                  </p>
+                  <button
+                    onClick={() => document.querySelector<HTMLButtonElement>('[data-launch-agent-btn]')?.click()}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md transition-colors focus-ring"
+                    aria-label="Create a new agent to get started"
+                  >
+                    <User className="w-4 h-4"/>
+                    Create Your First Agent
+                  </button>
                 </div>
               ) : agents.data!.map((a) => (
                 <div key={a.id} className="group flex items-center gap-3 bg-secondary border border-primary px-3 py-2.5 rounded-lg hover:border-amber-500/40 hover:bg-hover transition-all">
@@ -97,17 +109,31 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
                   </div>
                   <button
                     onClick={() => navigate(`/agent/${a.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate(`/agent/${a.id}`);
+                      }
+                    }}
                     className="flex-1 flex flex-col text-left cursor-pointer min-w-0"
                     aria-label={`Select agent ${a.displayName}`}
+                    tabIndex={0}
                   >
                     <span className="text-sm font-medium text-primary truncate">{a.displayName}</span>
                     <span className="text-2xs text-muted truncate mt-0.5">{a.currentActivity}</span>
                   </button>
                   <button
                     onClick={() => setConfirmDelete(a.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setConfirmDelete(a.id);
+                      }
+                    }}
                     disabled={deletingAgentId === a.id}
                     className="p-1 text-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 focus-ring cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label={`Delete agent ${a.displayName}`}
+                    tabIndex={0}
                   >
                     {deletingAgentId === a.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                   </button>
@@ -135,9 +161,16 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
                 <button
                   key={workflow.key}
                   onClick={() => spawnWorkflow(workflow.key)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      spawnWorkflow(workflow.key);
+                    }
+                  }}
                   disabled={spawningWorkflow === workflow.key}
                   className="flex items-center gap-3 bg-secondary border border-primary px-3 py-2.5 rounded-lg text-left hover:bg-hover hover:border-cyan-500/40 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
                   aria-label={`Spawn workflow: ${workflow.name}`}
+                  tabIndex={0}
                 >
                   <div className="shrink-0 text-cyan-500">
                     {spawningWorkflow === workflow.key ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-current" />}
@@ -162,13 +195,21 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
               <div key={category} className="space-y-1">
                 <h3 className="text-2xs font-semibold text-muted uppercase tracking-wider px-1">{category}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {templates.map(t => (
+                  {templates.map((t, idx) => (
                     <button
                       key={t.type}
                       onClick={() => createAgent(t.type)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          createAgent(t.type);
+                        }
+                      }}
                       disabled={creatingAgentType === t.type}
                       className="flex items-center gap-3 bg-secondary border border-primary px-3 py-2.5 rounded-lg text-left hover:bg-hover hover:border-indigo-500/40 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
                       aria-label={`Create new agent: ${t.displayName}`}
+                      tabIndex={0}
+                      data-launch-agent-btn={idx === 0 ? "true" : undefined}
                     >
                       <div className="shrink-0 text-indigo-500/70">
                         {creatingAgentType === t.type ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <User className="w-3.5 h-3.5" />}

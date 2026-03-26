@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import { Bell, X, Trash2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { notificationManager, NotificationItem } from './toast.tsx';
-import { cn } from '../../lib/utils.ts';
+import {AnimatePresence, motion} from 'framer-motion';
+import {Bell, Trash2, X} from 'lucide-react';
+import {useEffect, useState} from 'react';
+import {cn} from '../../lib/utils.ts';
+import {NotificationItem, notificationManager} from './toast.tsx';
 
 const toastIcons = {
   success: '✓',
@@ -21,6 +21,7 @@ const toastColors = {
 export default function NotificationMenu() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [justOpened, setJustOpened] = useState(false);
 
   useEffect(() => {
     const cleanup = notificationManager.subscribeNotifications(setNotifications);
@@ -30,8 +31,11 @@ export default function NotificationMenu() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleOpen = () => {
+    if (unreadCount > 0) {
+      setJustOpened(true);
+      setTimeout(() => setJustOpened(false), 2000);
+    }
     setIsOpen(true);
-    notificationManager.markAllAsRead();
   };
 
   const formatTime = (timestamp: number) => {
@@ -69,8 +73,29 @@ export default function NotificationMenu() {
               className="absolute right-0 top-full mt-2 w-80 max-h-96 bg-secondary border border-primary rounded-lg shadow-xl overflow-hidden z-50"
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-primary">
-                <h3 className="text-sm font-medium text-primary">Notifications</h3>
                 <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-medium text-primary">Notifications</h3>
+                  {justOpened && (
+                    <motion.span
+                      initial={{opacity: 0, scale: 0.8}}
+                      animate={{opacity: 1, scale: 1}}
+                      exit={{opacity: 0, scale: 0.8}}
+                      className="text-xs text-emerald-400 font-medium"
+                    >
+                      All marked as read
+                    </motion.span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={() => notificationManager.markAllAsRead()}
+                      className="text-xs text-muted hover:text-primary transition-colors"
+                      aria-label="Mark all as read"
+                    >
+                      Mark all read
+                    </button>
+                  )}
                   {notifications.length > 0 && (
                     <button
                       onClick={() => notificationManager.clearNotifications()}
@@ -97,7 +122,7 @@ export default function NotificationMenu() {
                   </div>
                 ) : (
                   notifications.map((notification) => (
-                    <div
+                    <motion.div
                       key={notification.id}
                       className="px-4 py-3 border-b border-primary hover:bg-hover transition-colors cursor-pointer"
                       role="button"
@@ -109,6 +134,10 @@ export default function NotificationMenu() {
                           notificationManager.markAsRead(notification.id);
                         }
                       }}
+                      whileTap={{scale: 0.98}}
+                      initial={{opacity: 1}}
+                      animate={{opacity: notification.read ? 0.6 : 1}}
+                      transition={{duration: 0.2}}
                     >
                       <div className="flex items-start gap-2">
                         <span className={cn('text-sm font-bold mt-0.5', toastColors[notification.type || 'info'])}>
@@ -122,7 +151,7 @@ export default function NotificationMenu() {
                           <span className="text-[10px] text-dim mt-1 block">{formatTime(notification.timestamp)}</span>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   ))
                 )}
               </div>

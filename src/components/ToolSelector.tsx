@@ -1,39 +1,39 @@
-import React, {useState, useMemo, useCallback, useEffect} from 'react';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from './ui/dropdown-menu.tsx';
-import {chatRPCClient, useAvailableTools, useEnabledTools} from '../rpc.ts';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
-  RiDatabaseFill,
-  RiCloudFill,
-  RiCodeBoxFill,
-  RiGlobeFill,
-  RiRobotFill,
-  RiSlackFill,
-  RiTelegramFill,
-  RiNewsFill,
-  RiWordpressFill,
-  RiRedditFill,
-  RiCheckLine,
-  RiCloseLine,
-  RiSparklingFill,
-  RiTerminalBoxFill,
-  RiGitBranchFill,
-  RiBugFill,
-  RiFileCodeFill,
-  RiEyeFill,
-  RiFileSearchFill,
-  RiRepeatFill,
-  RiCodeSSlashFill,
-  RiTaskFill,
-  RiMicFill,
   RiAmazonFill,
   RiArticleFill,
-  RiServerFill,
-  RiQuestionAnswerFill,
-  RiCheckboxCircleFill,
+  RiBugFill,
   RiCheckboxBlankCircleLine,
+  RiCheckboxCircleFill,
+  RiCheckLine,
+  RiCloseLine,
+  RiCloudFill,
+  RiCodeBoxFill,
+  RiCodeSSlashFill,
+  RiDatabaseFill,
+  RiEyeFill,
+  RiFileCodeFill,
+  RiFileSearchFill,
+  RiGitBranchFill,
+  RiGlobeFill,
+  RiMicFill,
+  RiNewsFill,
+  RiQuestionAnswerFill,
+  RiRedditFill,
+  RiRepeatFill,
+  RiRobotFill,
+  RiSearchLine,
+  RiServerFill,
+  RiSlackFill,
+  RiSparklingFill,
   RiStackFill,
-  RiSearchLine
+  RiTaskFill,
+  RiTelegramFill,
+  RiTerminalBoxFill,
+  RiWordpressFill
 } from "react-icons/ri";
+import {chatRPCClient, useAvailableTools, useEnabledTools} from '../rpc.ts';
+import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from './ui/dropdown-menu.tsx';
 
 interface ToolSelectorProps {
   agentId: string;
@@ -176,6 +176,13 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
     return { grouped, categories };
   }, [filteredTools, tools]);
 
+  // Auto-expand categories that contain search results
+  useEffect(() => {
+    if (searchQuery.trim() && filteredToolsByCategory.categories.size > 0) {
+      setExpandedCategories(new Set(filteredToolsByCategory.categories));
+    }
+  }, [searchQuery, filteredToolsByCategory.categories]);
+
   const enabledSet = useMemo(() => new Set(enabledTools.data?.tools || []), [enabledTools.data?.tools]);
 
   useEffect(() => {
@@ -223,10 +230,29 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
               placeholder="Filter tools..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-input border border-primary rounded-lg py-1.5 pl-9 pr-3 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+              className="w-full bg-input border border-primary rounded-lg py-1.5 pl-9 pr-8 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
               onClick={(e) => e.stopPropagation()}
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSearchQuery('');
+                }}
+                className="absolute inset-y-0 right-2 flex items-center text-muted hover:text-primary transition-colors"
+                title="Clear search"
+                aria-label="Clear search"
+              >
+                <RiCloseLine className="w-3.5 h-3.5"/>
+              </button>
+            )}
           </div>
+          {searchQuery && filteredToolsByCategory.categories.size > 0 && (
+            <span className="text-[10px] font-mono text-muted shrink-0">
+              {Object.keys(filteredToolsByCategory.grouped).reduce((acc, cat) => acc + Object.keys(filteredToolsByCategory.grouped[cat]).length, 0)} tools
+            </span>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-1 space-y-0.5">
@@ -239,10 +265,10 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
             let toolCount = Object.keys(categoryTools).length;
             let enabledToolCount = 0;
             for (const [, toolName] of Object.entries(categoryTools)) {
-              if (enabledTools.data?.tools?.includes(toolName)) enabledToolCount++;
+              if (enabledSet.has(toolName)) enabledToolCount++;
             }
 
-            const allEnabled = enabledToolCount === toolCount;
+            const allEnabled = enabledToolCount === toolCount && toolCount > 0;
             const allDisabled = enabledToolCount === 0;
 
             return (
@@ -302,15 +328,24 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
                     <span className="text-2xs font-mono text-muted">
                       {enabledToolCount}/{toolCount}
                     </span>
-                    {allEnabled ? (
-                      <RiCheckboxCircleFill className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-500" />
-                    ) : allDisabled ? (
-                      <RiCheckboxBlankCircleLine className="w-3.5 h-3.5 text-muted hover:text-emerald-500" />
-                    ) : (
-                      <div className="w-3.5 h-3.5 rounded border-2 border-muted flex items-center justify-center">
-                        <span className="text-[8px] text-muted leading-none">{enabledToolCount}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {allEnabled ? (
+                        <>
+                          <RiCloseLine className="w-3 h-3 text-emerald-600 dark:text-emerald-500"/>
+                          <span className="text-[9px] text-emerald-600 dark:text-emerald-500 font-mono">Disable</span>
+                        </>
+                      ) : allDisabled ? (
+                        <>
+                          <RiCheckboxBlankCircleLine className="w-3 h-3 text-muted hover:text-emerald-500"/>
+                          <span className="text-[9px] text-muted hover:text-emerald-500 font-mono">Enable</span>
+                        </>
+                      ) : (
+                        <>
+                          <RiCheckboxCircleFill className="w-3 h-3 text-amber-600 dark:text-amber-500"/>
+                          <span className="text-[9px] text-amber-600 dark:text-amber-500 font-mono">Mixed</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
 

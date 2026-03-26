@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Cpu, Play, User, Trash2, Pause, PanelLeftClose, PanelLeftOpen, Loader2, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAgentList, useAgentTypes, useWorkflows, agentRPCClient, workflowRPCClient } from '../rpc';
-import { useSidebar } from './SidebarContext';
-import { toastManager } from './ui/toast';
+import {Cpu, Loader2, PanelLeftClose, PanelLeftOpen, Pause, Play, Trash2, User, X} from 'lucide-react';
+import React, {useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {agentRPCClient, useAgentList, useAgentTypes, useWorkflows, workflowRPCClient} from '../rpc';
 import ConfirmDialog from './overlay/confirm-dialog.tsx';
+import {useSidebar} from './SidebarContext';
+import {toastManager} from './ui/toast';
 
 interface SidebarProps {
   currentAgentId: string;
@@ -22,11 +22,23 @@ const TABS: { id: Tab; icon: React.ReactNode; label: string }[] = [
 
 export default function Sidebar({ currentAgentId, agents, workflows, agentTypes }: SidebarProps) {
   const navigate = useNavigate();
-  const { isSidebarExpanded, toggleSidebar, isMobileOpen, setMobileOpen } = useSidebar();
+  const {isSidebarExpanded, toggleSidebar, isMobileOpen, setMobileOpen, localStorageAvailable} = useSidebar();
   const [activeTab, setActiveTab] = useState<Tab>('agents');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [showStorageWarning, setShowStorageWarning] = useState(false);
 
   const navigateAndClose = (path: string) => { navigate(path); setMobileOpen(false); };
+
+  // Show warning when localStorage becomes unavailable
+  React.useEffect(() => {
+    if (!localStorageAvailable && !showStorageWarning) {
+      setShowStorageWarning(true);
+      toastManager.warning(
+        'Your sidebar preferences will not be saved. Browser storage is unavailable.',
+        {duration: 8000}
+      );
+    }
+  }, [localStorageAvailable, showStorageWarning]);
 
   const createAgent = async (type: string) => {
     try {
@@ -121,6 +133,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                   className={`p-2 rounded-lg transition-colors focus-ring cursor-pointer ${activeTab === tab.id ? 'text-primary bg-active' : 'text-muted hover:text-primary hover:bg-hover'}`}
                   aria-label={tab.label}
                   title={tab.label}
+                  tabIndex={0}
                 >
                   {tab.icon}
                 </button>
@@ -130,6 +143,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                 onClick={toggleSidebar}
                 className="p-2 text-muted hover:text-primary transition-colors focus-ring cursor-pointer"
                 aria-label="Expand sidebar"
+                tabIndex={0}
               >
                 <PanelLeftOpen className="w-4 h-4" />
               </button>
@@ -158,7 +172,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                       key={agent.id}
                       onClick={() => navigateAndClose(`/agent/${agent.id}`)}
                       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigateAndClose(`/agent/${agent.id}`); } }}
-                      className={`group flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer ${currentAgentId === agent.id ? 'bg-active border border-primary' : 'hover:bg-hover border border-transparent'}`}
+                      className={`group flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer active:scale-98 ${currentAgentId === agent.id ? 'bg-active border border-primary' : 'hover:bg-hover border border-transparent'}`}
                       role="button" tabIndex={0}
                       aria-label={`Open agent ${agent.displayName}`}
                       aria-current={currentAgentId === agent.id ? 'page' : undefined}
@@ -172,7 +186,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); setConfirmDelete(agent.id); }}
-                        className="p-1 text-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 focus-ring cursor-pointer"
+                        className="p-1 text-muted hover:text-red-500 transition-colors opacity-40 hover:opacity-100 group-focus-within:opacity-100 focus-ring cursor-pointer"
                         aria-label={`Delete agent ${agent.displayName}`}
                       >
                         <Trash2 className="w-3 h-3" />

@@ -1,6 +1,6 @@
-import { ReactNode, useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+import {AnimatePresence, motion} from 'framer-motion';
+import {ChevronDown} from 'lucide-react';
+import React, {ReactNode, useEffect, useRef, useState} from 'react';
 
 interface AutoScrollContainerProps {
   children: ReactNode;
@@ -13,13 +13,48 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
   const contentRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true);
   const hasInitializedRef = useRef(false);
+  const hideButtonTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isUserScrollingRef = useRef(false); // Track if user has manually scrolled up
 
   const handleScroll = () => {
     if (!scrollRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
     const atBottom = scrollHeight - scrollTop - clientHeight < 20;
     isAtBottomRef.current = atBottom;
-    setShowScrollButton(!atBottom);
+
+    // Mark that user has manually scrolled up (if they were previously at bottom)
+    if (!atBottom && !isUserScrollingRef.current) {
+      isUserScrollingRef.current = true;
+    }
+
+    // Clear any pending hide timeout
+    if (hideButtonTimeoutRef.current) {
+      clearTimeout(hideButtonTimeoutRef.current);
+      hideButtonTimeoutRef.current = null;
+    }
+
+    if (!atBottom) {
+      setShowScrollButton(true);
+    } else if (showScrollButton) {
+      // Add a small delay before hiding to prevent flickering
+      hideButtonTimeoutRef.current = setTimeout(() => {
+        setShowScrollButton(false);
+        hideButtonTimeoutRef.current = null;
+      }, 100);
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'End') {
+      event.preventDefault();
+      scrollToBottom();
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      scrollRef.current?.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
   };
 
   // Auto-scroll to bottom on mount if there's content
@@ -43,11 +78,21 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
     }
   }, []);
 
+  // Cleanup hide timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hideButtonTimeoutRef.current) {
+        clearTimeout(hideButtonTimeoutRef.current);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (!contentRef.current || !scrollRef.current) return;
 
     const resizeObserver = new ResizeObserver(() => {
-      if (isAtBottomRef.current && scrollRef.current) {
+      // Only auto-scroll if user hasn't manually scrolled up
+      if (isAtBottomRef.current && !isUserScrollingRef.current && scrollRef.current) {
         scrollRef.current.scrollTo({
           top: scrollRef.current.scrollHeight,
           behavior: 'instant'
@@ -64,6 +109,7 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
 
   const scrollToBottom = () => {
     isAtBottomRef.current = true;
+    isUserScrollingRef.current = false; // Reset user scroll state
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,
       behavior: 'smooth'
@@ -73,10 +119,20 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
 
   return (
     <div className="relative flex-1 overflow-hidden">
+      {/* Keyboard shortcut hint for screen readers */}
+      <span id="chat-scroll-hint" className="sr-only">
+        Use End key to jump to bottom, Home key to jump to top
+      </span>
+
       <main
         ref={scrollRef}
         onScroll={handleScroll}
-        className={`flex-1 overflow-y-auto p-0 flex flex-col font-mono text-sm relative scroll-smooth bg-primary h-full ${className}`}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        className={`flex-1 overflow-y-auto p-0 flex flex-col font-mono text-sm relative scroll-smooth h-full ${className}`}
+        role="region"
+        aria-label="Chat messages"
+        aria-describedby="chat-scroll-hint"
       >
         <div ref={contentRef} className="flex flex-col min-h-full pb-4">
           {children}
@@ -85,9 +141,18 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
       <AnimatePresence>
         {showScrollButton && (
           <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
+            initial={{opacity: 0, y: 10, scale: 0.8}}
+            animate={{
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              transition: {
+                type: "spring",
+                damping: 20,
+                stiffness: 300
+              }
+            }}
+            exit={{opacity: 0, y: 10, scale: 0.8}}
             onClick={scrollToBottom}
             className="absolute right-4 bottom-4 p-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white transition-colors z-20 shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
             title="Scroll to bottom"

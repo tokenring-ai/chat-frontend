@@ -1,8 +1,8 @@
-import type { ParsedFileSelectQuestion } from "@tokenring-ai/agent/question";
-import { File, Folder, ChevronDown, ChevronRight, X, Send, RefreshCw } from 'lucide-react';
-import React, { useState, useEffect, useRef } from 'react';
-import { filesystemRPCClient } from "../../../rpc.ts";
-import { sendInteractionResponse } from "../sendInteractionResponse.ts";
+import type {ParsedFileSelectQuestion} from "@tokenring-ai/agent/question";
+import {ChevronDown, ChevronRight, File, Folder, RefreshCw, Send, X} from 'lucide-react';
+import React, {useEffect, useRef, useState} from 'react';
+import {filesystemRPCClient} from "../../../rpc.ts";
+import {sendInteractionResponse} from "../sendInteractionResponse.ts";
 
 interface FileInlineProps {
   question: ParsedFileSelectQuestion;
@@ -170,11 +170,12 @@ export default function FileInlineQuestion({
           role="treeitem"
           aria-expanded={isDir ? isExpanded : undefined}
           aria-selected={isSelected}
-          className={`flex items-center gap-2 px-2 py-1 rounded-md cursor-pointer transition-colors ${
+          className={`flex items-center gap-2 px-2 py-1 rounded-md transition-colors ${
             isSelected ? 'bg-accent/20' : 'hover:bg-hover'
-          } ${!isSelectable ? 'opacity-40' : ''}`}
+          } ${!isSelectable ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
           onClick={() => {
+            if (!isSelectable) return;
             if (isDir) {
               toggleExpand(cleanPath);
             } else {
@@ -234,7 +235,10 @@ export default function FileInlineQuestion({
         className="max-h-[300px] overflow-y-auto custom-scrollbar border border-primary/50 rounded-lg bg-primary p-2"
       >
         {files.has('.') ? renderTree('.', 0) : (
-          <div className="text-center text-muted text-sm py-8">Loading files...</div>
+          <div className="flex items-center justify-center gap-2 text-muted text-sm py-8">
+            <RefreshCw size={16} className="animate-spin"/>
+            <span>Loading files...</span>
+          </div>
         )}
       </div>
       {error && <div className="text-error text-xs px-1" role="alert">{error}</div>}
@@ -249,6 +253,15 @@ export default function FileInlineQuestion({
               {minimumSelections !== undefined && maximumSelections !== undefined && ' · '}
               {maximumSelections !== undefined && `max ${maximumSelections}`}
             </span>
+          )}
+          {selected.size > 0 && (
+            <button
+              onClick={() => setSelected(new Set())}
+              className="text-xs text-muted hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+              aria-label="Clear all selections"
+            >
+              Clear
+            </button>
           )}
         </div>
         <div className="flex items-center gap-2">

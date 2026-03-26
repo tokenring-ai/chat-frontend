@@ -1,6 +1,6 @@
-import React from "react"
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
-import { cn } from "../../lib/utils.ts"
+import React from "react"
+import {cn} from "../../lib/utils.ts"
 
 const DropdownMenu = DropdownMenuPrimitive.Root
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
@@ -29,7 +29,7 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-pointer select-none items-center rounded-lg px-2 py-2 text-sm outline-none transition-colors hover:bg-hover focus:bg-hover text-primary",
+      "relative flex cursor-pointer select-none items-center rounded-lg px-2 py-2 text-sm outline-none transition-all duration-150 ease-in-out hover:bg-hover focus:bg-hover focus-visible:bg-hover focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-secondary text-primary aria-selected:bg-hover aria-selected:text-primary",
       className
     )}
     {...props}

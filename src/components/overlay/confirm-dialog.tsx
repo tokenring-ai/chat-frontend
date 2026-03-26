@@ -1,5 +1,6 @@
-import { X } from 'lucide-react';
-import { FocusTrap } from 'focus-trap-react';
+import {FocusTrap} from 'focus-trap-react';
+import {X} from 'lucide-react';
+import React from "react";
 
 interface ConfirmDialogProps {
   title: string;
@@ -26,12 +27,28 @@ export default function ConfirmDialog({
     info: 'bg-indigo-600 hover:bg-indigo-500'
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onConfirm();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      onCancel();
+    }
+  };
+
   return (
     <FocusTrap>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dialog-title"
+        onKeyDown={handleKeyDown}
+      >
         <div className="bg-secondary border border-primary rounded-card shadow-2xl max-w-md w-full">
           <div className="flex items-center justify-between p-4 border-b border-primary">
-            <h3 className="text-lg font-semibold text-primary">{title}</h3>
+            <h3 id="dialog-title" className="text-lg font-semibold text-primary">{title}</h3>
             <button
               onClick={onCancel}
               className="text-muted hover:text-primary transition-colors"
@@ -53,6 +70,7 @@ export default function ConfirmDialog({
             <button
               onClick={onConfirm}
               className={`flex-1 px-4 py-2 text-white rounded-button transition-colors ${variantStyles[variant]}`}
+              autoFocus
             >
               {confirmText}
             </button>

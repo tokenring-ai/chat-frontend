@@ -30,19 +30,25 @@ const toastStyles = {
 
 export default function Toast({id, type = 'info', title, message, duration = 5000, onClose}: ToastProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setIsVisible(true);
   }, [id, message]);
 
   useEffect(() => {
-    if (duration > 0) {
-      const timer = setTimeout(() => {
+    if (duration > 0 && !isPaused) {
+      timerRef.current = setTimeout(() => {
         setIsVisible(false);
       }, duration);
-      return () => clearTimeout(timer);
     }
-  }, [duration, id, message]);
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [duration, id, message, isPaused]);
 
   useEffect(() => {
     if (!isVisible && onClose) {
@@ -67,6 +73,10 @@ export default function Toast({id, type = 'info', title, message, duration = 500
           )}
           role="alert"
           aria-live={type === 'error' ? 'assertive' : 'polite'}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onFocus={() => setIsPaused(true)}
+          onBlur={() => setIsPaused(false)}
         >
           <Icon className="w-5 h-5 shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
@@ -76,6 +86,12 @@ export default function Toast({id, type = 'info', title, message, duration = 500
           {onClose && (
             <button
               onClick={() => setIsVisible(false)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+                  e.preventDefault();
+                  setIsVisible(false);
+                }
+              }}
               className="shrink-0 p-0.5 rounded hover:bg-black/20 transition-colors focus-ring"
               aria-label="Close toast"
             >

@@ -1,7 +1,7 @@
-import React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
-import { Check, ChevronDown } from "lucide-react"
-import { cn } from "../../lib/utils.ts"
+import {Check, ChevronDown} from "lucide-react"
+import React from "react"
+import {cn} from "../../lib/utils.ts"
 
 const Select = SelectPrimitive.Root
 const SelectTrigger = React.forwardRef<
@@ -33,7 +33,7 @@ const SelectContent = React.forwardRef<
       ref={ref}
       className={cn(
         "relative z-50 min-w-[8rem] overflow-hidden rounded-lg border bg-secondary border-primary shadow-lg",
-        position === "popper" && "max-h-[300px]",
+        position === "popper" && "max-h-[300px] overflow-y-auto",
         className
       )}
       position={position}
@@ -54,7 +54,7 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm outline-none hover:bg-hover focus:bg-hover text-primary transition-colors",
+      "relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm outline-none hover:bg-hover focus:bg-hover focus:ring-2 focus:ring-accent/50 focus:ring-inset text-primary transition-colors",
       className
     )}
     {...props}
@@ -69,6 +69,20 @@ const SelectItem = React.forwardRef<
 ))
 SelectItem.displayName = SelectPrimitive.Item.displayName
 
-const SelectValue = SelectPrimitive.Value
+const SelectValue = SelectPrimitive.Value;
 
-export { Select, SelectTrigger, SelectContent, SelectItem, SelectValue }
+const SelectGroup = SelectPrimitive.Group
+
+const SelectLabel = React.forwardRef<
+  React.ComponentRef<typeof SelectPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
+>(({className, ...props}, ref) => (
+  <SelectPrimitive.Label
+    ref={ref}
+    className={cn("py-2 pl-8 pr-2 text-xs font-semibold text-secondary uppercase tracking-wider", className)}
+    {...props}
+  />
+))
+SelectLabel.displayName = SelectPrimitive.Label.displayName
+
+export {Select, SelectTrigger, SelectContent, SelectItem, SelectValue, SelectGroup, SelectLabel};
