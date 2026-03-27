@@ -60,8 +60,8 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
           type="button"
           className={
             isIconTrigger
-              ? 'flex items-center justify-center p-1.5 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring text-muted hover:text-primary'
-              : 'hidden md:flex items-center gap-2 px-2 py-1 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring'
+              ? 'flex items-center justify-center p-1.5 rounded-md hover:bg-hover transition-colors cursor-pointer group focus-ring text-muted hover:text-primary'
+              : 'hidden md:flex items-center gap-2 px-2 py-1 rounded-md hover:bg-hover transition-colors cursor-pointer group focus-ring'
           }
           aria-label={`Select sub-agents. ${enabledCount} enabled`}
           title={`${enabledCount} sub-agents enabled`}
@@ -75,9 +75,9 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col bg-secondary border-primary shadow-xl" style={{width: '400px'}}
+      <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col bg-secondary border-primary shadow-card" style={{width: '400px'}}
                            aria-label="Select sub-agents">
-        <div className="flex items-center gap-2 px-3 pt-1 pb-2 shrink-0 border-b border-primary">
+        <div className="flex items-center gap-2 px-3 pt-2 pb-2 shrink-0 border-b border-primary">
           <span className="text-sm flex-1 font-mono text-muted shrink-0">Sub-Agents</span>
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none">
@@ -88,25 +88,14 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
               placeholder="Filter sub-agents..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-input border border-primary rounded-lg py-1.5 pl-9 pr-3 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+              className="w-full bg-input border border-primary rounded-md py-1.5 pl-9 pr-8 text-xs text-primary placeholder-muted focus-ring transition-all"
               onClick={(e) => e.stopPropagation()}
             />
             {searchQuery && (
-              <div className="absolute inset-y-0 right-2 flex items-center gap-2">
-                <span className="text-xs text-muted font-mono">
+              <div className="absolute inset-y-0 right-2 flex items-center">
+                <span className="text-2xs font-mono text-muted">
                   {filteredAgents.length} {filteredAgents.length === 1 ? 'result' : 'results'}
                 </span>
-                {(() => {
-                  const filteredEnabledCount = filteredAgents.filter(a => enabledSet.has(a.type)).length;
-                  if (filteredEnabledCount > 0) {
-                    return (
-                      <span className="text-xs text-purple-600 dark:text-purple-400 font-mono">
-                        ({filteredEnabledCount} enabled)
-                      </span>
-                    );
-                  }
-                  return null;
-                })()}
               </div>
             )}
           </div>
@@ -114,7 +103,7 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
 
         {/* Toggle all agents button */}
         {agentCount > 1 && (
-          <div className="border-b border-primary pl-4">
+          <div className="border-b border-primary">
             <button
               onClick={async () => {
                 setLoadingAll(true);
@@ -130,14 +119,14 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
                   setLoadingAll(false);
                 }
               }}
-              className="w-full flex items-center justify-between px-3 py-1.5 rounded hover:bg-hover transition-colors text-xs font-mono"
+              className="w-full flex items-center justify-between px-3 py-1.5 hover:bg-hover transition-colors text-xs"
               disabled={loadingAll}
             >
               <span className="text-muted">
                 {loadingAll ? 'Processing...' : (allEnabled ? 'Disable all sub-agents' : 'Enable all sub-agents')}
               </span>
               {loadingAll ? (
-                <RiLoader4Line className="w-3.5 h-3.5 text-purple-600 dark:text-purple-500 animate-spin" aria-label="Loading"/>
+                <RiLoader4Line className="w-3 h-3 text-indigo-600 dark:text-indigo-400 animate-spin" aria-label="Loading"/>
               ) : (
                 <span className="text-muted">
                   {enabledCount}/{agentCount}
@@ -157,51 +146,43 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
                   e.stopPropagation();
                   handleToggleAgent(agent.type);
                 }}
-                className="flex items-center cursor-pointer py-2 hover:bg-hover rounded-md px-3 transition-colors group"
+                className="flex items-center cursor-pointer py-1.5 rounded-md px-3 transition-colors group hover:bg-hover"
               >
                 <div
-                  className={`w-1.5 h-1.5 rounded-full mr-3 shrink-0 shadow-[0_0_6px_rgba(0,0,0,0.1)] dark:shadow-[0_0_6px_rgba(0,0,0,0.3)] ${
+                  className={`w-1.5 h-1.5 rounded-full mr-2.5 shrink-0 ${
                     isEnabled
-                      ? 'bg-purple-500 shadow-[0_0_6px_rgba(168,85,247,0.6)]'
-                      : 'bg-zinc-300 dark:bg-zinc-600'
+                      ? 'bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.5)]'
+                      : 'bg-muted/50'
                   }`}
                 />
                 <div className="flex-1 min-w-0">
-                  <div className={`text-xs font-mono truncate ${
+                  <div className={`text-xs font-mono leading-tight truncate ${
                     isEnabled
-                      ? 'text-purple-700 dark:text-purple-400 font-medium'
+                      ? 'text-indigo-700 dark:text-indigo-400 font-medium'
                       : 'text-muted group-hover:text-primary'
                   }`}>
                     {agent.displayName}
                   </div>
                   {agent.description && (
-                    <div className="text-2xs text-dim font-mono truncate mt-0.5">
+                    <div className="text-2xs text-dim font-mono leading-tight truncate mt-0.5">
                       {agent.description}
                     </div>
                   )}
                 </div>
                 {loadingAgent === agent.type ? (
-                  <RiLoader4Line className="w-3.5 h-3.5 text-purple-600 dark:text-purple-500 ml-2 shrink-0 animate-spin" aria-label="Loading"/>
+                  <RiLoader4Line className="w-3 h-3 text-indigo-600 dark:text-indigo-400 ml-2 shrink-0 animate-spin" aria-label="Loading"/>
                 ) : isEnabled ? (
-                  <RiCheckLine className="w-3.5 h-3.5 text-purple-600 dark:text-purple-500 ml-2 shrink-0" aria-label="Enabled"/>
+                  <RiCheckLine className="w-3 h-3 text-indigo-600 dark:text-indigo-400 ml-2 shrink-0" aria-label="Enabled"/>
                 ) : (
-                  <RiCloseLine className="w-3.5 h-3.5 text-muted ml-2 shrink-0" aria-label="Disabled"/>
+                  <RiCloseLine className="w-3 h-3 text-muted ml-2 shrink-0" aria-label="Disabled"/>
                 )}
               </div>
             );
           })}
 
           {filteredAgents.length === 0 && searchQuery && (
-            <div className="px-3 py-4 text-center">
-              <div className="text-xs text-muted mb-1">
-                No sub-agents found matching "{searchQuery}"
-              </div>
-              <button
-                onClick={() => setSearchQuery('')}
-                className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 font-mono transition-colors"
-              >
-                Clear search
-              </button>
+            <div className="px-3 py-4 text-center text-xs text-muted">
+              No sub-agents found matching "{searchQuery}"
             </div>
           )}
 

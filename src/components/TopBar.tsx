@@ -25,14 +25,14 @@ function ComingSoonDropdown({ icon, label }: { icon: React.ReactNode; label: str
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(o => !o)}
-        className="p-2 rounded-lg hover:bg-hover transition-colors text-muted focus-ring cursor-pointer"
+        className="p-2 rounded-md hover:bg-hover transition-colors text-muted focus-ring cursor-pointer"
         aria-label={label}
         title={label}
       >
         {icon}
       </button>
       {open && (
-        <div className="absolute top-full right-0 mt-1 w-48 bg-secondary border border-primary rounded-lg shadow-xl z-50 overflow-hidden">
+        <div className="absolute top-full right-0 mt-1 w-48 bg-secondary border border-primary rounded-card shadow-card z-50 overflow-hidden">
           <div className="px-4 py-3 text-center">
             <p className="text-xs font-medium text-primary">{label}</p>
             <p className="text-2xs text-muted mt-1">Coming soon</p>
@@ -66,11 +66,11 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
       {/* Logo */}
       <button
         onClick={() => navigate('/')}
-        className="hidden sm:flex items-center gap-2 focus-ring rounded-lg shrink-0 cursor-pointer"
+        className="hidden sm:flex items-center gap-2 focus-ring rounded-md shrink-0 cursor-pointer"
         aria-label="TokenRing Home"
       >
-        <div className="w-7 h-7 rounded-lg bg-linear-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/10">
-          <Zap className="w-4 h-4 text-white" fill="currentColor" />
+        <div className="w-7 h-7 rounded-md bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <Zap className="w-4 h-4 text-white" />
         </div>
         <span className="text-primary font-bold tracking-tight text-sm hidden md:block">TokenRing</span>
       </button>
@@ -78,7 +78,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
       {/* Mobile Menu Button - Hidden on desktop */}
       <button
         onClick={toggleMobileSidebar}
-        className="md:hidden p-2 rounded-lg hover:bg-hover transition-colors text-muted focus-ring cursor-pointer"
+        className="md:hidden p-2 rounded-md hover:bg-hover transition-colors text-muted focus-ring cursor-pointer"
         aria-label="Open menu"
       >
         <Menu className="w-5 h-5" />
@@ -90,7 +90,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
       <div className="relative" ref={ref}>
         <button
           onClick={() => setOpen(o => !o)}
-          className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-hover transition-colors focus-ring text-sm cursor-pointer"
+          className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-hover transition-colors focus-ring text-sm cursor-pointer"
           aria-haspopup="listbox"
           aria-expanded={open}
         >
@@ -107,7 +107,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
 
         {open && (
           <div
-            className="absolute top-full left-0 mt-1 w-64 bg-secondary border border-primary rounded-lg shadow-xl z-50 overflow-hidden"
+            className="absolute top-full left-0 mt-1 w-64 bg-secondary border border-primary rounded-card shadow-card z-50 overflow-hidden"
             role="listbox"
           >
             {agents.isLoading ? (
@@ -116,14 +116,14 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
               </div>
             ) : agentList.length === 0 ? (
               <>
-                <div className="px-4 py-4 text-xs text-muted text-center">No active agents</div>
+                <div className="px-4 py-3 text-xs text-muted text-center">No active agents</div>
                 <div className="border-t border-primary">
-                  <button
+                    <button
                     onClick={() => {
                       navigate('/');
                       setOpen(false);
                     }}
-                    className="w-full px-3 py-2 text-xs flex items-center gap-2 text-primary hover:bg-hover transition-colors text-left cursor-pointer"
+                    className="w-full px-3 py-2 text-xs flex items-center gap-2 text-primary hover:bg-hover transition-colors text-left cursor-pointer focus-ring rounded-md"
                     aria-label="Create new agent or workflow"
                   >
                     <span className="text-cyan-400 font-semibold">+</span>
@@ -142,7 +142,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
                       navigate(`/agent/${agent.id}`);
                       setOpen(false);
                     }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-hover transition-colors cursor-pointer ${agent.id === currentAgentId ? 'bg-active' : ''}`}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-hover transition-colors cursor-pointer focus-ring rounded-md ${agent.id === currentAgentId ? 'bg-active' : ''}`}
                   >
                     <div className="shrink-0">
                       {agent.idle
@@ -162,7 +162,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
                       navigate('/');
                       setOpen(false);
                     }}
-                    className="w-full px-3 py-2 text-xs flex items-center gap-2 text-primary hover:bg-hover transition-colors text-left cursor-pointer"
+                    className="w-full px-3 py-2 text-xs flex items-center gap-2 text-primary hover:bg-hover transition-colors text-left cursor-pointer focus-ring rounded-md"
                     aria-label="Create new agent or workflow"
                   >
                     <span className="text-cyan-400 font-semibold">+</span>
@@ -189,7 +189,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
       <div className="flex items-center gap-1">
         {!isOnline && (
           <div className="flex items-center gap-1.5 text-red-400 text-xs mr-2">
-            <WifiOff size={14} />
+            <WifiOff className="w-4 h-4" />
             <span className="hidden sm:block">Offline</span>
           </div>
         )}

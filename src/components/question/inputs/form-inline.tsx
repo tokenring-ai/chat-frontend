@@ -121,7 +121,7 @@ export default function FormInlineQuestion({
   return (
     <div ref={containerRef} className="p-4 space-y-3">
       {/* Progress indicator */}
-      <div className="flex items-center justify-between text-xs" aria-live="polite">
+      <div className="flex items-center justify-between text-2xs" aria-live="polite">
         <div className="flex items-center gap-2">
           <span className="text-muted">
             Section {currentSection + 1} of {question.sections.length}
@@ -136,20 +136,20 @@ export default function FormInlineQuestion({
 
       {/* Description */}
       {section.description && (
-        <p className="text-xs text-muted italic">{section.description}</p>
+        <p className="text-2xs text-muted italic">{section.description}</p>
       )}
 
       {/* Field content */}
       <div className="min-h-[150px] flex flex-col">
         {field.type === 'text' && (
-          <div className="flex-1 flex flex-col space-y-2">
+          <div className="flex-1 flex flex-col gap-2">
             <label className="block text-sm text-primary" htmlFor={`form-field-${fieldKey}`}>
               {field.label}
               {field.required && <span className="text-error ml-1">*</span>}
             </label>
-            {field.description && <p className="text-xs text-muted">{field.description}</p>}
+            {field.description && <p className="text-2xs text-muted">{field.description}</p>}
             {isInvalid && (
-              <p className="text-xs text-error flex items-center gap-1" role="alert">
+              <p className="text-2xs text-error flex items-center gap-1" role="alert">
                 <span>This field is required</span>
               </p>
             )}
@@ -166,8 +166,8 @@ export default function FormInlineQuestion({
                   handleCancel();
                 }
               }}
-              className={`w-full bg-primary border rounded-lg text-primary text-sm p-2.5 outline-none transition-colors ${
-                isInvalid ? 'border-error focus:border-error' : 'border-primary focus:border-accent'
+              className={`w-full bg-primary border border-primary rounded-md text-primary text-sm p-2 outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/20 ${
+                isInvalid ? 'border-error' : ''
               } ${showErrorAnimation ? 'animate-shake' : ''}`}
               aria-required={field.required}
               aria-invalid={isInvalid}
@@ -176,9 +176,9 @@ export default function FormInlineQuestion({
         )}
 
         {field.type === 'treeSelect' && (
-          <div className="flex-1 flex flex-col space-y-2 min-h-[150px]">
+          <div className="flex-1 flex flex-col gap-2 min-h-[150px]">
             <label className="block text-sm text-primary">{field.label}</label>
-            <div className="border border-primary/50 rounded-lg flex-1 flex flex-col overflow-hidden">
+            <div className="border border-primary/30 rounded-lg flex-1 flex flex-col overflow-hidden">
               <TreeInlineQuestion
                 question={field}
                 agentId={agentId}
@@ -192,10 +192,10 @@ export default function FormInlineQuestion({
         )}
 
         {field.type === 'fileSelect' && (
-          <div className="flex-1 flex flex-col space-y-2 min-h-[150px]">
+          <div className="flex-1 flex flex-col gap-2 min-h-[150px]">
             <label className="block text-sm text-primary">{field.label}</label>
-            {field.description && <p className="text-xs text-muted">{field.description}</p>}
-            <div className="border border-primary/50 rounded-lg flex-1 flex flex-col overflow-hidden">
+            {field.description && <p className="text-2xs text-muted">{field.description}</p>}
+            <div className="border border-primary/30 rounded-lg flex-1 flex flex-col overflow-hidden">
               <FileInlineQuestion
                 question={field}
                 agentId={agentId}
@@ -215,18 +215,18 @@ export default function FormInlineQuestion({
           <button
             onClick={handleCancel}
             disabled={isSubmitting}
-            className="flex items-center gap-1.5 text-xs text-muted hover:text-primary transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+            className="flex items-center gap-1.5 p-1.5 rounded-md text-xs text-muted hover:text-primary transition-colors disabled:opacity-50 focus-ring"
           >
-            <X size={14} />
+            <X className="w-3.5 h-3.5" />
             Cancel
           </button>
           {canGoPrevious && (
             <button
               onClick={handlePrevious}
               disabled={isSubmitting}
-              className="flex items-center gap-1.5 text-xs text-primary hover:text-accent transition-colors disabled:opacity-50 bg-tertiary px-2 py-1.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+              className="flex items-center gap-1.5 text-xs text-primary hover:text-accent transition-colors disabled:opacity-50 bg-tertiary px-3 py-1.5 rounded-md focus-ring"
             >
-              <ChevronLeft size={14} />
+              <ChevronLeft className="w-3.5 h-3.5" />
               Previous
             </button>
           )}
@@ -238,7 +238,7 @@ export default function FormInlineQuestion({
               if (input?.value) handleFieldSubmit(input.value);
             }}
             disabled={isSubmitting}
-            className="flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+            className="flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
           >
             {isSubmitting ? (
               <>
@@ -248,7 +248,7 @@ export default function FormInlineQuestion({
             ) : (
               <>
                 {isLastField && isLastSection ? 'Submit' : 'Next'}
-                <ChevronRight size={14}/>
+                <ChevronRight className="w-3.5 h-3.5"/>
               </>
             )}
           </button>

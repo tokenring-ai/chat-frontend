@@ -87,7 +87,7 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {(agents.data?.length ?? 0) === 0 ? (
-                <div className="col-span-full px-4 py-6 text-center border-2 border-dashed border-primary/50 rounded-lg bg-secondary/30">
+                <div className="col-span-full px-4 py-6 text-center border border-dashed border-primary rounded-lg bg-secondary/30">
                   <Cpu className="w-8 h-8 text-muted mx-auto mb-3 opacity-50"/>
                   <p className="text-sm font-medium text-primary mb-2">No agents currently active</p>
                   <p className="text-2xs text-muted max-w-md mx-auto mb-4">
@@ -95,7 +95,7 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
                   </p>
                   <button
                     onClick={() => document.querySelector<HTMLButtonElement>('[data-launch-agent-btn]')?.click()}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md transition-colors focus-ring"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors focus-ring shadow-lg shadow-indigo-600/20"
                     aria-label="Create a new agent to get started"
                   >
                     <User className="w-4 h-4"/>
@@ -103,7 +103,7 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
                   </button>
                 </div>
               ) : agents.data!.map((a) => (
-                <div key={a.id} className="group flex items-center gap-3 bg-secondary border border-primary px-3 py-2.5 rounded-lg hover:border-amber-500/40 hover:bg-hover transition-all">
+                <div key={a.id} className="group flex items-center gap-3 bg-secondary border border-primary px-3 py-2.5 rounded-lg hover:border-amber-500/50 hover:bg-hover transition-all shadow-sm">
                   <div className="shrink-0">
                     {a.idle ? <Pause className="w-3.5 h-3.5 text-muted" /> : <div className="w-3.5 h-3.5 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />}
                   </div>
@@ -131,7 +131,7 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
                       }
                     }}
                     disabled={deletingAgentId === a.id}
-                    className="p-1 text-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 focus-ring cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-1.5 text-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 focus-ring cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
                     aria-label={`Delete agent ${a.displayName}`}
                     tabIndex={0}
                   >
@@ -154,7 +154,7 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {(workflows.data?.length ?? 0) === 0 ? (
-                <div className="col-span-full px-4 py-6 text-center border border-dashed border-primary rounded-lg text-xs text-muted italic">
+                <div className="col-span-full px-4 py-6 text-center border border-dashed border-primary rounded-lg text-xs text-muted italic bg-secondary/30">
                   No workflows available
                 </div>
               ) : workflows.data!.map(workflow => (
@@ -168,7 +168,7 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
                     }
                   }}
                   disabled={spawningWorkflow === workflow.key}
-                  className="flex items-center gap-3 bg-secondary border border-primary px-3 py-2.5 rounded-lg text-left hover:bg-hover hover:border-cyan-500/40 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
+                  className="flex items-center gap-3 bg-secondary border border-primary px-3 py-2.5 rounded-lg text-left hover:bg-hover hover:border-cyan-500/50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring shadow-sm"
                   aria-label={`Spawn workflow: ${workflow.name}`}
                   tabIndex={0}
                 >
@@ -206,7 +206,7 @@ export default function AgentSelection({ agents, agentTypes, workflows }: AgentS
                         }
                       }}
                       disabled={creatingAgentType === t.type}
-                      className="flex items-center gap-3 bg-secondary border border-primary px-3 py-2.5 rounded-lg text-left hover:bg-hover hover:border-indigo-500/40 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
+                      className="flex items-center gap-3 bg-secondary border border-primary px-3 py-2.5 rounded-lg text-left hover:bg-hover hover:border-indigo-500/50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring shadow-sm"
                       aria-label={`Create new agent: ${t.displayName}`}
                       tabIndex={0}
                       data-launch-agent-btn={idx === 0 ? "true" : undefined}

@@ -293,7 +293,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
     return (
         <FocusTrap active={isOpen}>
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px] animate-in fade-in duration-200">
-            <div ref={initialFocusRef} tabIndex={-1} className="w-full max-w-6xl h-[85vh] bg-secondary border border-primary rounded-card shadow-2xl flex flex-col overflow-hidden ring-1 ring-white/5 relative file-browser-container">
+            <div ref={initialFocusRef} tabIndex={-1} className="w-full max-w-6xl h-[85vh] bg-secondary border border-primary rounded-xl shadow-xl flex flex-col overflow-hidden ring-1 ring-white/5 relative file-browser-container">
 
                 {/* Window Controls & Header */}
                 <div className="h-12 border-b border-primary flex items-center justify-between px-4 bg-secondary shrink-0 select-none">
@@ -323,7 +323,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                             className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition-colors p-0.5 rounded focus-ring"
                             aria-label="Clear search (or press Escape)"
                           >
-                            <X size={12}/>
+                            <X size={12} />
                           </button>
                         )}
                         </div>
@@ -342,10 +342,10 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                     {/* Main Content Area */}
                     <div className="flex-1 flex flex-col bg-primary min-w-0">
                         {/* Breadcrumbs & Toolbar */}
-                        <div className="h-10 border-b border-primary flex  px-4 shrink-0 ">
+                        <div className="h-10 border-b border-primary flex px-4 shrink-0">
                             <div className="flex flex-1 items-center gap-1 text-xs text-muted min-w-0">
                                 <button
-                                    className="hover:text-primary cursor-pointer shrink-0 focus-ring rounded px-1"
+                                    className="hover:text-primary cursor-pointer shrink-0 focus-ring rounded-md px-1"
                                     onClick={() => setPath('.')}
                                     aria-label="Go to root directory"
                                 >root</button>
@@ -355,7 +355,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                         <span className="text-dim">...</span>
                                         <ChevronRight size={10} className="shrink-0" />
                                         <button
-                                            className="hover:text-primary cursor-pointer truncate focus-ring rounded px-1"
+                                            className="hover:text-primary cursor-pointer truncate focus-ring rounded-md px-1"
                                             onClick={() => setPath(breadcrumbs.slice(0, -1).join('/'))}
                                             aria-label={`Go to ${breadcrumbs[breadcrumbs.length - 2]}`}
                                         >{breadcrumbs[breadcrumbs.length - 2]}</button>
@@ -367,7 +367,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                         <React.Fragment key={i}>
                                             <ChevronRight size={10} className="shrink-0" />
                                             <button
-                                                className="hover:text-primary cursor-pointer truncate focus-ring rounded px-1"
+                                                className="hover:text-primary cursor-pointer truncate focus-ring rounded-md px-1"
                                                 onClick={() => setPath(breadcrumbs.slice(0, i + 1).join('/'))}
                                                 aria-label={`Go to ${part}`}
                                             >{part}</button>
@@ -378,19 +378,19 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => setShowHiddenFiles(!showHiddenFiles)}
-                                className="flex items-center gap-1.5 px-2 py-1 rounded-button hover:bg-hover text-muted text-2xs transition-colors focus-ring"
+                                className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-hover text-muted text-2xs transition-colors focus-ring"
                                 aria-label={showHiddenFiles ? "Hide hidden files" : "Show hidden files"}
                               >
-                                {showHiddenFiles ? <EyeOff size={12} /> : <Eye size={12} />}
+                                {showHiddenFiles ? <EyeOff size={14} /> : <Eye size={14} />}
                                 {showHiddenFiles ? 'Hide' : 'Show'} Hidden
                               </button>
                             </div>
                             <button
                               onClick={() => fileInputRef.current?.click()}
-                              className="flex items-center gap-1.5 px-2 py-1 rounded-button hover:bg-hover text-muted text-2xs transition-colors focus-ring"
+                              className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-hover text-muted text-2xs transition-colors focus-ring"
                               aria-label="Upload files"
                             >
-                              <Plus size={12} />
+                              <Plus size={14} />
                               Upload
                             </button>
                             <input ref={fileInputRef} type="file" multiple onChange={handleUpload} className="hidden" />
@@ -402,7 +402,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                 <thead>
                                     <tr className="text-2xs text-muted font-semibold border-b border-primary">
                                         <th className="pl-2 pr-4 py-2 font-medium w-8">
-                                            <div className="w-3 h-3 border border-primary rounded bg-tertiary"></div>
+                                            <div className="w-3 h-3 border border-primary rounded-sm bg-tertiary"></div>
                                         </th>
                                         <th className="px-2 py-2 font-medium">Name</th>
                                         <th className="px-2 py-2 font-medium w-24 hidden sm:table-cell">Size</th>
@@ -441,20 +441,20 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                                             isInChat ? handleRemoveFile(file) : handleAddFile(file);
                                                         }}
                                                         className={cn(
-                                                            "w-3 h-3 border rounded flex items-center justify-center transition-all focus-ring",
+                                                            "w-3 h-3 border rounded-sm flex items-center justify-center transition-all focus-ring",
                                                             isInChat
-                                                                ? "border-indigo-500 bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.3)]"
+                                                                ? "border-indigo-500 bg-indigo-500 shadow-sm"
                                                                 : "border-primary hover:border-muted"
                                                         )}
                                                         aria-label={isInChat ? `Remove ${displayName} from chat` : `Add ${displayName} to chat`}
                                                     >
-                                                        {isInChat && <Check size={10} className="text-white" />}
+                                                        {isInChat && <Check size={12} className="text-white" />}
                                                     </button>
                                                 </td>
                                                 <td className="px-2 py-2">
                                                     <div className={cn(
                                                         "flex items-center gap-2 font-medium",
-                                                        isSelected ? "text-indigo-400" : isDir ? "text-primary" : "text-secondary"
+                                                        isSelected ? "text-indigo-400" : isDir ? "text-primary" : "text-primary"
                                                     )}>
                                                         {getFileIcon(file, isDir)}
                                                       <span className={cn(
@@ -463,10 +463,9 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                                             {displayName}
                                                         </span>
                                                       {uploadingFiles.includes(displayName) && (
-                                                        <div className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin ml-1"
-                                                             title="Uploading...">
-                                                          <span className="sr-only">Uploading</span>
-                                                        </div>
+                                    <div className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin ml-1" title="Uploading...">
+                                      <span className="sr-only">Uploading</span>
+                                    </div>
                                                       )}
                                                     </div>
                                                 </td>
@@ -476,8 +475,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                                 <td className="px-2 py-2 text-muted hidden sm:table-cell">
                                                   {uploadingFiles.includes(displayName) ? (
                                                     <div className="flex items-center gap-2">
-                                                      <div className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"
-                                                           title="Uploading...">
+                                                      <div className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" title="Uploading...">
                                                         <span className="sr-only">Uploading</span>
                                                       </div>
                                                       <span className="text-indigo-400 text-xs">Uploading</span>
@@ -487,10 +485,10 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                                       {!isDir && (
                                                         <button
                                                           onClick={(e) => handleDownload(file, e)}
-                                                          className="p-1 hover:text-primary focus-ring rounded"
+                                                          className="p-1.5 hover:text-primary focus-ring rounded-md"
                                                           aria-label={`Download ${displayName}`}
                                                         >
-                                                          <Download size={14}/>
+                                                          <Download size={14} />
                                                         </button>
                                                       )}
                                                       <button
@@ -499,12 +497,12 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                                           isInChat ? handleRemoveFile(file) : handleAddFile(file);
                                                         }}
                                                         className={cn(
-                                                          "p-1 focus-ring rounded",
+                                                          "p-1.5 focus-ring rounded-md",
                                                           isInChat ? "text-red-400 hover:text-red-300" : "text-indigo-400 hover:text-indigo-300"
                                                         )}
                                                         aria-label={isInChat ? `Remove ${displayName} from chat` : `Add ${displayName} to chat`}
                                                       >
-                                                        {isInChat ? <Trash2 size={14}/> : <Plus size={14}/>}
+                                                        {isInChat ? <Trash2 size={14} /> : <Plus size={14} />}
                                                       </button>
                                                     </div>
                                                   )}
@@ -532,7 +530,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
 
                         {uploadingFiles.length > 0 && (
                             <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50">
-                                <div className="bg-secondary border border-primary rounded-button p-4 flex items-center gap-3">
+                                <div className="bg-secondary border border-primary rounded-lg p-4 flex items-center gap-3 shadow-lg">
                                     <div className="w-5 h-5 border-2 border-muted border-t-indigo-500 rounded-full animate-spin" />
                                     <span className="text-sm text-primary">Uploading {uploadingFiles.length} file{uploadingFiles.length > 1 ? 's' : ''}...</span>
                                 </div>
@@ -545,7 +543,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                         {selectedFile ? (
                             <>
                                 <div className="p-4 border-b border-primary flex items-start gap-3">
-                                    <div className="w-10 h-10 rounded-button bg-tertiary flex items-center justify-center shrink-0">
+                                    <div className="w-10 h-10 rounded-lg bg-tertiary flex items-center justify-center shrink-0">
                                         {getFileIcon(selectedFile, false, 24)}
                                     </div>
                                     <div className="min-w-0">
@@ -561,7 +559,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                     <button
                                         onClick={() => selectedFiles.data?.files.includes(selectedFile) ? handleRemoveFile(selectedFile) : handleAddFile(selectedFile)}
                                         className={cn(
-                                            "col-span-2 flex items-center justify-center gap-2 text-white text-xs font-medium py-2 rounded-button shadow-lg transition-all active:scale-[0.98] focus-ring",
+                                            "col-span-2 flex items-center justify-center gap-2 text-white text-xs font-medium py-2 rounded-lg shadow-lg transition-all active:scale-[0.98] focus-ring",
                                             selectedFiles.data?.files.includes(selectedFile)
                                                 ? "bg-red-600 hover:bg-red-500 shadow-red-500/20"
                                                 : "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/20"
@@ -582,13 +580,16 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                     </button>
                                     <button
                                         onClick={(e) => handleDownload(selectedFile, e)}
-                                        className="flex items-center justify-center gap-2 bg-tertiary hover:bg-hover text-secondary text-xs font-medium py-1.5 rounded-button border border-primary transition-colors focus-ring"
+                                        className="flex items-center justify-center gap-2 bg-tertiary hover:bg-hover text-muted text-xs font-medium py-1.5 rounded-md border border-primary transition-colors focus-ring"
                                         aria-label="Download file"
                                     >
                                         <Download size={14} />
                                         Download
                                     </button>
-                                    <button className="flex items-center justify-center gap-2 bg-tertiary hover:bg-hover text-secondary text-xs font-medium py-1.5 rounded-button border border-primary transition-colors focus-ring" aria-label="Edit file">
+                                    <button
+                                        className="flex items-center justify-center gap-2 bg-tertiary hover:bg-hover text-muted text-xs font-medium py-1.5 rounded-md border border-primary transition-colors focus-ring"
+                                        aria-label="Edit file"
+                                    >
                                         <Edit size={14} />
                                         Edit
                                     </button>
@@ -598,18 +599,18 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                 <div className="p-3 text-2xs text-muted space-y-1 bg-tertiary">
                                     <div className="flex justify-between">
                                         <span>Path</span>
-                                        <span className="text-secondary truncate ml-4" title={selectedFile}>{selectedFile}</span>
+                                        <span className="text-primary truncate ml-4" title={selectedFile}>{selectedFile}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span>Type</span>
-                                        <span className="text-secondary">{selectedFile.split('.').pop()}</span>
+                                        <span className="text-primary">{selectedFile.split('.').pop()}</span>
                                     </div>
                                 </div>
                             </>
                         ) : (
                             <div className="flex-1 flex flex-col items-center justify-center text-muted p-8 text-center">
                                 <File size={48} className="mb-4 opacity-10" />
-                                <p className="text-xs">Select a file from the explorer to view its contents.</p>
+                                <p className="text-sm">Select a file from the explorer to view its contents.</p>
                             </div>
                         )}
                     </div>
@@ -634,7 +635,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                 <button
                                     onClick={handleSaveFile}
                                     disabled={isSaving || !editorContent || editorContent === fileContent.data?.content}
-                                    className="flex items-center gap-1.5 text-muted hover:text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors focus-ring rounded px-2 py-1"
+                                    className="flex items-center gap-1.5 text-muted hover:text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors focus-ring rounded-md px-2 py-1"
                                     aria-label="Save file"
                                 >
                                     <Save size={14} />
@@ -642,7 +643,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                 </button>
                                 <button
                                     onClick={() => setSelectedFile(null)}
-                                    className="text-muted hover:text-primary transition-colors focus-ring rounded p-1"
+                                    className="text-muted hover:text-primary transition-colors focus-ring rounded-md p-1"
                                     aria-label="Close preview"
                                 >
                                     <X size={16} />

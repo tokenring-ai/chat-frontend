@@ -65,18 +65,18 @@ export default function MarkdownEditor({content, onContentChange}: FileViewerPro
       />
       {/* Status bar with content stats and shortcuts */}
       <div
-        className="bg-tertiary border-t border-primary px-3 py-1 text-sm text-secondary flex justify-between items-center"
+        className="bg-tertiary border border-primary px-4 py-3 text-xs flex justify-between items-center rounded-b-lg shadow-md"
         role="status"
         aria-live="polite"
       >
-        <div className="flex gap-4">
-          <span>{stats.words} words</span>
-          <span>{stats.chars} characters</span>
+        <div className="flex items-center gap-4">
+          <span className="text-muted">{stats.words} words</span>
+          <span className="text-muted">{stats.chars} characters</span>
         </div>
         <div className="flex items-center gap-4">
           <button
             onClick={cyclePreviewMode}
-            className="opacity-70 hover:opacity-100 transition-opacity"
+            className="text-muted hover:text-primary transition-colors focus-ring p-1.5 rounded-md"
             title={`Current mode: ${previewMode === 'preview' ? 'Preview only' : previewMode === 'edit' ? 'Edit only' : 'Split view'}. Click or press Ctrl/Cmd+P to change.`}
             aria-label="Toggle preview mode (Ctrl/Cmd+P)"
           >
@@ -84,7 +84,7 @@ export default function MarkdownEditor({content, onContentChange}: FileViewerPro
             {previewMode === 'edit' && '✏️ Edit'}
             {previewMode === 'live' && '🔄 Split'}
           </button>
-          <span className="text-xs opacity-70">
+          <span className="text-muted">
             ⌘/Ctrl + B: Bold | ⌘/Ctrl + I: Italic | ⌘/Ctrl + K: Link | ⌘/Ctrl + P: Toggle Preview
           </span>
         </div>

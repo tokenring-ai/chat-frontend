@@ -18,7 +18,7 @@ const SelectTrigger = React.forwardRef<
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-50" />
+      <ChevronDown className="w-3.5 h-3.5 opacity-50" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ))
@@ -32,7 +32,7 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-50 min-w-[8rem] overflow-hidden rounded-lg border bg-secondary border-primary shadow-lg",
+        "relative z-50 min-w-[8rem] overflow-hidden rounded-lg border bg-secondary border-primary shadow-card",
         position === "popper" && "max-h-[300px] overflow-y-auto",
         className
       )}
@@ -54,14 +54,14 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-lg py-2 pl-8 pr-2 text-sm outline-none hover:bg-hover focus:bg-hover focus:ring-2 focus:ring-accent/50 focus:ring-inset text-primary transition-colors",
+      "relative flex w-full cursor-pointer select-none items-center rounded-md py-2 pl-8 pr-2 text-sm outline-none hover:bg-hover focus:bg-hover focus:ring-2 focus:ring-inset text-primary transition-colors",
       className
     )}
     {...props}
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4 text-accent" />
+        <Check className="w-3.5 h-3.5 text-accent" />
       </SelectPrimitive.ItemIndicator>
     </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
@@ -79,7 +79,7 @@ const SelectLabel = React.forwardRef<
 >(({className, ...props}, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn("py-2 pl-8 pr-2 text-xs font-semibold text-secondary uppercase tracking-wider", className)}
+    className={cn("py-2 pl-8 pr-2 text-xs font-semibold text-muted uppercase tracking-wider", className)}
     {...props}
   />
 ))

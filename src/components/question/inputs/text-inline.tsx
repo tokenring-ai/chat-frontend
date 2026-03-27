@@ -86,8 +86,8 @@ export default function TextInlineQuestion({
               style={masked ? {WebkitTextSecurity: 'disc'} as React.CSSProperties & { WebkitTextSecurity: string } : {}}
               placeholder={required ? "Required..." : "Optional..."}
               disabled={isSubmitting}
-              className={`w-full bg-primary border rounded-lg text-primary text-sm p-3 outline-none focus:border-accent transition-colors resize-none disabled:opacity-50 ${
-                isSubmitting ? 'border-accent animate-pulse' : 'border-primary'
+              className={`w-full bg-primary border border-primary rounded-md text-primary text-sm p-2.5 outline-none transition-colors resize-none disabled:opacity-50 focus:border-accent focus:ring-1 focus:ring-accent/20 ${
+                isSubmitting ? 'border-accent animate-pulse' : ''
               }`}
               aria-required={required}
               aria-busy={isSubmitting}
@@ -103,8 +103,8 @@ export default function TextInlineQuestion({
               type={masked ? 'password' : 'text'}
               placeholder={required ? "Required..." : "Optional..."}
               disabled={isSubmitting}
-              className={`w-full bg-primary border rounded-lg text-primary text-sm p-2.5 outline-none focus:border-accent transition-colors disabled:opacity-50 ${
-                isSubmitting ? 'border-accent animate-pulse' : 'border-primary'
+              className={`w-full bg-primary border border-primary rounded-md text-primary text-sm p-2.5 outline-none transition-colors disabled:opacity-50 focus:border-accent focus:ring-1 focus:ring-accent/20 ${
+                isSubmitting ? 'border-accent animate-pulse' : ''
               }`}
               aria-required={required}
               aria-busy={isSubmitting}
@@ -116,18 +116,18 @@ export default function TextInlineQuestion({
         <button
           onClick={handleCancel}
           disabled={isSubmitting}
-          className="flex items-center gap-1.5 text-xs text-muted hover:text-primary transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+          className="flex items-center gap-1.5 p-1.5 rounded-md text-xs text-muted hover:text-primary transition-colors disabled:opacity-50 focus-ring"
         >
-          <X size={14} />
+          <X className="w-3.5 h-3.5" />
           Cancel
         </button>
         <button
           onClick={handleSubmit}
           disabled={isSubmitting || (required && !value.trim())}
-          className="flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+          className="flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
         >
           {isSubmitting ? 'Sending...' : 'Submit'}
-          <Send size={14} />
+          <Send className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>

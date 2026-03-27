@@ -80,7 +80,7 @@ export default function NotificationMenu() {
                       initial={{opacity: 0, scale: 0.8}}
                       animate={{opacity: 1, scale: 1}}
                       exit={{opacity: 0, scale: 0.8}}
-                      className="text-xs text-emerald-400 font-medium"
+                      className="text-xs text-emerald-600 dark:text-emerald-400 font-medium"
                     >
                       All marked as read
                     </motion.span>
@@ -99,18 +99,18 @@ export default function NotificationMenu() {
                   {notifications.length > 0 && (
                     <button
                       onClick={() => notificationManager.clearNotifications()}
-                      className="p-1 rounded hover:bg-hover text-muted hover:text-primary transition-colors"
+                      className="p-1.5 rounded-md hover:bg-hover text-muted hover:text-primary transition-colors focus-ring"
                       aria-label="Clear all"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   )}
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="p-1 rounded hover:bg-hover text-muted hover:text-primary transition-colors"
+                    className="p-1.5 rounded-md hover:bg-hover text-muted hover:text-primary transition-colors focus-ring"
                     aria-label="Close"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -145,10 +145,10 @@ export default function NotificationMenu() {
                         </span>
                         <div className="flex-1 min-w-0">
                           {notification.title && (
-                            <h4 className="text-xs font-medium text-primary mb-1">{notification.title}</h4>
+                            <h4 className="text-sm font-medium text-primary mb-1">{notification.title}</h4>
                           )}
-                          <p className="text-xs text-muted break-words">{notification.message}</p>
-                          <span className="text-[10px] text-dim mt-1 block">{formatTime(notification.timestamp)}</span>
+                          <p className="text-sm text-muted break-words">{notification.message}</p>
+                          <span className="text-xs text-dim mt-1 block">{formatTime(notification.timestamp)}</span>
                         </div>
                       </div>
                     </motion.div>

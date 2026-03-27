@@ -90,8 +90,8 @@ export default function InlineQuestion({request, agentId, requestId, response, a
             setIsExpanded(!isExpanded);
           }
         }}
-        className={`flex items-center gap-2 py-0.5 w-full text-left cursor-pointer group/header hover:opacity-80 transition-opacity ${
-          autoSubmitted ? 'bg-success/10 rounded' : ''
+        className={`flex items-center gap-2 py-0.5 w-full text-left cursor-pointer group/header hover:opacity-80 transition-opacity rounded-md focus-ring ${
+          autoSubmitted ? 'bg-emerald-500/10' : ''
         }`}
         tabIndex={0}
         aria-expanded={isExpanded}
@@ -99,7 +99,7 @@ export default function InlineQuestion({request, agentId, requestId, response, a
         id={`question-title-${request.interactionId}`}
       >
         <div className={`transition-transform duration-150 ${isExpanded ? 'rotate-0' : '-rotate-90'}`}>
-          <ChevronDown size={14} className="text-dim" />
+          <ChevronDown className="w-3.5 h-3.5 text-muted" />
         </div>
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {isUrgent && (
@@ -108,13 +108,13 @@ export default function InlineQuestion({request, agentId, requestId, response, a
           <span className="text-sm font-medium text-primary truncate leading-none flex-1">
             {request.message}
           </span>
-          <span className="text-[10px] font-mono text-dim opacity-0 group-hover/header:opacity-100 transition-opacity leading-none pt-0.5 flex-shrink-0">
+          <span className="text-2xs font-mono text-muted opacity-0 group-hover/header:opacity-100 transition-opacity leading-none pt-0.5 flex-shrink-0">
             {question.type}
           </span>
           {countdown !== null && countdown > 0 && (
             <>
               <span
-                className={`text-[10px] font-medium leading-none pt-0.5 flex-shrink-0 ${
+                className={`text-2xs font-medium leading-none pt-0.5 flex-shrink-0 ${
                   countdown <= 5 ? 'text-red-500 dark:text-red-400 font-bold animate-pulse' :
                     countdown <= 15 ? 'text-orange-500 dark:text-orange-400' :
                       'text-accent'
@@ -124,7 +124,7 @@ export default function InlineQuestion({request, agentId, requestId, response, a
               </span>
               {/* Visual progress indicator for urgency */}
               {totalTime !== null && totalTime > 0 && (
-                <div className="w-8 h-0.5 bg-dim/30 rounded-full overflow-hidden flex-shrink-0" title={`Time remaining: ${countdown}s of ${totalTime}s`}>
+                <div className="w-8 h-0.5 bg-primary/30 dark:bg-primary/20 rounded-full overflow-hidden flex-shrink-0" title={`Time remaining: ${countdown}s of ${totalTime}s`}>
                   <div
                     className={`h-full rounded-full transition-all duration-1000 ${
                       countdown <= 5 ? 'bg-red-500' :
@@ -138,13 +138,13 @@ export default function InlineQuestion({request, agentId, requestId, response, a
             </>
           )}
           {countdown !== null && countdown === 0 && !autoSubmitted && (
-            <span className="text-[10px] text-warning font-medium leading-none pt-0.5 animate-pulse flex-shrink-0">
+            <span className="text-2xs text-amber-600 dark:text-amber-400 font-medium leading-none pt-0.5 animate-pulse flex-shrink-0">
               Submitting...
             </span>
           )}
           {autoSubmitted && (
-            <span className="text-[10px] text-success font-medium leading-none pt-0.5 flex-shrink-0 flex items-center gap-0.5">
-              <Check size={10} className="inline"/>
+            <span className="text-2xs text-emerald-600 dark:text-emerald-400 font-medium leading-none pt-0.5 flex-shrink-0 flex items-center gap-0.5">
+              <Check className="w-3 h-3 inline"/>
               Auto-submitted
             </span>
           )}
@@ -160,7 +160,7 @@ export default function InlineQuestion({request, agentId, requestId, response, a
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
             id={`question-content-${request.interactionId}`}
-            className="ml-1.5 mt-2 border-l border-primary/40 pl-4 py-1"
+            className="ml-2 mt-2 border-l-2 border-primary/30 pl-4 py-2"
             role="region"
             aria-labelledby={`question-title-${request.interactionId}`}
             onKeyDown={handleKeyDown}
@@ -206,7 +206,7 @@ export default function InlineQuestion({request, agentId, requestId, response, a
       </AnimatePresence>
 
       {response && (
-        <span className="text-muted truncate">
+        <span className="text-muted text-sm truncate block mt-1">
           {formatResponseResult(response.result)}
         </span>
       )}

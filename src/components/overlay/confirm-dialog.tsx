@@ -22,9 +22,9 @@ export default function ConfirmDialog({
   variant = 'danger'
 }: ConfirmDialogProps) {
   const variantStyles = {
-    danger: 'bg-red-600 hover:bg-red-500',
-    warning: 'bg-amber-600 hover:bg-amber-500',
-    info: 'bg-indigo-600 hover:bg-indigo-500'
+    danger: 'bg-red-600 hover:bg-red-500 shadow-red-500/20',
+    warning: 'bg-amber-600 hover:bg-amber-500 shadow-amber-500/20',
+    info: 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/20'
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -46,30 +46,30 @@ export default function ConfirmDialog({
         aria-labelledby="dialog-title"
         onKeyDown={handleKeyDown}
       >
-        <div className="bg-secondary border border-primary rounded-card shadow-2xl max-w-md w-full">
+        <div className="bg-secondary border border-primary rounded-lg shadow-xl max-w-md w-full">
           <div className="flex items-center justify-between p-4 border-b border-primary">
             <h3 id="dialog-title" className="text-lg font-semibold text-primary">{title}</h3>
             <button
               onClick={onCancel}
-              className="text-muted hover:text-primary transition-colors"
+              className="p-1.5 text-muted hover:text-primary transition-colors focus-ring cursor-pointer rounded-md"
               aria-label="Close dialog"
             >
-              <X size={20} />
+              <X className="w-4 h-4" />
             </button>
           </div>
-          <div className="p-4">
+          <div className="px-4 pb-4">
             <p className="text-sm text-secondary">{message}</p>
           </div>
-          <div className="flex gap-3 p-4 border-t border-primary">
+          <div className="flex gap-3 px-4 pb-4">
             <button
               onClick={onCancel}
-              className="flex-1 px-4 py-2 bg-tertiary hover:bg-hover text-secondary rounded-button transition-colors"
+              className="flex-1 px-4 py-2 bg-tertiary hover:bg-hover text-primary rounded-md border border-primary transition-colors focus-ring"
             >
               {cancelText}
             </button>
             <button
               onClick={onConfirm}
-              className={`flex-1 px-4 py-2 text-white rounded-button transition-colors ${variantStyles[variant]}`}
+              className={`flex-1 px-4 py-2 text-white rounded-md shadow-lg transition-colors active:scale-[0.98] focus-ring ${variantStyles[variant]}`}
               autoFocus
             >
               {confirmText}

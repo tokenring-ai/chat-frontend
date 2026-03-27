@@ -161,7 +161,7 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
         <span className="text-2xs text-muted">{checkpoints.data.length} saved</span>
       </div>
 
-      <div className="bg-secondary border border-primary rounded-lg overflow-hidden">
+      <div className="bg-secondary border border-primary rounded-lg shadow-md overflow-hidden">
         {/* Selector trigger */}
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -211,12 +211,13 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
                       placeholder="Filter checkpoints..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-input border border-primary rounded-lg py-1.5 pl-8 pr-8 text-xs text-primary placeholder-muted focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
+                      className="w-full bg-input border border-primary rounded-md py-1.5 pl-8 pr-8 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
                     />
                     {searchQuery && (
                       <button
                         onClick={() => setSearchQuery('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-primary cursor-pointer"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-muted hover:bg-hover hover:text-primary cursor-pointer focus-ring"
+                        aria-label="Clear search"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -225,10 +226,10 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
                   {/* Keyboard hint */}
                   <div className="flex items-center gap-2 px-1 pt-1.5">
                     <span className="text-2xs text-muted">Use</span>
-                    <kbd className="px-1.5 py-0.5 bg-tertiary border border-primary rounded text-2xs text-muted font-mono">↑</kbd>
-                    <kbd className="px-1.5 py-0.5 bg-tertiary border border-primary rounded text-2xs text-muted font-mono">↓</kbd>
+                    <kbd className="px-1.5 py-0.5 bg-tertiary border border-primary rounded-md text-2xs text-muted font-mono">↑</kbd>
+                    <kbd className="px-1.5 py-0.5 bg-tertiary border border-primary rounded-md text-2xs text-muted font-mono">↓</kbd>
                     <span className="text-2xs text-muted">to navigate, </span>
-                    <kbd className="px-1.5 py-0.5 bg-tertiary border border-primary rounded text-2xs text-muted font-mono">↵</kbd>
+                    <kbd className="px-1.5 py-0.5 bg-tertiary border border-primary rounded-md text-2xs text-muted font-mono">↵</kbd>
                     <span className="text-2xs text-muted">to select</span>
                   </div>
                 </div>
@@ -285,19 +286,19 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
                                       data-checkpoint-item
                                       className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors cursor-pointer ${
                                         cp.id === selectedId
-                                          ? 'bg-emerald-500/10 border-l-4 border-emerald-500'
+                                          ? 'bg-indigo-500/10 border-l-4 border-indigo-500'
                                           : highlightedIndex === flatIndex
-                                            ? 'bg-hover border-l-4 border-emerald-500/50'
+                                            ? 'bg-hover border-l-4 border-indigo-500/50'
                                             : 'border-l-4 border-transparent'
                                       }`}
                                       role="option"
                                       aria-selected={cp.id === selectedId}
                                     >
                                       <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                                        cp.id === selectedId ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]' : 'bg-tertiary'
+                                        cp.id === selectedId ? 'bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.6)]' : 'bg-tertiary'
                                       }`}/>
-                                      <span className={`flex-1 text-xs truncate ${
-                                        cp.id === selectedId ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-primary'
+                                      <span className={`flex-1 text-sm truncate ${
+                                        cp.id === selectedId ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-primary'
                                       }`}>
                                         {cp.name}
                                       </span>
@@ -331,7 +332,7 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
                 onClick={() => {
                   setSelectedId(null);
                 }}
-                className="flex items-center gap-1 px-2 py-1.5 text-muted hover:text-primary text-xs font-medium transition-colors cursor-pointer focus-ring rounded-md"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted hover:text-primary text-xs font-medium transition-colors cursor-pointer focus-ring rounded-md hover:bg-hover"
                 aria-label={`Clear selection`}
                 title="Clear selection"
               >
@@ -341,7 +342,7 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
               <button
                 onClick={() => launchFromCheckpoint(selected.id)}
                 disabled={launchingId === selected.id}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-md transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring shadow-lg shadow-emerald-600/20"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-md transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring shadow-lg shadow-indigo-600/20"
                 aria-label={`Launch agent from checkpoint: ${selected.name}`}
               >
                 {launchingId === selected.id

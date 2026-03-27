@@ -63,18 +63,18 @@ export default function PendingQuestions({ questions, agentId }: PendingQuestion
   }, [earliestAutoSubmit]);
 
   return (
-    <div className="shrink-0 border-t border-primary bg-secondary/50 dark:bg-secondary/30">
-      <div className="px-4 py-2 border-b border-primary">
-        <div className="flex items-center gap-2 text-xs font-medium text-amber-700 dark:text-amber-400">
-          <span className="inline-block w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+    <div className="shrink-0 border-t border-primary bg-secondary/50 dark:bg-secondary/30 shadow-lg">
+      <div className="px-4 py-3 border-b border-primary">
+        <div className="flex items-center gap-2 text-sm font-medium text-amber-600 dark:text-amber-400">
+          <span className="inline-block w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
           <span>Active Questions ({questions.length})</span>
           {hasAutoSubmit && (
             <span
-              className="ml-auto flex items-center gap-1 text-[10px] font-medium text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-full">
-              <span className="inline-block w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"/>
-              {urgentCount} urgent{urgentCount > 1 ? 's' : ''}
+              className="ml-auto flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md">
+              <span className="inline-block w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+              <span>{urgentCount} urgent{urgentCount > 1 ? 's' : ''}</span>
               {timeRemaining && (
-                <span className="ml-1 text-[9px] font-bold bg-red-200 dark:bg-red-800/50 px-1.5 py-0.5 rounded">
+                <span className="ml-1 text-[10px] font-bold bg-amber-500/20 px-1.5 py-0.5 rounded-md">
                   {timeRemaining}
                 </span>
               )}

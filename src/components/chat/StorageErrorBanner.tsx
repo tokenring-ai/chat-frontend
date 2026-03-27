@@ -1,4 +1,5 @@
 import React from 'react';
+import { AlertTriangle, X } from 'lucide-react';
 import { useChatInput } from '../ChatInputContext';
 
 /**
@@ -12,6 +13,7 @@ import { useChatInput } from '../ChatInputContext';
  * - Actionable guidance for users
  * - Dismissible to reduce annoyance
  * - Auto-hides when storage becomes available
+ * - Consistent with design system styling
  */
 export const StorageErrorBanner: React.FC = () => {
   const { hasStorageError, getStorageError, dismissStorageError } = useChatInput();
@@ -26,46 +28,28 @@ export const StorageErrorBanner: React.FC = () => {
     <div
       role="alert"
       aria-live="polite"
-      style={{
-        backgroundColor: '#fef3c7',
-        color: '#92400e',
-        padding: '12px 16px',
-        borderBottom: '1px solid #f59e0b',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'start',
-        gap: '12px',
-        fontSize: '14px',
-        lineHeight: '1.4',
-      }}
+      className="bg-amber-50 dark:bg-amber-900/90 text-primary px-4 py-3 rounded-lg border border-amber-500/30 dark:border-amber-500/50 flex justify-between items-start gap-3 shadow-md"
     >
-      <div style={{ flex: 1 }}>
-        <strong style={{ display: 'block', marginBottom: '4px' }}>
-          ⚠️ Chat Input History Disabled
-        </strong>
-        <div>{errorMessage}</div>
-        <div style={{ marginTop: '4px', fontSize: '12px', opacity: 0.8 }}>
-          Your typed messages won't be saved between sessions until storage is available.
+      <div className="flex items-start gap-3 flex-1">
+        <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <strong className="block mb-1 text-sm font-semibold text-primary">
+            Chat Input History Disabled
+          </strong>
+          <div className="text-sm text-primary">{errorMessage}</div>
+          <div className="mt-1 text-2xs text-primary/70">
+            Your typed messages won't be saved between sessions until storage is available.
+          </div>
         </div>
       </div>
       
       <button
         onClick={dismissStorageError}
-        style={{
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          padding: '4px 8px',
-          fontSize: '12px',
-          color: '#92400e',
-          opacity: 0.7,
-          borderRadius: '4px',
-          alignSelf: 'center',
-        }}
+        className="shrink-0 p-1.5 rounded-md hover:bg-amber-200/50 dark:hover:bg-amber-800/50 transition-colors focus-ring"
         aria-label="Dismiss warning"
         title="Dismiss this warning"
       >
-        Dismiss
+        <X className="w-4 h-4 text-primary" />
       </button>
     </div>
   );

@@ -27,7 +27,7 @@ export default {
           type: 'spa',
           description: packageJSON.description,
           file: indexFile,
-          prefix: "/chat/"
+          prefix: "/chat"
       }));
     });
   },

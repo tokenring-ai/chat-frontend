@@ -93,7 +93,7 @@ const CompactTreeNode: React.FC<{
         aria-selected={isSelected}
         tabIndex={isSelectable ? 0 : -1}
         data-tree-value={value}
-        className={`flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505] ${
+        className={`flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors outline-none focus-ring ${
           isFocused ? 'bg-accent/10' : ''
         } ${isSelected && !isFocused ? 'bg-accent/20' : ''} ${
           !isSelected && !isFocused ? 'hover:bg-hover' : ''
@@ -106,19 +106,19 @@ const CompactTreeNode: React.FC<{
         {hasChildren ? (
           <span
             onClick={handleExpandClick}
-            className="text-tertiary hover:text-accent transition-colors"
+            className="text-muted hover:text-accent transition-colors"
             aria-hidden="true"
           >
-            {isExpanded ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
+            {isExpanded ? <ChevronDown className="w-3.5 h-3.5"/> : <ChevronRight className="w-3.5 h-3.5"/>}
           </span>
         ) : (
-          <span className="w-[14px]" aria-hidden="true"></span>
+          <span className="w-3.5" aria-hidden="true"></span>
         )}
         <span className={`text-sm ${isFocused ? 'text-accent font-medium' : isSelected ? 'text-accent font-medium' : 'text-primary'}`}>
           {node.name}
         </span>
         {isSelected && (
-          <Check size={14} className="text-accent ml-auto" aria-hidden="true" />
+          <Check className="w-3.5 h-3.5 text-accent ml-auto" aria-hidden="true" />
         )}
       </div>
       {isExpanded && hasChildren && (
@@ -302,11 +302,11 @@ export default function TreeInlineQuestion({
   const isValid = isSelectionValid();
 
   return (
-    <div ref={containerRef} className="p-3 space-y-3">
+    <div ref={containerRef} className="p-4 space-y-3">
       <div
         role="tree"
         aria-label="Select from tree"
-        className="max-h-[300px] overflow-y-auto custom-scrollbar border border-primary/50 rounded-lg bg-primary"
+        className="max-h-[300px] overflow-y-auto custom-scrollbar border border-primary/30 rounded-lg bg-secondary shadow-md"
       >
         {question.tree.map((root) => {
           const rootValue = getTreeNodeValue(root);
@@ -332,11 +332,11 @@ export default function TreeInlineQuestion({
       </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className={`text-xs ${isValid ? 'text-primary' : 'text-error'}`} aria-live="polite">
+          <span className={`text-2xs ${isValid ? 'text-primary' : 'text-error'}`} aria-live="polite">
             {selectionCount} selected
           </span>
           {(minimumSelections !== undefined || maximumSelections !== undefined) && (
-            <span className="text-xs text-muted">
+            <span className="text-2xs text-muted">
               {minimumSelections !== undefined && `min ${minimumSelections}`}
               {minimumSelections !== undefined && maximumSelections !== undefined && ' · '}
               {maximumSelections !== undefined && `max ${maximumSelections}`}
@@ -347,18 +347,18 @@ export default function TreeInlineQuestion({
           <button
             onClick={handleCancel}
             disabled={isSubmitting}
-            className="flex items-center gap-1.5 text-xs text-muted hover:text-primary transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+            className="flex items-center gap-1.5 p-1.5 rounded-md text-xs text-muted hover:text-primary transition-colors disabled:opacity-50 focus-ring"
           >
-            <X size={14} />
+            <X className="w-3.5 h-3.5" />
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || !isValid}
-            className="flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+            className="flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
           >
             {isSubmitting ? 'Sending...' : 'Submit'}
-            <Send size={14} />
+            <Send className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

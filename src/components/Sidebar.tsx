@@ -69,6 +69,18 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
     if (currentAgentId === agentId) navigateAndClose('/');
   };
 
+  const handleDeleteClick = async (agentId: string, isIdle: boolean) => {
+    if (isIdle) {
+      // Delete idle agents directly without confirmation
+      await agentRPCClient.deleteAgent({ agentId, reason: "User initiated agent deletion from sidebar in Chat Web UI" });
+      await agents.mutate();
+      if (currentAgentId === agentId) navigateAndClose('/');
+    } else {
+      // Show confirmation for running agents
+      setConfirmDelete(agentId);
+    }
+  };
+
   const groupedTemplates = (agentTypes.data || []).reduce((acc, t) => {
     const cat = t.category || 'Uncategorized';
     (acc[cat] ??= []).push(t);
@@ -88,7 +100,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
 
       <aside
         aria-label="Navigation sidebar"
-        className={`fixed md:relative border-r border-primary bg-sidebar flex flex-col shrink-0 overflow-hidden h-full transition-all duration-300 ease-in-out md:translate-x-0 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} ${isSidebarExpanded ? 'w-72' : 'w-12'} top-0 left-0 md:static z-40`}
+        className={`fixed md:relative border-r border-primary bg-sidebar flex flex-col shrink-0 overflow-hidden h-[calc(100vh-3rem)] md:h-full transition-all duration-300 ease-in-out md:translate-x-0 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} ${isSidebarExpanded ? 'w-72' : 'w-12'} top-12 left-0 md:top-auto md:left-auto z-40`}
       >
         {/* Tab bar / collapse toggle */}
         <div className={`flex shrink-0 border-b border-primary ${isSidebarExpanded ? 'items-center' : 'flex-col items-center py-2 gap-1'}`}>
@@ -98,7 +110,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-3 py-3 text-xs font-medium transition-colors border-b-2 -mb-px focus-ring cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px focus-ring cursor-pointer rounded-md ${
                     activeTab === tab.id
                       ? 'border-indigo-500 text-primary'
                       : 'border-transparent text-muted hover:text-primary'
@@ -111,14 +123,14 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
               <div className="flex-1" />
               <button
                 onClick={toggleSidebar}
-                className="p-2 mr-1 text-muted hover:text-primary transition-colors focus-ring hidden md:block cursor-pointer"
+                className="p-1.5 mr-1 text-muted hover:text-primary transition-colors focus-ring hidden md:block cursor-pointer rounded-md active:scale-[0.98]"
                 aria-label="Collapse sidebar"
               >
                 <PanelLeftClose className="w-4 h-4" />
               </button>
               <button 
                 onClick={() => setMobileOpen(false)} 
-                className="p-2 mr-1 text-muted hover:text-primary md:hidden focus-ring cursor-pointer" 
+                className="p-1.5 mr-1 text-muted hover:text-primary md:hidden focus-ring cursor-pointer rounded-md active:scale-[0.98]" 
                 aria-label="Close sidebar"
               >
                 <X className="w-4 h-4" />
@@ -130,7 +142,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                 <button
                   key={tab.id}
                   onClick={() => { setActiveTab(tab.id); toggleSidebar(); }}
-                  className={`p-2 rounded-lg transition-colors focus-ring cursor-pointer ${activeTab === tab.id ? 'text-primary bg-active' : 'text-muted hover:text-primary hover:bg-hover'}`}
+                  className={`p-1.5 rounded-md transition-colors focus-ring cursor-pointer active:scale-[0.98] ${activeTab === tab.id ? 'text-primary bg-active' : 'text-muted hover:text-primary hover:bg-hover'}`}
                   aria-label={tab.label}
                   title={tab.label}
                   tabIndex={0}
@@ -141,7 +153,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
               <div className="w-8 h-px bg-primary my-1" />
               <button
                 onClick={toggleSidebar}
-                className="p-2 text-muted hover:text-primary transition-colors focus-ring cursor-pointer"
+                className="p-1.5 text-muted hover:text-primary transition-colors focus-ring cursor-pointer rounded-md active:scale-[0.98]"
                 aria-label="Expand sidebar"
                 tabIndex={0}
               >
@@ -166,13 +178,13 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                   {agents.isLoading ? (
                     <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 text-muted animate-spin" /></div>
                   ) : (agents.data?.length ?? 0) === 0 ? (
-                    <div className="px-3 py-4 text-center text-muted text-xs italic">No active agents</div>
+                    <div className="px-3 py-4 text-center text-muted text-2xs italic">No active agents</div>
                   ) : agents.data!.map(agent => (
                     <div
                       key={agent.id}
                       onClick={() => navigateAndClose(`/agent/${agent.id}`)}
                       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigateAndClose(`/agent/${agent.id}`); } }}
-                      className={`group flex items-center gap-3 px-3 py-2 rounded-lg transition-all cursor-pointer active:scale-98 ${currentAgentId === agent.id ? 'bg-active border border-primary' : 'hover:bg-hover border border-transparent'}`}
+                      className={`group flex items-center gap-3 px-3 py-2 rounded-md transition-all cursor-pointer focus-ring ${currentAgentId === agent.id ? 'bg-active border border-primary' : 'hover:bg-hover border border-transparent'}`}
                       role="button" tabIndex={0}
                       aria-label={`Open agent ${agent.displayName}`}
                       aria-current={currentAgentId === agent.id ? 'page' : undefined}
@@ -185,11 +197,11 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                         <div className="text-2xs text-muted mt-0.5 truncate">{agent.currentActivity}</div>
                       </div>
                       <button
-                        onClick={(e) => { e.stopPropagation(); setConfirmDelete(agent.id); }}
-                        className="p-1 text-muted hover:text-red-500 transition-colors opacity-40 hover:opacity-100 group-focus-within:opacity-100 focus-ring cursor-pointer"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteClick(agent.id, agent.idle); }}
+                        className="p-1.5 text-muted hover:text-red-500 transition-colors opacity-40 hover:opacity-100 group-focus-within:opacity-100 focus-ring cursor-pointer rounded-md active:scale-[0.98]"
                         aria-label={`Delete agent ${agent.displayName}`}
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))}
@@ -208,7 +220,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                           <button
                             key={template.type}
                             onClick={() => createAgent(template.type)}
-                            className="flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-hover transition-all text-left group w-full focus-ring cursor-pointer"
+                            className="flex items-start gap-3 px-3 py-2 rounded-md hover:bg-hover transition-all text-left group w-full focus-ring cursor-pointer active:scale-[0.98]"
                             aria-label={`Create new agent: ${template.displayName}`}
                           >
                             <User className="w-3.5 h-3.5 text-indigo-500/70 group-hover:text-indigo-500 shrink-0 mt-0.5" />
@@ -230,12 +242,12 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                 {workflows.isLoading ? (
                   <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 text-muted animate-spin" /></div>
                 ) : (workflows.data?.length ?? 0) === 0 ? (
-                  <div className="px-3 py-4 text-center text-muted text-sm italic">No workflows available</div>
+                  <div className="px-3 py-4 text-center text-muted text-2xs italic">No workflows available</div>
                 ) : workflows.data!.map(workflow => (
                   <button
                     key={workflow.key}
                     onClick={() => spawnWorkflow(workflow.key)}
-                    className="flex items-start gap-3 px-3 py-2 rounded-lg hover:bg-hover transition-all text-left group w-full focus-ring cursor-pointer"
+                    className="flex items-start gap-3 px-3 py-2 rounded-md hover:bg-hover transition-all text-left group w-full focus-ring cursor-pointer active:scale-[0.98]"
                     aria-label={`Spawn workflow: ${workflow.name}`}
                   >
                     <Play className="w-3.5 h-3.5 text-cyan-500 shrink-0 mt-0.5 fill-current opacity-70 group-hover:opacity-100" />
@@ -255,8 +267,8 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
 
       {confirmDelete && (
         <ConfirmDialog
-          title="Delete Agent"
-          message="Are you sure you want to delete this agent? This action cannot be undone."
+          title="Delete Running Agent"
+          message="This agent is currently running. Are you sure you want to delete it? This action cannot be undone."
           confirmText="Delete"
           onConfirm={handleConfirmDelete}
           onCancel={() => setConfirmDelete(null)}
@@ -266,3 +278,4 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
     </>
   );
 }
+

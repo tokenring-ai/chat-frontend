@@ -41,7 +41,7 @@ describe('HookSelector', () => {
     render(<HookSelector agentId="test-agent" triggerVariant="icon"/>);
 
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('flex items-center justify-center p-1.5');
+    expect(button).toHaveClass('flex items-center justify-center p-1.5 rounded-md');
     expect(button).toHaveAttribute('title', '0 of 0 hooks enabled');
   });
 
@@ -51,7 +51,7 @@ describe('HookSelector', () => {
     render(<HookSelector agentId="test-agent" triggerVariant="default"/>);
 
     const button = screen.getByRole('button');
-    expect(button).toHaveClass('hidden md:flex items-center gap-2 px-2 py-1');
+    expect(button).toHaveClass('hidden md:flex items-center gap-2 px-2 py-1 rounded-md');
   });
 
   it('filters hooks based on search query', async () => {
@@ -154,8 +154,7 @@ describe('HookSelector', () => {
 
       // Second hook should now be focused (visually highlighted with bg-hover and focus ring)
       expect(secondHook).toHaveClass('bg-hover');
-      expect(secondHook).toHaveClass('ring-2');
-      expect(secondHook).toHaveClass('ring-indigo-500/30');
+      expect(secondHook).toHaveClass('focus-ring');
     }
   });
 

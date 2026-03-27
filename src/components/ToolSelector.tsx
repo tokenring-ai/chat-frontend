@@ -218,8 +218,8 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col bg-secondary border-primary shadow-xl" style={{ width: '450px' }} aria-label="Select AI tools">
-        <div className="flex items-center gap-2 px-3 pt-1 pb-2 shrink-0 border-b border-primary">
+      <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col bg-secondary border-primary shadow-card" style={{ width: '450px' }} aria-label="Select AI tools">
+        <div className="flex items-center gap-2 px-3 pt-2 pb-2 shrink-0 border-b border-primary">
           <span className="text-sm flex-1 font-mono text-muted shrink-0">Tools</span>
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none">
@@ -230,7 +230,7 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
               placeholder="Filter tools..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-input border border-primary rounded-lg py-1.5 pl-9 pr-8 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+              className="w-full bg-input border border-primary rounded-md py-1.5 pl-9 pr-8 text-xs text-primary placeholder-muted focus-ring transition-all"
               onClick={(e) => e.stopPropagation()}
             />
             {searchQuery && (
@@ -240,22 +240,16 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
                   e.stopPropagation();
                   setSearchQuery('');
                 }}
-                className="absolute inset-y-0 right-2 flex items-center text-muted hover:text-primary transition-colors"
-                title="Clear search"
+                className="absolute inset-y-0 right-2 flex items-center p-0.5 rounded-md text-muted hover:text-primary hover:bg-hover transition-colors focus-ring"
                 aria-label="Clear search"
               >
                 <RiCloseLine className="w-3.5 h-3.5"/>
               </button>
             )}
           </div>
-          {searchQuery && filteredToolsByCategory.categories.size > 0 && (
-            <span className="text-[10px] font-mono text-muted shrink-0">
-              {Object.keys(filteredToolsByCategory.grouped).reduce((acc, cat) => acc + Object.keys(filteredToolsByCategory.grouped[cat]).length, 0)} tools
-            </span>
-          )}
         </div>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-1 space-y-0.5">
+        <div className="flex-1 overflow-y-auto custom-scrollbar py-1 space-y-0.5">
           {Object.keys(filteredToolsByCategory.grouped).sort().map((category) => {
             const isPackageExpanded = expandedCategories.has(category);
             const packageIcon = packageIcons[category] || <RiDatabaseFill />;
@@ -273,7 +267,7 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
 
             return (
               <div key={category} className="flex flex-col">
-                <div className="flex items-center cursor-pointer py-1.5 hover:bg-hover rounded-md transition-colors group select-none">
+                <div className="flex items-center cursor-pointer py-1.5 hover:bg-hover rounded-md px-2 transition-colors group select-none">
                   <div
                     className="w-5 flex items-center justify-center text-muted group-hover:text-primary"
                     onClick={(e) => {
@@ -318,7 +312,7 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
                   </div>
 
                   <div
-                    className="flex items-center gap-1.5 cursor-pointer hover:bg-hover rounded px-1.5 py-0.5 transition-colors border border-transparent hover:border-primary"
+                    className="flex items-center gap-1.5 cursor-pointer hover:bg-hover rounded-md px-2 py-1 transition-colors border border-transparent hover:border-primary focus-ring"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleToggleCategory(category, categoryTools);
@@ -331,18 +325,18 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
                     <div className="flex items-center gap-1">
                       {allEnabled ? (
                         <>
-                          <RiCloseLine className="w-3 h-3 text-emerald-600 dark:text-emerald-500"/>
-                          <span className="text-[9px] text-emerald-600 dark:text-emerald-500 font-mono">Disable</span>
+                          <RiCloseLine className="w-3 h-3 text-emerald-500"/>
+                          <span className="text-[10px] text-emerald-500 font-mono">Disable</span>
                         </>
                       ) : allDisabled ? (
                         <>
                           <RiCheckboxBlankCircleLine className="w-3 h-3 text-muted hover:text-emerald-500"/>
-                          <span className="text-[9px] text-muted hover:text-emerald-500 font-mono">Enable</span>
+                          <span className="text-[10px] text-muted hover:text-emerald-500 font-mono">Enable</span>
                         </>
                       ) : (
                         <>
-                          <RiCheckboxCircleFill className="w-3 h-3 text-amber-600 dark:text-amber-500"/>
-                          <span className="text-[9px] text-amber-600 dark:text-amber-500 font-mono">Mixed</span>
+                          <RiCheckboxCircleFill className="w-3 h-3 text-amber-500"/>
+                          <span className="text-[10px] text-amber-500 font-mono">Mixed</span>
                         </>
                       )}
                     </div>
@@ -360,26 +354,26 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
                             e.stopPropagation();
                             handleToggleTool(toolName);
                           }}
-                          className="flex items-center cursor-pointer py-1.5 hover:bg-hover rounded-md px-3 transition-colors group"
+                          className="flex items-center cursor-pointer py-1.5 rounded-md px-3 transition-colors group hover:bg-hover"
                         >
                           <div
-                            className={`w-1.5 h-1.5 rounded-full mr-2.5 shrink-0 shadow-[0_0_6px_rgba(0,0,0,0.1)] dark:shadow-[0_0_6px_rgba(0,0,0,0.3)] ${
+                            className={`w-1.5 h-1.5 rounded-full mr-2.5 shrink-0 ${
                               isEnabled
-                                ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]'
-                                : 'bg-zinc-300 dark:bg-zinc-600'
+                                ? 'bg-emerald-500'
+                                : 'bg-muted/50'
                             }`}
                           />
-                          <span className={`flex-1 text-xs font-mono truncate ${
+                          <span className={`flex-1 text-xs font-mono leading-tight truncate ${
                             isEnabled
-                              ? 'text-emerald-700 dark:text-emerald-400 font-medium'
+                              ? 'text-emerald-600 dark:text-emerald-400 font-medium'
                               : 'text-muted group-hover:text-primary'
                           }`}>
-                          {displayName}
-                        </span>
+                            {displayName}
+                          </span>
                           {isEnabled ? (
-                            <RiCheckLine className="w-3 h-3 text-emerald-600 dark:text-emerald-500 ml-2 shrink-0" aria-label="Enabled" />
+                            <RiCheckLine className="w-3 h-3 text-emerald-500 ml-2 shrink-0" aria-label="Enabled" />
                           ) : (
-                            <RiCloseLine className="w-3 h-3 text-muted ml-2 shrink-0" aria-label="Disabled" />
+                            <RiCloseLine className="w-3 h-3 text-muted group-hover:text-primary ml-2 shrink-0" aria-label="Disabled" />
                           )}
                         </div>
                       );

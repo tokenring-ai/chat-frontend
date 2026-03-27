@@ -88,41 +88,35 @@ export default function CodeEditor({file, content, onContentChange, onMarkSaved}
             }}
           />
         </div>
-        <div className={`flex items-center justify-between px-3 py-1 text-xs border-t ${
-          theme === 'light' ? 'bg-gray-100 border-gray-300 text-gray-700' : 'bg-gray-800 border-gray-700 text-gray-300'
-        }`}>
+        <div className={`flex items-center justify-between px-4 py-3 text-xs border-t border-primary bg-tertiary`}>
           <div className="flex items-center gap-4">
-            <span className="font-medium truncate max-w-[200px]" title={file}>
+            <span className="font-medium truncate max-w-[200px] text-primary" title={file}>
               {file}
             </span>
             {isModified && (
-              <span className={`px-2 py-0.5 rounded text-xs ${
-                theme === 'light' ? 'bg-yellow-100 text-yellow-800' : 'bg-yellow-900 text-yellow-200'
-              }`}>
+              <span className="px-2 py-0.5 rounded-md text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400">
                 Modified
               </span>
             )}
             {!isModified && (
-              <span className="flex items-center gap-1 text-green-500" title="Saved">
-                <span className="w-2 h-2 rounded-full bg-green-500"></span>
+              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400" title="Saved">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                 Saved
               </span>
             )}
           </div>
           <div className="flex items-center gap-4">
-            <span>{language}</span>
-            <span>{lineCount} lines</span>
-            <span>{wordCount} words</span>
-            <span title="Cursor position">Ln {cursorPosition.line}, Col {cursorPosition.column}</span>
+            <span className="text-muted">{language}</span>
+            <span className="text-muted">{lineCount} lines</span>
+            <span className="text-muted">{wordCount} words</span>
+            <span className="text-muted" title="Cursor position">Ln {cursorPosition.line}, Col {cursorPosition.column}</span>
             <button
               onClick={handleMarkSaved}
               disabled={!isModified}
-              className={`px-2 py-0.5 rounded text-xs transition-colors ${
+              className={`px-2 py-0.5 rounded-md text-xs transition-colors focus-ring ${
                 isModified
-                  ? theme === 'light'
-                    ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                    : 'bg-blue-900 text-blue-200 hover:bg-blue-800'
-                  : 'opacity-30 cursor-not-allowed'
+                  ? 'bg-indigo-600 text-white hover:bg-indigo-500 active:scale-[0.98]'
+                  : 'opacity-30 cursor-not-allowed bg-indigo-600 text-white'
               }`}
               title="Mark as saved"
             >

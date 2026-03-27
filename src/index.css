@@ -162,6 +162,15 @@
   @apply shadow-lg shadow-red-500/20;
  }
 
+ /* Focus ring utility for accessibility */
+ .focus-ring {
+  @apply focus:outline-none focus:ring-1 focus:ring-gray-500/15 focus:ring-inset;
+ }
+
+ /*.dark .focus-ring {
+  @apply focus:ring-offset-gray-900;
+ }*/
+
  /* Typography scale */
  .text-2xs { font-size: 0.625rem; line-height: 0.875rem; }
  .text-xs { font-size: 0.75rem; line-height: 1rem; }

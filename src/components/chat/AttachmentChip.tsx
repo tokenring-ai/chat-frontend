@@ -11,7 +11,7 @@ interface AttachmentChipProps {
 type AttachmentFamily = 'image' | 'json' | 'code' | 'text' | 'document' | 'generic';
 
 const actionButtonClassName =
-  'cursor-pointer rounded-lg border border-primary bg-secondary p-1.5 text-muted shadow-button backdrop-blur transition-colors hover:bg-hover hover:text-primary disabled:cursor-not-allowed disabled:opacity-50';
+  'cursor-pointer rounded-md border border-primary bg-secondary p-1.5 text-muted shadow-sm backdrop-blur transition-colors hover:bg-hover hover:text-primary disabled:cursor-not-allowed disabled:opacity-50 focus-ring';
 
 function isImageAttachment(mimeType: string) {
   return mimeType.startsWith('image/');
@@ -115,8 +115,8 @@ function getAttachmentAccentClasses(mimeType: string) {
     default:
       return {
         panel: 'bg-gradient-to-br from-slate-100 via-zinc-50 to-stone-100 dark:from-slate-500/20 dark:via-zinc-500/10 dark:to-stone-500/20',
-        badge: 'bg-secondary text-secondary border-primary',
-        icon: 'text-slate-600 dark:text-slate-300',
+        badge: 'bg-secondary text-muted border-primary',
+        icon: 'text-muted',
       };
   }
 }
@@ -286,7 +286,7 @@ export default function AttachmentChip({ attachment, onRemove, showRemove = fals
 
   return (
     <div
-      className="group relative flex w-[220px] max-w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-primary bg-secondary shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:bg-hover"
+      className="group relative flex w-[220px] max-w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-primary bg-secondary shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:bg-hover"
       role="listitem"
       aria-label={`Attachment: ${attachment.name}`}
       tabIndex={0}
@@ -304,10 +304,10 @@ export default function AttachmentChip({ attachment, onRemove, showRemove = fals
               onError={() => setImageError(true)}
             />
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-between border-t border-primary bg-secondary px-3 py-2">
-              <span className="text-[11px] font-medium text-primary truncate">
+              <span className="text-xs font-medium text-primary truncate">
                 Preview
               </span>
-              <span className="rounded-full border border-primary bg-tertiary px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+              <span className="rounded-md border border-primary bg-tertiary px-2 py-1 text-2xs font-semibold uppercase tracking-[0.18em] text-primary">
                 {extension}
               </span>
             </div>
@@ -319,10 +319,10 @@ export default function AttachmentChip({ attachment, onRemove, showRemove = fals
             <div className="absolute inset-x-5 top-5 h-px bg-secondary"/>
             <div className="absolute inset-x-5 top-9 h-px bg-tertiary"/>
             <div className={`relative flex flex-col items-center gap-3 ${accent.icon}`}>
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-primary bg-secondary shadow-button">
+              <div className={`relative flex h-14 w-14 items-center justify-center rounded-xl border border-primary bg-secondary shadow-md`}>
                 {React.cloneElement(icon, {className: 'w-7 h-7'})}
               </div>
-              <span className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${accent.badge}`}>
+              <span className={`rounded-md border px-2.5 py-1 text-2xs font-semibold uppercase tracking-[0.18em] ${accent.badge}`}>
                 {extension}
               </span>
             </div>

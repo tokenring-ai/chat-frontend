@@ -1,5 +1,5 @@
 import type {ParsedFileSelectQuestion} from "@tokenring-ai/agent/question";
-import {ChevronDown, ChevronRight, File, Folder, RefreshCw, Send, X} from 'lucide-react';
+import {AlertCircle, Check, ChevronDown, ChevronRight, File, Folder, RefreshCw, Send, X} from 'lucide-react';
 import React, {useEffect, useRef, useState} from 'react';
 import {filesystemRPCClient} from "../../../rpc.ts";
 import {sendInteractionResponse} from "../sendInteractionResponse.ts";
@@ -170,7 +170,7 @@ export default function FileInlineQuestion({
           role="treeitem"
           aria-expanded={isDir ? isExpanded : undefined}
           aria-selected={isSelected}
-          className={`flex items-center gap-2 px-2 py-1 rounded-md transition-colors ${
+          className={`flex items-center gap-2 px-2 py-1.5 rounded-md transition-colors ${
             isSelected ? 'bg-accent/20' : 'hover:bg-hover'
           } ${!isSelectable ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
@@ -195,29 +195,29 @@ export default function FileInlineQuestion({
           tabIndex={isSelectable ? 0 : -1}
         >
           {isDir ? (
-            <span className="text-warning shrink-0" aria-hidden="true">
+            <span className="text-muted shrink-0" aria-hidden="true">
               {isLoading ? (
-                <RefreshCw size={12} className="animate-spin" />
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-muted" />
               ) : isExpanded ? (
-                <ChevronDown size={12} />
+                <ChevronDown className="w-3.5 h-3.5 text-muted" />
               ) : (
-                <ChevronRight size={12} />
+                <ChevronRight className="w-3.5 h-3.5 text-muted" />
               )}
             </span>
           ) : (
-            <span className="w-[12px] shrink-0"></span>
+            <span className="w-3.5 shrink-0"></span>
           )}
           {isDir ? (
-            <Folder size={14} className="text-warning shrink-0" aria-hidden="true" />
+            <Folder className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" aria-hidden="true" />
           ) : (
-            <File size={14} className="text-primary shrink-0" aria-hidden="true" />
+            <File className="w-3.5 h-3.5 text-primary shrink-0" aria-hidden="true" />
           )}
           <span className="text-sm truncate">{name}</span>
           {isSelected && (
-            <div className="ml-auto w-2 h-2 rounded-full bg-accent shrink-0" aria-hidden="true" />
+            <Check className="w-3.5 h-3.5 text-accent ml-auto shrink-0" aria-hidden="true" />
           )}
         </div>
-      );
+      )
 
       if (isDir && isExpanded && !isLoading) {
         result.push(...renderTree(cleanPath, depth + 1));
@@ -228,27 +228,35 @@ export default function FileInlineQuestion({
   };
 
   return (
-    <div ref={containerRef} className="p-3 space-y-3">
+    <div ref={containerRef} className="p-4 space-y-3">
       <div
         role="tree"
         aria-label="File browser"
-        className="max-h-[300px] overflow-y-auto custom-scrollbar border border-primary/50 rounded-lg bg-primary p-2"
+        className="max-h-[300px] overflow-y-auto custom-scrollbar border border-primary/30 rounded-lg bg-secondary shadow-md p-2"
       >
         {files.has('.') ? renderTree('.', 0) : (
           <div className="flex items-center justify-center gap-2 text-muted text-sm py-8">
-            <RefreshCw size={16} className="animate-spin"/>
+            <RefreshCw className="w-4 h-4 animate-spin"/>
             <span>Loading files...</span>
           </div>
         )}
       </div>
-      {error && <div className="text-error text-xs px-1" role="alert">{error}</div>}
+      {error && (
+        <div
+          className="flex items-center gap-2 px-3 py-2 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-sm"
+          role="alert"
+        >
+          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className={`text-xs ${isSelectionValid() ? 'text-primary' : 'text-error'}`} aria-live="polite">
+          <span className={`text-2xs font-medium ${isSelectionValid() ? 'text-primary' : 'text-amber-600 dark:text-amber-400'}`} aria-live="polite">
             {selected.size} selected
           </span>
           {(minimumSelections !== undefined || maximumSelections !== undefined) && (
-            <span className="text-xs text-muted">
+            <span className="text-2xs text-muted">
               {minimumSelections !== undefined && `min ${minimumSelections}`}
               {minimumSelections !== undefined && maximumSelections !== undefined && ' · '}
               {maximumSelections !== undefined && `max ${maximumSelections}`}
@@ -257,7 +265,7 @@ export default function FileInlineQuestion({
           {selected.size > 0 && (
             <button
               onClick={() => setSelected(new Set())}
-              className="text-xs text-muted hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+              className="text-2xs text-muted hover:text-primary transition-colors focus-ring"
               aria-label="Clear all selections"
             >
               Clear
@@ -268,18 +276,18 @@ export default function FileInlineQuestion({
           <button
             onClick={handleCancel}
             disabled={isSubmitting}
-            className="flex items-center gap-1.5 text-xs text-muted hover:text-primary transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+            className="flex items-center gap-1.5 p-1.5 rounded-md text-xs text-muted hover:bg-hover hover:text-primary transition-colors disabled:opacity-50 focus-ring"
           >
-            <X size={14} />
+            <X className="w-3.5 h-3.5" />
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || !isSelectionValid()}
-            className="flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#050505]"
+            className="flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
           >
             {isSubmitting ? 'Sending...' : 'Submit'}
-            <Send size={14} />
+            <Send className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

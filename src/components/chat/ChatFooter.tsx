@@ -301,7 +301,7 @@ export default function ChatFooter({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className={`shrink-0 bg-secondary border-t border-primary relative transition-all duration-200 ${
+      className={`shrink-0 border-t border-primary md:border-t-0 md:bg-transparent relative transition-all duration-200 md:rounded-none ${
         isDragOver ? 'ring-2 ring-indigo-500 ring-inset bg-indigo-500/10' : ''
       }`}
     >
@@ -334,7 +334,8 @@ export default function ChatFooter({
         )}
       </AnimatePresence>
 
-      <div className="relative">
+      <div className="md:mx-4 md:mb-4 md:rounded-xl md:overflow-hidden md:ring-1 md:ring-white/10 md:shadow-xl md:bg-secondary rounded-t-xl overflow-hidden">
+        <div className="relative bg-secondary">
         {/* Hidden file input for local file upload */}
         <input
           ref={fileInputRef}
@@ -352,11 +353,11 @@ export default function ChatFooter({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="border-b border-primary overflow-hidden"
+              className="border border-primary overflow-hidden"
             >
               {/* Processing indicator */}
               {isProcessingFiles && (
-                <div className="px-6 pt-3 pb-2 flex items-center gap-2 text-amber-400">
+                <div className="px-4 py-3 flex items-center gap-2 text-amber-600 dark:text-amber-400">
                   <motion.div
                     animate={{rotate: 360}}
                     transition={{duration: 1, repeat: Infinity, ease: "linear"}}
@@ -364,10 +365,10 @@ export default function ChatFooter({
                   >
                     <Paperclip className="w-4 h-4"/>
                   </motion.div>
-                  <span className="text-2xs font-mono">Processing files...</span>
+                  <span className="text-sm font-mono">Processing files...</span>
                 </div>
               )}
-              <div className="flex flex-wrap gap-2 px-6 py-2">
+              <div className="flex flex-wrap gap-2 px-4 py-3">
                 {attachments.map(({ id, file, attachment }) => {
                   const Icon = getFileIcon(attachment.mimeType);
                   return (
@@ -376,18 +377,18 @@ export default function ChatFooter({
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.8 }}
-                      className="flex items-center gap-2 bg-tertiary px-3 py-1.5 rounded group"
+                      className="flex items-center gap-2 bg-tertiary px-3 py-1.5 rounded-md group shadow-card"
                     >
                       <Icon className="w-4 h-4 text-muted" />
-                      <span className="text-xs text-primary font-mono max-w-[150px] truncate">
+                      <span className="text-sm text-primary font-mono max-w-[150px] truncate">
                         {file.name}
                       </span>
-                      <span className="text-2xs text-muted font-mono">
+                      <span className="text-xs text-muted font-mono">
                         ({formatFileSize(file.size)})
                       </span>
                       <button
                         onClick={() => removeAttachment(id)}
-                        className="text-muted hover:text-red-400 transition-colors focus-ring rounded"
+                        className="text-muted hover:text-red-400 transition-colors focus-ring rounded-md p-1.5"
                         aria-label={`Remove ${file.name}`}
                       >
                         <X className="w-3.5 h-3.5" />
@@ -397,17 +398,17 @@ export default function ChatFooter({
                 })}
               </div>
               {/* Total size indicator */}
-              <div className="px-6 pb-2 flex items-center gap-2">
-                <span className="text-2xs text-muted font-mono">Total:</span>
-                <span className={`text-2xs font-mono ${
+              <div className="px-4 pb-3 flex items-center gap-2 border-t border-primary/30">
+                <span className="text-xs text-muted font-mono">Total:</span>
+                <span className={`text-xs font-mono ${
                   attachments.reduce((sum, a) => sum + a.file.size, 0) > MAX_FILE_SIZE * 0.8
-                    ? 'text-amber-400'
+                    ? 'text-amber-600 dark:text-amber-400'
                     : 'text-muted'
                 }`}>
                   {attachments.reduce((sum, a) => sum + a.file.size, 0).toLocaleString()} bytes
                 </span>
                 {attachments.reduce((sum, a) => sum + a.file.size, 0) > MAX_FILE_SIZE && (
-                  <span className="text-2xs text-red-400 font-mono">Exceeds 5MB limit</span>
+                  <span className="text-xs text-red-600 dark:text-red-400 font-mono">Exceeds 5MB limit</span>
                 )}
               </div>
             </motion.div>
@@ -455,10 +456,10 @@ export default function ChatFooter({
               {availableCommands.length > 0 && (
                 <motion.div
                   id="command-suggestions"
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 5 }}
-                  className="absolute bottom-full left-0 right-0 mb-2 flex flex-wrap gap-2 p-3 bg-secondary/95 border border-primary rounded-md shadow-xl z-20"
+                  initial={{opacity: 0, y: 5}}
+                  animate={{opacity: 1, y: 0}}
+                  exit={{opacity: 0, y: 5}}
+                  className="absolute bottom-full left-0 right-0 mb-2 flex flex-wrap gap-2 p-3 bg-secondary/95 border border-primary rounded-lg shadow-md z-20"
                   role="listbox"
                   aria-label="Command suggestions"
                   aria-activedescendant={`cmd-${selectedSuggestion}`}
@@ -471,7 +472,7 @@ export default function ChatFooter({
                         setInput(`/${cmd} `);
                         textareaRef.current?.focus();
                       }}
-                      className={`text-2xs font-mono px-2 py-1 rounded transition-colors cursor-pointer ${
+                      className={`text-xs font-mono px-2 py-1 rounded-md transition-colors cursor-pointer ${
                         idx === selectedSuggestion ? 'bg-indigo-600 text-white' : 'bg-tertiary hover:bg-hover text-indigo-400'
                       }`}
                       role="option"
@@ -491,7 +492,7 @@ export default function ChatFooter({
               <button
                 aria-label="Send message"
                 onClick={handleSubmitWithAttachments}
-                className="p-2 rounded hover:bg-hover transition-colors text-muted hover:text-primary focus-ring"
+                className="p-2 rounded-md hover:bg-hover transition-colors text-muted hover:text-primary focus-ring"
               >
                 <Send className="w-5 h-5" />
               </button>
@@ -499,7 +500,7 @@ export default function ChatFooter({
               <button
                 aria-label="Abort current operation"
                 onClick={() => agentRPCClient.abortCurrentOperation({ agentId, message: 'User aborted the current operation via the chat webapp' })}
-                className="p-2 rounded hover:bg-hover transition-colors text-muted hover:text-red-400 focus-ring"
+                className="p-2 rounded-md hover:bg-hover transition-colors text-muted hover:text-red-400 focus-ring"
               >
                 <Square className="w-5 h-5" />
               </button>
@@ -507,14 +508,14 @@ export default function ChatFooter({
           </div>
         </div>
 
-        <div className="min-h-10 pb-2 bg-secondary flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 gap-2 sm:gap-0">
+          <div className="min-h-10 pb-3 bg-secondary flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 gap-2 sm:gap-0">
           <div className="flex flex-wrap items-center gap-2 order-2 sm:order-1">
             {/* Local file upload button */}
             <button
               aria-label="Attach file"
               onClick={() => fileInputRef.current?.click()}
               disabled={!idle || isProcessingFiles}
-              className="p-1.5 rounded hover:bg-hover transition-colors text-muted hover:text-primary focus-ring disabled:opacity-50 disabled:cursor-not-allowed relative"
+              className="p-1.5 rounded-md hover:bg-hover transition-colors text-muted hover:text-primary focus-ring disabled:opacity-50 disabled:cursor-not-allowed relative"
               title={isProcessingFiles ? 'Processing files...' : 'Attach file'}
             >
               {isProcessingFiles ? (
@@ -533,7 +534,7 @@ export default function ChatFooter({
             <button
               aria-label="Browse remote files"
               onClick={() => setShowFileBrowser(true)}
-              className="p-1.5 rounded hover:bg-hover transition-colors text-muted hover:text-primary focus-ring"
+              className="p-1.5 rounded-md hover:bg-hover transition-colors text-muted hover:text-primary focus-ring"
             >
               <FolderOpen className="w-5 h-5" />
             </button>
@@ -541,7 +542,7 @@ export default function ChatFooter({
               aria-label={showHistory ? 'Hide command history' : 'Show command history'}
               onClick={() => setShowHistory(!showHistory)}
               disabled={commandHistory.length === 0}
-              className="p-1.5 rounded hover:bg-hover transition-colors text-muted hover:text-primary focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-1.5 rounded-md hover:bg-hover transition-colors text-muted hover:text-primary focus-ring disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <History className="w-5 h-5" />
             </button>
@@ -555,32 +556,32 @@ export default function ChatFooter({
           <div className="flex items-center gap-2 order-1 sm:order-2" aria-live="polite" aria-atomic="true">
             {/* Right side - status indicator */}
             <div className={`w-2 h-2 ${idle ? 'bg-indigo-500' : 'bg-amber-500'} rounded-full animate-pulse`} aria-label={idle ? 'Agent is online' : 'Agent is busy'} role="status" />
-            <span className={`text-2xs ${idle ? 'text-indigo-400' : 'text-amber-400'} font-mono uppercase`}>
+            <span className={`text-xs ${idle ? 'text-indigo-400' : 'text-amber-400'} font-mono uppercase`}>
               {idle ? 'Online' : 'Busy'}
             </span>
             {attachments.length > 0 && (
-              <span className="text-2xs text-cyan-400 font-mono">
+              <span className="text-xs text-cyan-400 font-mono">
                 • {attachments.length} file{attachments.length !== 1 ? 's' : ''}
               </span>
             )}
           </div>
         </div>
 
-        <AnimatePresence>
-          {showHistory && commandHistory && commandHistory.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute bottom-full left-6 right-6 mb-2 p-3 bg-secondary border border-primary rounded-md shadow-xl z-30 max-h-64 overflow-y-auto"
-              role="dialog"
-              aria-labelledby="history-title"
-            >
+          <AnimatePresence>
+            {showHistory && commandHistory && commandHistory.length > 0 && (
+              <motion.div
+                initial={{opacity: 0, y: -10}}
+                animate={{opacity: 1, y: 0}}
+                exit={{opacity: 0, y: -10}}
+                className="absolute bottom-full left-6 right-6 mb-2 p-3 bg-secondary border border-primary rounded-lg shadow-md z-30 max-h-64 overflow-y-auto"
+                role="dialog"
+                aria-labelledby="history-title"
+              >
               <div className="flex items-center justify-between mb-2">
                 <span id="history-title" className="text-xs text-muted font-mono uppercase">Command History</span>
                 <button
                   onClick={() => setShowHistory(false)}
-                  className="text-muted hover:text-primary focus-ring px-2 py-1 rounded"
+                  className="text-muted hover:text-primary focus-ring p-1 rounded-md"
                   aria-label="Close command history"
                 >
                   ×
@@ -598,7 +599,7 @@ export default function ChatFooter({
                         textareaRef.current?.focus();
                         setShowHistory(false);
                       }}
-                      className={`w-full text-left text-xs font-mono px-3 py-2 rounded text-primary transition-colors focus-ring ${
+                      className={`w-full text-left text-sm font-mono px-3 py-2 rounded-md text-primary transition-colors focus-ring ${
                         isSelected
                           ? 'bg-indigo-600 text-white'
                           : 'bg-tertiary hover:bg-hover'
@@ -618,20 +619,23 @@ export default function ChatFooter({
 
       <div className="h-6 bg-tertiary flex items-center justify-between px-6 select-none">
         <div className="flex items-center gap-4">
-          <span className="text-2xs text-muted font-mono line-clamp-1">{ statusMessage }</span>
-          <span className="text-2xs text-dim font-mono">{input.length} chars</span>
+          <span className="text-xs text-muted font-mono line-clamp-1">{statusMessage}</span>
+          <span className="text-xs text-dim font-mono">{input.length} chars</span>
           {submitFeedback && (
-            <span className={`text-2xs font-mono ${
-              submitFeedback.type === 'success' ? 'text-green-400' : 'text-red-400'
+            <span className={`text-xs font-mono ${
+              submitFeedback.type === 'success' ? 'text-emerald-400' : 'text-red-400'
             }`}>
               {submitFeedback.message}
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2 text-2xs text-dim">
-          <span className="hidden md:inline"><kbd className="px-1.5 py-0.5 bg-tertiary rounded text-primary font-mono">Enter</kbd> Send • <kbd className="px-1.5 py-0.5 bg-tertiary rounded text-primary font-mono">↑/↓</kbd> History • <kbd className="px-1.5 py-0.5 bg-tertiary rounded text-primary font-mono">Shift+Enter</kbd> New line</span>
+        <div className="flex items-center gap-2 text-xs text-dim mt-0.5">
+          <span className="hidden md:inline"><kbd className="px-1.5 py-0.5 bg-tertiary rounded-md text-primary font-mono">Enter</kbd> Send • <kbd
+            className="px-1.5 py-0.5 bg-tertiary rounded-md text-primary font-mono">↑/↓</kbd> History • <kbd
+            className="px-1.5 py-0.5 bg-tertiary rounded-md text-primary font-mono">Shift+Enter</kbd> New line</span>
           <span className="md:hidden">⏎ Send • ↑/↓ History</span>
         </div>
+      </div>
       </div>
     </footer>
   );

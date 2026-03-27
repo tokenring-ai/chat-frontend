@@ -37,7 +37,7 @@ export function ChatInputProvider({ children }: { children: ReactNode }) {
       setErrorDismissed(false);
     } catch (e) {
       // User-friendly error message with actionable guidance
-      setStorageError('Chat input history disabled (localStorage unavailable). Clear your browser cache and refresh if this persists.');
+      setStorageError('Chat input history disabled (localStorage unavailable). Your typed messages won\'t be saved between sessions.');
       console.error('Failed to persist chat inputs:', e);
     }
   }, [inputs]);

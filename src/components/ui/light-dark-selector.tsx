@@ -8,10 +8,10 @@ export function LightDarkSelector() {
   return <button
     type="button"
     onClick={onClick}
-    className={`p-2 rounded-lg transition-all duration-200 text-muted cursor-pointer hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background ${
+    className={`p-1.5 rounded-md transition-colors duration-200 text-muted cursor-pointer hover:bg-hover active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-background ${
       theme === 'dark'
-        ? 'bg-secondary/50 hover:bg-hover'
-        : 'bg-secondary/30 hover:bg-hover'
+        ? 'bg-secondary'
+        : 'bg-secondary'
     }`}
     title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
     aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}

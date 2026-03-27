@@ -87,25 +87,25 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
 
           return (
             <>
-              <div className="h-4" />
-              <div className="px-6 py-4 flex items-center gap-4 text-zinc-700 dark:text-zinc-300 select-none">
-                <div className="h-px bg-zinc-600 flex-1" />
-                <span className="text-[10px] uppercase tracking-widest">
+              <div className="h-3" />
+              <div className="px-3 py-3 flex items-center gap-3 text-primary select-none">
+                <div className="h-px bg-primary/50 flex-1" />
+                <span className="text-xs uppercase tracking-widest text-muted">
                   Session Start • {firstMessage?.timestamp ? new Date(firstMessage.timestamp).toLocaleDateString() : 'New Session'}
                 </span>
-                <div className="h-px bg-zinc-600 flex-1" />
+                <div className="h-px bg-primary/50 flex-1" />
               </div>
               {!hasMessages && (
-                <div className="px-6 py-12 text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-secondary mb-4 shadow-lg">
-                    <span className="text-3xl">👋</span>
+                <div className="px-3 py-8 text-center">
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-secondary mb-3">
+                    <span className="text-2xl">👋</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-2">
+                  <h3 className="text-base font-semibold text-primary mb-2">
                     Welcome to TokenRing
                   </h3>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 max-w-md mx-auto">
+                  <p className="text-sm text-muted mb-4 max-w-md mx-auto">
                     Start a conversation by typing a message below. Try <code
-                    className="px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs">/help</code> to see available
+                    className="px-1.5 py-0.5 rounded bg-tertiary border border-primary text-primary text-xs">/help</code> to see available
                     commands.
                   </p>
                 </div>
@@ -115,15 +115,15 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
         }
         if (item.type === 'busy') {
           return (
-            <div className="flex items-center gap-5 px-6 py-3 my-2 animate-pulse">
-              <div className="shrink-0 w-5 flex justify-center">
+            <div className="flex items-center gap-3 px-5 py-3 animate-pulse">
+              <div className="shrink-0 w-10 flex justify-center">
                 <div className="flex gap-1.5">
                   <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                   <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                   <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
               </div>
-              <div className="text-zinc-400 text-sm font-medium leading-relaxed">{item.data}...</div>
+              <div className="text-muted text-sm leading-relaxed">{item.data}...</div>
             </div>
           );
         }

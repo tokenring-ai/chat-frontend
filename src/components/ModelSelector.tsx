@@ -156,8 +156,8 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
           type="button"
           className={
             isIconTrigger
-              ? 'flex items-center justify-center p-1.5 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring text-muted hover:text-primary'
-              : 'flex items-center gap-2 px-2 py-1 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring'
+              ? 'flex items-center justify-center p-1.5 rounded-md hover:bg-hover transition-colors cursor-pointer group focus-ring text-muted hover:text-primary'
+              : 'flex items-center gap-2 px-2 py-1 rounded-md hover:bg-hover transition-colors cursor-pointer group focus-ring'
           }
           aria-label={currentModel.data?.model ? `Select model. Current model ${currentModel.data.model}` : 'Select model'}
           title={currentModel.data?.model ?? 'Select model'}
@@ -183,8 +183,8 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
       </DropdownMenuTrigger>
 
       {hasModels && (
-        <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col bg-secondary border-primary shadow-xl" style={{ width: '450px' }} aria-label="Select AI model">
-          <div className="flex items-center gap-2 px-3 pt-1 pb-2 shrink-0 border-b border-primary">
+        <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col shadow-card" style={{ width: '450px' }} aria-label="Select AI model">
+          <div className="flex items-center gap-2 px-3 pt-2 pb-2 shrink-0 border-b border-primary">
             <span className="text-sm flex-1 font-mono text-muted shrink-0">Models</span>
             <div className="relative flex-1">
               <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none">
@@ -213,7 +213,7 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
                     if (model) handleSelectModel(model.modelId);
                   }
                 }}
-                className="w-full bg-input border border-primary rounded-lg py-1.5 pl-9 pr-3 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                className="w-full bg-input border border-primary rounded-md py-1.5 pl-9 pr-8 text-xs text-primary placeholder-muted focus-ring transition-all"
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
@@ -286,7 +286,7 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
                                 if (el) el.scrollIntoView({block: 'nearest', behavior: 'smooth'});
                               } : undefined}
                               onClick={() => handleSelectModel(model.modelId)}
-                              className={`flex items-center cursor-pointer py-1.5 rounded-md px-3 transition-colors group focus-ring ${
+                              className={`flex items-center cursor-pointer py-1.5 rounded-md px-3 transition-colors group hover:bg-hover focus-ring ${
                                 isSelecting && selectingModelId === model.modelId ? 'opacity-75' : ''
                               } ${isFocused ? 'bg-hover' : 'hover:bg-hover'}`}
                               tabIndex={0}
@@ -300,23 +300,23 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
                               onFocus={() => setFocusedModelIndex(globalIndex)}
                             >
                               <div
-                                className={`w-1.5 h-1.5 rounded-full mr-2.5 shrink-0 shadow-[0_0_6px_rgba(0,0,0,0.1)] dark:shadow-[0_0_6px_rgba(0,0,0,0.3)] ${
+                                className={`w-1.5 h-1.5 rounded-full mr-2.5 shrink-0 ${
                                   currentModel.data?.model === model.modelId
-                                    ? 'bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.6)]'
+                                    ? 'bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.5)]'
                                     : model.available
                                       ? 'bg-emerald-500'
-                                      : 'bg-tertiary'
+                                      : 'bg-muted/50'
                                 }`}
                               />
-                              <span className={`flex-1 text-xs font-mono truncate ${
+                              <span className={`flex-1 text-xs font-mono leading-tight truncate ${
                                 currentModel.data?.model === model.modelId
                                   ? 'text-indigo-600 dark:text-indigo-400 font-medium'
                                   : isFocused
                                     ? 'text-primary font-medium'
                                     : 'text-muted group-hover:text-primary'
                               }`}>
-                            {model.modelName}
-                          </span>
+                                {model.modelName}
+                              </span>
                               {isSelecting && selectingModelId === model.modelId ? (
                                 <Cpu className="w-3 h-3 text-indigo-400 ml-2 shrink-0 animate-spin" aria-label="Selecting..."/>
                               ) : currentModel.data?.model === model.modelId ? (

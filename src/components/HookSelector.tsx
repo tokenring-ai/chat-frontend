@@ -81,8 +81,8 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
           type="button"
           className={
             isIconTrigger
-              ? 'flex items-center justify-center p-1.5 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring text-muted hover:text-primary'
-              : 'hidden md:flex items-center gap-2 px-2 py-1 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring'
+              ? 'flex items-center justify-center p-1.5 rounded-md hover:bg-hover transition-colors cursor-pointer group focus-ring text-muted hover:text-primary'
+              : 'hidden md:flex items-center gap-2 px-2 py-1 rounded-md hover:bg-hover transition-colors cursor-pointer group focus-ring'
           }
           aria-label={`Select hooks. ${enabledCount} of ${hookCount} enabled`}
           title={`${enabledCount} of ${hookCount} hooks enabled`}
@@ -96,8 +96,8 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col bg-secondary border-primary shadow-xl" style={{ width: '400px' }} aria-label="Select lifecycle hooks">
-        <div className="flex items-center gap-2 pl-4 pt-1 pb-2 shrink-0 border-b border-primary">
+      <DropdownMenuContent className="max-h-150 w-100 overflow-hidden flex flex-col bg-secondary border-primary shadow-card" aria-label="Select lifecycle hooks">
+        <div className="flex items-center gap-2 px-3 pt-2 pb-2 shrink-0 border-b border-primary">
           <span className="text-sm flex-1 font-mono text-muted shrink-0">Hooks</span>
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none">
@@ -118,7 +118,7 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
                   }
                 }
               }}
-              className="w-full bg-input border border-primary rounded-lg py-1.5 pl-9 pr-8 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+              className="w-full bg-input border border-primary rounded-md py-1.5 pl-9 pr-8 text-xs text-primary placeholder-muted focus-ring transition-all"
               onClick={(e) => e.stopPropagation()}
             />
             {searchQuery && (
@@ -128,10 +128,10 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
                   e.stopPropagation();
                   setSearchQuery('');
                 }}
-                className="absolute inset-y-0 right-2 flex items-center text-muted hover:text-primary transition-colors"
+                className="absolute inset-y-0 right-2 flex items-center p-0.5 rounded-md text-muted hover:text-primary hover:bg-hover transition-colors focus-ring"
                 aria-label="Clear search"
               >
-                <RiCloseCircleLine className="w-4 h-4"/>
+                <RiCloseCircleLine className="w-3.5 h-3.5"/>
               </button>
             )}
           </div>
@@ -139,7 +139,7 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
 
         {/* Toggle all hooks button */}
         {hookCount > 1 && (
-          <div className="border-b border-primary pl-4">
+          <div className="border-b border-primary px-3">
             <button
               onClick={() => {
                 const allHookNames = Object.keys(hooks ?? {});
@@ -150,7 +150,7 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
                 }
                 enabledHooks.mutate();
               }}
-              className="w-full flex items-center justify-between px-3 py-1.5 rounded hover:bg-hover transition-colors text-xs font-mono"
+              className="w-full flex items-center justify-between p-2 rounded-md hover:bg-hover transition-colors text-xs font-mono focus-ring"
             >
               <span className="text-muted">
                 {allEnabled ? 'Disable all hooks' : 'Enable all hooks'}
@@ -182,35 +182,35 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
                   handleKeyDown(e, hookName);
                 }}
                 onFocus={() => handleItemFocus(index)}
-                className={`flex items-center cursor-pointer py-2 rounded-md px-3 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500/50 ${
-                  isFocused ? 'bg-hover ring-2 ring-indigo-500/30' : 'hover:bg-hover'
+                className={`flex items-center cursor-pointer py-1.5 rounded-md px-3 transition-colors group focus-ring ${
+                  isFocused ? 'bg-hover' : 'hover:bg-hover'
                 }`}
               >
                 <div
-                  className={`w-1.5 h-1.5 rounded-full mr-3 shrink-0 shadow-[0_0_6px_rgba(0,0,0,0.1)] dark:shadow-[0_0_6px_rgba(0,0,0,0.3)] ${
+                  className={`w-1.5 h-1.5 rounded-full mr-2.5 shrink-0 ${
                     isEnabled
-                      ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]'
-                      : 'bg-zinc-300 dark:bg-zinc-600'
+                      ? 'bg-amber-500'
+                      : 'bg-muted/50'
                   }`}
                 />
                 <div className="flex-1 min-w-0">
-                  <div className={`text-xs font-mono truncate ${
+                <div className={`text-xs font-mono leading-tight truncate ${
                     isEnabled
-                      ? 'text-amber-700 dark:text-amber-400 font-medium'
+                      ? 'text-amber-500 dark:text-amber-400 font-medium'
                       : 'text-muted group-hover:text-primary'
                   }`}>
                     {hook.displayName}
                   </div>
                   {hook.description && (
-                    <div className="text-2xs text-dim font-mono truncate mt-0.5">
+                  <div className="text-2xs text-dim font-mono leading-tight truncate mt-0.5">
                       {hook.description}
                     </div>
                   )}
                 </div>
                 {isEnabled ? (
-                  <RiCheckLine className="w-3.5 h-3.5 text-amber-600 dark:text-amber-500 ml-2 shrink-0" aria-label="Enabled" />
+                  <RiCheckLine className="w-3 h-3 text-amber-500 dark:text-amber-400 ml-2 shrink-0" aria-label="Enabled" />
                 ) : (
-                  <RiCloseLine className="w-3.5 h-3.5 text-muted ml-2 shrink-0" aria-label="Disabled" />
+                  <RiCloseLine className="w-3 h-3 text-muted group-hover:text-primary ml-2 shrink-0" aria-label="Disabled" />
                 )}
               </div>
             );

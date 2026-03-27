@@ -22,10 +22,10 @@ const toastIcons = {
 };
 
 const toastStyles = {
-  success: 'border-emerald-500/50 bg-emerald-50 dark:bg-emerald-900/90 text-emerald-900 dark:text-emerald-100',
-  error: 'border-red-500/50 bg-red-50 dark:bg-red-900/90 text-red-900 dark:text-red-100',
-  info: 'border-blue-500/50 bg-blue-50 dark:bg-blue-900/90 text-blue-900 dark:text-blue-100',
-  warning: 'border-amber-500/50 bg-amber-50 dark:bg-amber-900/90 text-amber-900 dark:text-amber-100',
+  success: 'border-emerald-500/30 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-100',
+  error: 'border-red-500/30 bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-100',
+  info: 'border-blue-500/30 bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100',
+  warning: 'border-amber-500/30 bg-amber-50 dark:bg-amber-900/20 text-amber-900 dark:text-amber-100',
 };
 
 export default function Toast({id, type = 'info', title, message, duration = 5000, onClose}: ToastProps) {
@@ -68,7 +68,7 @@ export default function Toast({id, type = 'info', title, message, duration = 500
           exit={{ opacity: 0, x: 100, scale: 0.95 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
           className={cn(
-            'flex items-start gap-3 px-4 py-3 rounded-card border shadow-lg min-w-[300px] max-w-md',
+            'flex items-start gap-3 px-4 py-3 rounded-lg border shadow-lg min-w-[300px] max-w-md',
             toastStyles[type]
           )}
           role="alert"
@@ -92,7 +92,7 @@ export default function Toast({id, type = 'info', title, message, duration = 500
                   setIsVisible(false);
                 }
               }}
-              className="shrink-0 p-0.5 rounded hover:bg-black/20 transition-colors focus-ring"
+              className="shrink-0 p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors focus-ring"
               aria-label="Close toast"
             >
               <X className="w-4 h-4" />

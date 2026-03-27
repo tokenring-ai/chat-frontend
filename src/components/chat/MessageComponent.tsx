@@ -161,9 +161,9 @@ function CodeBlock({ children, className }: { children: string; className?: stri
         aria-label="Copy code to clipboard"
         role="button"
       >
-        {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-muted" />}
+        {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-muted" />}
       </button>
-      <pre className={`${className} bg-tertiary p-4 rounded-lg border border-primary shadow-sm`}>
+      <pre className={`${className} bg-tertiary p-4 rounded-lg border border-primary shadow-md`}>
         <code>{children}</code>
       </pre>
     </div>
@@ -201,7 +201,7 @@ function QuestionWithResponseDisplay({
   return (
     <div className="not-prose font-medium">
       {/* Question part */}
-      <div className="text-slate-800 dark:text-slate-300">
+      <div className="text-primary">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
           {question.message}
         </ReactMarkdown>
@@ -209,8 +209,8 @@ function QuestionWithResponseDisplay({
 
       {/* Response part (if exists) */}
       {response && (
-        <div className="py-3 text-emerald-700 dark:text-emerald-300">
-              {formatResult(response.result)}
+        <div className="py-3 text-emerald-700 dark:text-emerald-400">
+          {formatResult(response.result)}
         </div>
       )}
     </div>
@@ -244,11 +244,11 @@ function InteractionResponseDisplay({ msg }: { msg: InteractionResponseMessage }
     <div className="space-y-2">
       <div className="flex items-center gap-2 text-xs text-muted font-mono">
         <span>Interaction ID:</span>
-        <code className="bg-tertiary border border-primary px-1.5 py-0.5 rounded-md">{msg.interactionId}</code>
+        <code className="bg-tertiary border border-primary px-1.5 py-0.5 rounded text-xs">{msg.interactionId}</code>
       </div>
       <div className="flex items-center gap-2 text-xs text-muted font-mono">
         <span>Request ID:</span>
-        <code className="bg-tertiary border border-primary px-1.5 py-0.5 rounded-md">{msg.requestId}</code>
+        <code className="bg-tertiary border border-primary px-1.5 py-0.5 rounded text-xs">{msg.requestId}</code>
       </div>
       <div className="mt-2 p-3 bg-secondary border border-primary rounded-lg">
         <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1">
@@ -518,12 +518,12 @@ function ArtifactDisplay({ artifact }: { artifact: Extract<AgentEventEnvelope, {
             </div>
           )}
           {mime === 'application/json' && (
-            <pre className="text-[11px] font-mono text-secondary bg-tertiary p-2 rounded-md overflow-x-auto border border-primary/20">
+          <pre className="text-[11px] font-mono text-secondary bg-tertiary p-4 rounded-lg overflow-x-auto border border-primary shadow-md">
               {JSON.stringify(safeParseJSON(textBody, null), null, 2)}
             </pre>
           )}
           {mime === 'text/html' && (
-            <div className="mt-2 border border-primary rounded-lg overflow-hidden shadow-sm">
+            <div className="mt-2 border border-primary rounded-lg overflow-hidden shadow-md">
               <iframe
                 srcDoc={textBody}
                 className="w-full h-80 bg-white"
@@ -536,7 +536,7 @@ function ArtifactDisplay({ artifact }: { artifact: Extract<AgentEventEnvelope, {
               <img
                 src={URL.createObjectURL(new Blob([decodedBody], { type: mime }))}
                 alt={artifact.name}
-                className="max-w-full rounded-lg border border-primary shadow-sm"
+                className="max-w-full rounded-lg border border-primary shadow-md"
               />
             </div>
           )}
