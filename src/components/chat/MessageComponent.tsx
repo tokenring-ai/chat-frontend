@@ -50,35 +50,35 @@ interface EventConfig {
 
 const events: Record<ChatMessage['type'], EventConfig> = {
   'agent.created': {
-    style: 'text-emerald-700 dark:text-emerald-400 font-medium',
-    icon: <div className="w-[1em] h-[1em] mt-1 rounded-full bg-emerald-500" />,
+    style: 'text-success font-medium',
+    icon: <div className="w-[1em] h-[1em] mt-1 rounded-full bg-success"/>,
   },
   'agent.stopped': {
-    style: 'text-rose-800 dark:text-rose-400 font-medium',
-    icon: <div className="w-[1em] h-[1em] mt-1 rounded-full bg-rose-500" />,
+    style: 'text-error font-medium',
+    icon: <div className="w-[1em] h-[1em] mt-1 rounded-full bg-error"/>,
   },
   'agent.status': {
-    style: 'text-blue-700 dark:text-blue-400',
-    icon: <div className="w-[1em] h-[1em] mt-1 rounded-full bg-blue-500" />,
+    style: 'text-accent',
+    icon: <div className="w-[1em] h-[1em] mt-1 rounded-full bg-accent"/>,
   },
   'agent.response': {
-    style: 'text-emerald-700 dark:text-emerald-400 font-medium',
-    icon: <span className="text-emerald-500 font-bold flex items-center">✓</span>,
+    style: 'text-success font-medium',
+    icon: <span className="text-success font-bold flex items-center">✓</span>,
   },
   'output.info': {
     style: 'text-secondary',
-    icon: <Info className="w-[1em] text-blue-500/70" />,
+    icon: <Info className="w-[1em] text-accent/70"/>,
   },
   'output.warning': {
-    style: 'text-amber-700 dark:text-amber-400',
-    icon: <Info className="w-[1em] text-amber-500/70" />,
+    style: 'text-warning',
+    icon: <Info className="w-[1em] text-warning/70"/>,
   },
   'output.error': {
-    style: 'text-red-700 dark:text-red-400',
-    icon: <Info className="w-[1em] text-red-500/70" />,
+    style: 'text-error',
+    icon: <Info className="w-[1em] text-error/70"/>,
   },
   'output.artifact': {
-    style: 'text-blue-700 dark:text-blue-400',
+    style: 'text-accent',
     icon: <FileCode className="w-[1em] text-muted" />,
   },
   'output.chat': {
@@ -87,27 +87,27 @@ const events: Record<ChatMessage['type'], EventConfig> = {
   },
   'output.reasoning': {
     style: 'text-secondary italic',
-    icon: <Zap className="w-[1em] text-amber-500" />,
+    icon: <Zap className="w-[1em] text-warning"/>,
   },
   'input.received': {
-    style: 'text-indigo-900 dark:text-indigo-100 font-medium',
-    icon: <span className="text-indigo-500 font-bold flex items-center">&gt;</span>,
+    style: 'text-primary font-medium',
+    icon: <span className="text-accent font-bold flex items-center">&gt;</span>,
   },
   'input.execution': {
-    style: 'text-blue-700 dark:text-blue-400',
-    icon: <Activity className="w-[1em] text-blue-500/70" />,
+    style: 'text-accent',
+    icon: <Activity className="w-[1em] text-accent/70"/>,
   },
   'input.interaction': {
-    style: 'text-emerald-800 dark:text-emerald-300 font-medium',
-    icon: <span className="text-emerald-500 font-bold flex items-center">❖</span>,
+    style: 'text-success font-medium',
+    icon: <span className="text-success font-bold flex items-center">❖</span>,
   },
   'cancel': {
-    style: 'text-red-700 dark:text-red-400 font-medium',
-    icon: <CircleSlash className="w-[1em] text-red-500" />,
+    style: 'text-error font-medium',
+    icon: <CircleSlash className="w-[1em] text-error"/>,
   },
   'question': {
-    style: 'text-cyan-800 dark:text-cyan-300',
-    icon: <span className="text-cyan-500 font-bold flex items-center">?</span>,
+    style: 'text-accent',
+    icon: <span className="text-accent font-bold flex items-center">?</span>,
   },
 };
 
@@ -161,7 +161,7 @@ function CodeBlock({ children, className }: { children: string; className?: stri
         aria-label="Copy code to clipboard"
         role="button"
       >
-        {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-muted" />}
+        {copied ? <Check className="w-3.5 h-3.5 text-success"/> : <Copy className="w-3.5 h-3.5 text-muted"/>}
       </button>
       <pre className={`${className} bg-tertiary p-4 rounded-lg border border-primary shadow-md`}>
         <code>{children}</code>
@@ -209,7 +209,7 @@ function QuestionWithResponseDisplay({
 
       {/* Response part (if exists) */}
       {response && (
-        <div className="py-3 text-emerald-700 dark:text-emerald-400">
+        <div className="py-3 text-success">
           {formatResult(response.result)}
         </div>
       )}
@@ -251,7 +251,7 @@ function InteractionResponseDisplay({ msg }: { msg: InteractionResponseMessage }
         <code className="bg-tertiary border border-primary px-1.5 py-0.5 rounded text-xs">{msg.requestId}</code>
       </div>
       <div className="mt-2 p-3 bg-secondary border border-primary rounded-lg">
-        <div className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-1">
+        <div className="text-xs text-success font-medium mb-1">
           Response Result:
         </div>
         <div className="text-sm text-primary font-mono break-words whitespace-pre-wrap">
@@ -308,9 +308,9 @@ function MessageFooter({ msg, onDownload }: { msg: ChatMessage; onDownload?: () 
         >
           {copied ? (
             <>
-              <Check className="w-3.5 h-3.5 text-emerald-500" />
+              <Check className="w-3.5 h-3.5 text-success"/>
               <span
-                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-emerald-600 text-white text-2xs px-2 py-1 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-success text-primary text-2xs px-2 py-1 rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                 Copied!
               </span>
             </>
@@ -339,25 +339,25 @@ export default function MessageComponent({msg, question, response}: MessageCompo
   const messageIcon = useMemo(() => {
     if (msg.type === 'output.artifact') {
       const mime = msg.mimeType;
-      if (mime === 'text/x-diff') return <Code className="w-[1em] text-green-500" />;
-      if (mime === 'text/markdown') return <FileText className="w-[1em] text-blue-500" />;
-      if (mime === 'application/json') return <FileJson className="w-[1em] text-amber-500" />;
-      if (mime === 'text/html') return <Layout className="w-[1em] text-orange-500" />;
-      if (mime.startsWith('image/')) return <ImageIcon className="w-[1em] text-purple-500" />;
+      if (mime === 'text/x-diff') return <Code className="w-[1em] text-success"/>;
+      if (mime === 'text/markdown') return <FileText className="w-[1em] text-accent"/>;
+      if (mime === 'application/json') return <FileJson className="w-[1em] text-warning"/>;
+      if (mime === 'text/html') return <Layout className="w-[1em] text-warning"/>;
+      if (mime.startsWith('image/')) return <ImageIcon className="w-[1em] text-accent"/>;
     }
     if (msg.type === 'agent.response') {
-      if (msg.status === 'success') return <Check className="w-[1em] text-emerald-500" />;
-      if (msg.status === 'cancelled') return <Square className="w-[1em] text-amber-500" />;
-      return <Info className="w-[1em] text-red-500/70" />;
+      if (msg.status === 'success') return <Check className="w-[1em] text-success"/>;
+      if (msg.status === 'cancelled') return <Square className="w-[1em] text-warning"/>;
+      return <Info className="w-[1em] text-error/70"/>;
     }
     return events[msg.type].icon;
   }, [msg]);
 
   const messageStyle = useMemo(() => {
     if (msg.type !== 'agent.response') return events[msg.type].style;
-    if (msg.status === 'success') return 'text-emerald-700 dark:text-emerald-400 font-medium';
-    if (msg.status === 'cancelled') return 'text-amber-700 dark:text-amber-400 font-medium';
-    return 'text-red-700 dark:text-red-400 font-medium';
+    if (msg.status === 'success') return 'text-success font-medium';
+    if (msg.status === 'cancelled') return 'text-warning font-medium';
+    return 'text-error font-medium';
   }, [msg]);
 
   const attachments = useMemo(() => {

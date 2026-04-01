@@ -69,6 +69,7 @@
 }
 
 @layer utilities {
+ /* Background utilities */
  .bg-primary {
   background-color: var(--bg-primary);
  }
@@ -105,14 +106,66 @@
   background-color: var(--bg-active);
  }
 
+ /* Semantic background colors */
+ .bg-error {
+  @apply bg-red-500;
+ }
+
+ .bg-error\/10 {
+  @apply bg-red-500/10;
+ }
+
+ .bg-error\/20 {
+  @apply bg-red-500/20;
+ }
+
+ .bg-warning {
+  @apply bg-amber-500;
+ }
+
+ .bg-warning\/10 {
+  @apply bg-amber-500/10;
+ }
+
+ .bg-warning\/20 {
+  @apply bg-amber-500/20;
+ }
+
+ .bg-success {
+  @apply bg-emerald-500;
+ }
+
+ .bg-success\/10 {
+  @apply bg-emerald-500/10;
+ }
+
+ .bg-success\/20 {
+  @apply bg-emerald-500/20;
+ }
+
+ /* Border utilities */
  .border-primary {
   border-color: var(--border-primary);
  }
 
+ .border-error {
+  @apply border-red-500;
+ }
+
+ .border-warning {
+  @apply border-amber-500;
+ }
+
+ .border-success {
+  @apply border-emerald-500;
+ }
+
+ /* Ring utilities */
  .ring-focus {
   --tw-ring-color: var(--accent-primary);
  }
 
+ /* Text utilities */
  .text-primary {
   color: var(--text-primary);
  }
@@ -131,6 +184,71 @@
 
  .text-accent {
   color: var(--accent-primary);
+ }
+
+ /* Semantic text colors */
+ .text-error {
+  @apply text-red-500;
+ }
+
+ .text-warning {
+  @apply text-amber-500;
+ }
+
+ .text-success {
+  @apply text-emerald-500;
+ }
+
+ /* Toast-specific color utilities with proper contrast ratios */
+ /* Light mode backgrounds use lighter shades, dark mode uses darker shades */
+ .bg-toast-success {
+  @apply bg-emerald-50 dark:bg-emerald-900/20;
+ }
+
+ .bg-toast-error {
+  @apply bg-red-50 dark:bg-red-900/20;
+ }
+
+ .bg-toast-info {
+  @apply bg-blue-50 dark:bg-blue-900/20;
+ }
+
+ .bg-toast-warning {
+  @apply bg-amber-50 dark:bg-amber-900/20;
+ }
+
+ /* Toast text colors with WCAG AA contrast */
+ .text-toast-success {
+  @apply text-emerald-900 dark:text-emerald-100;
+ }
+
+ .text-toast-error {
+  @apply text-red-900 dark:text-red-100;
+ }
+
+ .text-toast-info {
+  @apply text-blue-900 dark:text-blue-100;
+ }
+
+ .text-toast-warning {
+  @apply text-amber-900 dark:text-amber-100;
+ }
+
+ /* Toast border colors */
+ .border-toast-success {
+  @apply border-emerald-500/30;
+ }
+
+ .border-toast-error {
+  @apply border-red-500/30;
+ }
+
+ .border-toast-info {
+  @apply border-blue-500/30;
+ }
+
+ .border-toast-warning {
+  @apply border-amber-500/30;
  }
 
  /* Consistent shadow utilities */

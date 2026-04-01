@@ -1,6 +1,6 @@
+import {AlertTriangle, X} from 'lucide-react';
 import React from 'react';
-import { AlertTriangle, X } from 'lucide-react';
-import { useChatInput } from '../ChatInputContext';
+import {useChatInput} from '../ChatInputContext';
 
 /**
  * StorageErrorBanner - Displays a dismissible warning when localStorage is unavailable
@@ -28,10 +28,10 @@ export const StorageErrorBanner: React.FC = () => {
     <div
       role="alert"
       aria-live="polite"
-      className="bg-amber-50 dark:bg-amber-900/90 text-primary px-4 py-3 rounded-lg border border-amber-500/30 dark:border-amber-500/50 flex justify-between items-start gap-3 shadow-md"
+      className="bg-warning/10 text-primary px-4 py-3 rounded-lg border border-warning/30 flex justify-between items-start gap-3 shadow-md"
     >
       <div className="flex items-start gap-3 flex-1">
-        <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+        <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5"/>
         <div className="flex-1">
           <strong className="block mb-1 text-sm font-semibold text-primary">
             Chat Input History Disabled
@@ -45,7 +45,7 @@ export const StorageErrorBanner: React.FC = () => {
       
       <button
         onClick={dismissStorageError}
-        className="shrink-0 p-1.5 rounded-md hover:bg-amber-200/50 dark:hover:bg-amber-800/50 transition-colors focus-ring"
+        className="shrink-0 p-1.5 rounded-md hover:bg-warning/20 transition-colors focus-ring"
         aria-label="Dismiss warning"
         title="Dismiss this warning"
       >

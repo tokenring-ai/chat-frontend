@@ -25,9 +25,12 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
     const items: DisplayItem[] = [{ type: 'header' }];
     const questionMap = new Map<string, QuestionPromptMessage>();
 
+    // Build question map using composite key (requestId:interactionId) for consistency
+    // with useAgentEventState's seenQuestionIds tracking
     for (const msg of messages) {
       if (isQuestionPromptMessage(msg)) {
-        questionMap.set(msg.interactionId, msg);
+        const key = `${msg.requestId}:${msg.interactionId}`;
+        questionMap.set(key, msg);
       }
     }
 
@@ -38,7 +41,9 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
       }
 
       if (msg.type === 'input.interaction') {
-        const question = questionMap.get(msg.interactionId);
+        // Use the same composite key for lookup
+        const key = `${msg.requestId}:${msg.interactionId}`;
+        const question = questionMap.get(key);
         if (question) {
           items.push({
             type: 'question-pair',
@@ -118,9 +123,9 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
             <div className="flex items-center gap-3 px-5 py-3 animate-pulse">
               <div className="shrink-0 w-10 flex justify-center">
                 <div className="flex gap-1.5">
-                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <span className="w-1.5 h-1.5 bg-warning rounded-full animate-bounce" style={{animationDelay: '0ms'}}/>
+                  <span className="w-1.5 h-1.5 bg-warning rounded-full animate-bounce" style={{animationDelay: '150ms'}}/>
+                  <span className="w-1.5 h-1.5 bg-warning rounded-full animate-bounce" style={{animationDelay: '300ms'}}/>
                 </div>
               </div>
               <div className="text-muted text-sm leading-relaxed">{item.data}...</div>

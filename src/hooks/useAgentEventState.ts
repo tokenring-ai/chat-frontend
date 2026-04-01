@@ -27,6 +27,10 @@ export function useAgentEventState(agentId: string) {
   const [agentStatus, setAgentStatus] = useState<RemoteAgentStatus>(INITIAL_AGENT_STATUS);
   const [position, setPosition] = useState(0);
   const [currentExecutionState, setCurrentExecutionState] = useState<InputExecutionState|null>();
+  const [isConnecting, setIsConnecting] = useState(true);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [reconnectAttempts, setReconnectAttempts] = useState(0);
+  const [triggerReconnect, setTriggerReconnect] = useState(0);
 
   const stateRef = useRef({
     messages: [] as ChatMessage[],
@@ -36,8 +40,27 @@ export function useAgentEventState(agentId: string) {
     seenQuestionIds: new Set<string>(),
   });
 
+  // Exponential backoff constants
+  const MAX_RECONNECT_DELAY = 30000; // 30 seconds max
+  const INITIAL_RECONNECT_DELAY = 1000; // 1 second initial
+  const BACKOFF_MULTIPLIER = 1.5;
+
   useEffect(() => {
     const abortController = new AbortController();
+    let reconnectDelay = INITIAL_RECONNECT_DELAY;
+    let reconnectTimeout: NodeJS.Timeout | null = null;
+
+    const attemptReconnection = () => {
+      if (abortController.signal.aborted) return;
+
+      reconnectDelay = Math.min(reconnectDelay * BACKOFF_MULTIPLIER, MAX_RECONNECT_DELAY);
+      setReconnectAttempts(prev => prev + 1);
+
+      reconnectTimeout = setTimeout(() => {
+        setIsConnecting(true);
+        setConnectionError(null);
+      }, reconnectDelay);
+    };
 
     (async () => {
       let fromPosition = stateRef.current.position;
@@ -62,6 +85,7 @@ export function useAgentEventState(agentId: string) {
 
       const addQuestionPrompts = (requestId: string, interactions: QuestionInteraction[] = []) => {
         for (const interaction of interactions) {
+          // Use composite key to ensure uniqueness across different requests
           const key = `${requestId}:${interaction.interactionId}`;
           if (seenQuestionIds.has(key)) continue;
 
@@ -73,96 +97,119 @@ export function useAgentEventState(agentId: string) {
         }
       };
 
-      while (!abortController.signal.aborted) {
-        try {
-          for await (const eventsData of agentRPCClient.streamAgentEvents({
-            agentId,
-            fromPosition,
-          }, abortController.signal)) {
-            for (const event of eventsData.events) {
-              switch (event.type) {
-                case "output.chat":
-                case "output.reasoning":
-                  mergeStreamingMessage(event);
-                  break;
-                case "agent.created":
-                case "agent.stopped":
-                case "agent.response":
-                case "output.artifact":
-                case "output.info":
-                case "output.warning":
-                case "output.error":
-                case "input.received":
-                case "input.interaction":
-                  appendMessage(event);
-                  break;
-                case "agent.status":
-                  currentAgentStatus = event;
-                  setCurrentExecutionState(inputExecutions.get(event.inputExecutionQueue[0]))
+      const runStream = async () => {
+        while (!abortController.signal.aborted) {
+          try {
+            setIsConnecting(true);
+            setConnectionError(null);
 
-                  break;
-                case "input.execution":
-                  if (event.status === "finished") {
-                    inputExecutions.delete(event.requestId);
-                  } else {
-                    const prevEvent = inputExecutions.get(event.requestId);
-                    inputExecutions.set(event.requestId, {
-                      ...prevEvent,
-                      ...event
-                    });
-                    addQuestionPrompts(
-                      event.requestId,
-                      (event.availableInteractions ?? []).filter(
-                        (interaction): interaction is QuestionInteraction => interaction.type === "question"
-                      )
-                    );
+            for await (const eventsData of agentRPCClient.streamAgentEvents({
+              agentId,
+              fromPosition,
+            }, abortController.signal)) {
+              // Reset reconnect delay on successful connection
+              reconnectDelay = INITIAL_RECONNECT_DELAY;
+              setReconnectAttempts(0);
+              setIsConnecting(false);
+
+              for (const event of eventsData.events) {
+                switch (event.type) {
+                  case "output.chat":
+                  case "output.reasoning":
+                    mergeStreamingMessage(event);
+                    break;
+                  case "agent.created":
+                  case "agent.stopped":
+                  case "agent.response":
+                  case "output.artifact":
+                  case "output.info":
+                  case "output.warning":
+                  case "output.error":
+                  case "input.received":
+                  case "input.interaction":
+                    appendMessage(event);
+                    break;
+                  case "agent.status":
+                    currentAgentStatus = event;
+                    setCurrentExecutionState(inputExecutions.get(event.inputExecutionQueue[0]));
+                    break;
+                  case "input.execution":
+                    if (event.status === "finished") {
+                      inputExecutions.delete(event.requestId);
+                    } else {
+                      const prevEvent = inputExecutions.get(event.requestId);
+                      inputExecutions.set(event.requestId, {
+                        ...prevEvent,
+                        ...event
+                      });
+                      addQuestionPrompts(
+                        event.requestId,
+                        (event.availableInteractions ?? []).filter(
+                          (interaction): interaction is QuestionInteraction => interaction.type === "question"
+                        )
+                      );
+                    }
+                    break;
+                  case "cancel":
+                    break;
+                  default: {
+                    const _exhaustive: never = event;
+                    throw new Error(`Unhandled event type: ${(_exhaustive as any).type}`);
                   }
-                  break;
-                case "cancel":
-                  break;
-                default: {
-                  // noinspection UnnecessaryLocalVariableJS
-                  const _exhaustive: never = event;
-                  throw new Error(`Unhandled event type: ${(_exhaustive as any).type}`);
                 }
               }
+
+              fromPosition = eventsData.position;
+              stateRef.current = {
+                messages: currentMessages,
+                position: eventsData.position,
+                agentStatus: currentAgentStatus,
+                inputExecutions,
+                seenQuestionIds,
+              };
+
+              setMessages([...currentMessages]);
+              setAgentStatus(currentAgentStatus);
+              setPosition(eventsData.position);
             }
+          } catch (error) {
+            if (abortController.signal.aborted) return;
 
-            fromPosition = eventsData.position;
-            stateRef.current = {
-              messages: currentMessages,
-              position: eventsData.position,
-              agentStatus: currentAgentStatus,
-              inputExecutions,
-              seenQuestionIds,
-            };
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            console.error("Stream error, scheduling reconnection...", errorMessage);
+            setConnectionError(errorMessage);
+            setIsConnecting(false);
 
-            setMessages([...currentMessages]);
-            setAgentStatus(currentAgentStatus);
-            setPosition(eventsData.position);
+            // Schedule reconnection with exponential backoff
+            attemptReconnection();
           }
-        } catch (error) {
-          if (abortController.signal.aborted) return;
-
-          console.error("Stream error, retrying...", error);
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-
-          fromPosition = stateRef.current.position;
-          currentMessages = [...stateRef.current.messages];
-          currentAgentStatus = stateRef.current.agentStatus;
-          inputExecutions = new Map(stateRef.current.inputExecutions);
-          seenQuestionIds = new Set(stateRef.current.seenQuestionIds);
         }
-      }
+      };
+
+      await runStream();
     })();
 
-    return () => abortController.abort();
-  }, [agentId]);
+    return () => {
+      abortController.abort();
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
+    };
+  }, [agentId, triggerReconnect]);
 
   return {
     messages,
     agentStatus,
     position,
     currentExecutionState,
+    isConnecting,
+    connectionError,
+    reconnectAttempts,
+    manualReconnect: () => {
+      // Reset reconnect attempts and trigger a reconnection
+      setReconnectAttempts(0);
+      setConnectionError(null);
+      setTriggerReconnect(prev => prev + 1);
+    },
   };
 }

@@ -11,9 +11,25 @@ import {SidebarProvider} from './components/SidebarContext.tsx';
 import ToolSelector from './components/ToolSelector.tsx';
 import TopBar from './components/TopBar.tsx';
 import {notificationManager, ToastContainer} from './components/ui/toast.tsx';
-import AgentSelection from './pages/AgentSelection.tsx';
+import AgentsApp from './pages/apps/AgentsApp.tsx';
+import BlogApp from './pages/apps/BlogApp.tsx';
+import CalendarApp from './pages/apps/CalendarApp.tsx';
+import CanvasApp from './pages/apps/CanvasApp.tsx';
+import DocumentsApp from './pages/apps/DocumentsApp.tsx';
+import EmailApp from './pages/apps/EmailApp.tsx';
+import FilesApp from './pages/apps/FilesApp.tsx';
+import MediaApp from './pages/apps/MediaApp.tsx';
+import MessagingApp from './pages/apps/MessagingApp.tsx';
+import PluginsApp from './pages/apps/PluginsApp.tsx';
+import ServicesApp from './pages/apps/ServicesApp.tsx';
+import SettingsApp from './pages/apps/SettingsApp.tsx';
+import SocialApp from './pages/apps/SocialApp.tsx';
+import StocksApp from './pages/apps/StocksApp.tsx';
+import TerminalApp from './pages/apps/TerminalApp.tsx';
+import WorkflowsApp from './pages/apps/WorkflowsApp.tsx';
 import ChatPage from './pages/ChatPage.tsx';
-import {useAgentList, useAgentTypes, useWorkflows} from "./rpc.ts";
+import Dashboard from './pages/Dashboard.tsx';
+import {useAgentList, useAgentTypes, useWorkflows} from './rpc.ts';
 
 export default function App() {
   const location = useLocation();
@@ -23,6 +39,7 @@ export default function App() {
   const [showLoadingBar, setShowLoadingBar] = useState(false);
   const loadingBarTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // These are used by Sidebar and TopBar — load them at app level for shared access
   const agents = useAgentList();
   const agentTypes = useAgentTypes();
   const workflows = useWorkflows();
@@ -48,50 +65,6 @@ export default function App() {
     };
   }, [location.pathname]);
 
-  // Handle loading state
-  if (agents.isLoading || agentTypes.isLoading || workflows.isLoading) {
-    return (
-      <div className="flex items-center justify-center h-dvh bg-primary/50 text-primary">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-primary border-t-indigo-500 rounded-full animate-spin shadow-card" />
-          <span className="text-sm font-medium">Loading TokenRing...</span>
-        </div>
-      </div>
-    );
-  }
-
-  // Handle error state with retry option
-  if (agents.error || agentTypes.error || workflows.error) {
-    const error = agents.error || agentTypes.error || workflows.error;
-    const errorMessage = error instanceof Error ? error.message : 'Failed to load application data';
-
-    return (
-      <div className="flex items-center justify-center h-dvh bg-primary/50 p-4">
-        <div className="flex flex-col items-center gap-4 max-w-md text-center">
-          <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center shadow-card">
-            <svg className="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-          </div>
-          <div>
-            <h1 className="text-xl font-semibold text-primary mb-2">Failed to Load</h1>
-            <p className="text-sm text-muted mb-4">{errorMessage}</p>
-          </div>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-button transition-colors focus-ring font-medium flex items-center gap-2 shadow-button-primary"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-            <span>Retry</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const currentAgentId = location.pathname.startsWith('/agent/') ? location.pathname.split('/')[2] : null;
 
   return (
@@ -101,13 +74,13 @@ export default function App() {
           <ToastContainer toasts={toasts || []} onRemove={(id) => notificationManager.removeToast(id)}/>
           {/* Route transition loading bar */}
           {showLoadingBar && (
-            <div className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-indigo-500 to-indigo-600 z-[100]"/>
+            <div className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-accent to-accent z-[100]"/>
           )}
-          <div className="flex flex-col h-dvh bg-primary/50 text-secondary antialiased font-sans selection:bg-indigo-500/30 overflow-hidden">
+          <div className="flex flex-col h-dvh bg-primary/50 text-secondary antialiased font-sans selection:bg-active overflow-hidden">
             {/* Skip to main content link for accessibility */}
             <a
               href="#main-content"
-              className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-indigo-600 focus:text-white focus:rounded-lg focus-ring"
+              className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-accent focus:text-primary focus:rounded-lg focus-ring"
             >
               Skip to main content
             </a>
@@ -133,13 +106,35 @@ export default function App() {
               <main id="main-content" className="flex-1 min-w-0 relative">
                 <ErrorBoundary>
                   <Routes>
+                    {/* Dashboard home */}
+                    <Route path="/" element={<Dashboard/>}/>
+
+                    {/* App routes */}
+                    <Route path="/agents" element={<AgentsApp/>}/>
+                    <Route path="/workflows" element={<WorkflowsApp/>}/>
+                    <Route path="/canvas" element={<CanvasApp/>}/>
+                    <Route path="/documents" element={<DocumentsApp/>}/>
+                    <Route path="/blog" element={<BlogApp/>}/>
+                    <Route path="/files" element={<FilesApp/>}/>
+                    <Route path="/terminal" element={<TerminalApp/>}/>
+                    <Route path="/email" element={<EmailApp/>}/>
+                    <Route path="/calendar" element={<CalendarApp/>}/>
+                    <Route path="/media" element={<MediaApp/>}/>
+                    <Route path="/social" element={<SocialApp/>}/>
+                    <Route path="/messaging" element={<MessagingApp/>}/>
+                    <Route path="/stocks" element={<StocksApp/>}/>
+                    <Route path="/plugins" element={<PluginsApp/>}/>
+                    <Route path="/services" element={<ServicesApp/>}/>
+                    <Route path="/settings" element={<SettingsApp/>}/>
+
+                    {/* Agent chat — existing */}
                     <Route path="/agent/:agentId/*" element={
                       currentAgentId && agents.data && !agents.data.find(a => a.id === currentAgentId)
                         ? (
                           <div className="flex flex-col items-center justify-center h-full p-6 text-center">
                             <div className="mb-6 max-w-md">
-                              <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-4 shadow-card">
-                                <svg className="w-6 h-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center mx-auto mb-4 shadow-card">
+                                <svg className="w-6 h-6 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                                 </svg>
@@ -154,10 +149,10 @@ export default function App() {
                             <button
                               onClick={() => {
                                 setIsNavigating(true);
-                                navigate('/');
+                                navigate('/agents');
                               }}
                               disabled={isNavigating}
-                              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-button transition-colors focus-ring font-medium flex items-center gap-2 shadow-button-primary"
+                              className="px-5 py-2.5 bg-accent hover:bg-accent/90 disabled:bg-accent/50 text-primary rounded-button transition-colors focus-ring font-medium flex items-center gap-2 shadow-button-primary"
                               aria-busy={isNavigating}
                             >
                               {isNavigating ? (
@@ -172,13 +167,6 @@ export default function App() {
                           </div>
                         )
                         : <ChatPage key={currentAgentId} agentId={currentAgentId!} />
-                    } />
-                    <Route path="/" element={
-                      <AgentSelection
-                        agents={agents}
-                        agentTypes={agentTypes}
-                        workflows={workflows}
-                      />
                     } />
                   </Routes>
                 </ErrorBoundary>

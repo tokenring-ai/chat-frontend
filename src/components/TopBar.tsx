@@ -1,6 +1,6 @@
-import {ChevronDown, Loader2, Menu, Pause, Settings, User, WifiOff, Zap} from 'lucide-react';
+import {ChevronDown, Loader2, Menu, Pause, Settings, WifiOff, Zap} from 'lucide-react';
 import React, {useEffect, useRef, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
+import {useLocation, useNavigate} from 'react-router-dom';
 import {useConnectionStatus} from '../hooks/useConnectionStatus.ts';
 import {useAgentList} from '../rpc.ts';
 import {useSidebar} from './SidebarContext.tsx';
@@ -13,38 +13,10 @@ interface TopBarProps {
   agentControls?: React.ReactNode;
 }
 
-function ComingSoonDropdown({ icon, label }: { icon: React.ReactNode; label: string }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-  return (
-    <div className="relative" ref={ref}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="p-2 rounded-md hover:bg-hover transition-colors text-muted focus-ring cursor-pointer"
-        aria-label={label}
-        title={label}
-      >
-        {icon}
-      </button>
-      {open && (
-        <div className="absolute top-full right-0 mt-1 w-48 bg-secondary border border-primary rounded-card shadow-card z-50 overflow-hidden">
-          <div className="px-4 py-3 text-center">
-            <p className="text-xs font-medium text-primary">{label}</p>
-            <p className="text-2xs text-muted mt-1">Coming soon</p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function TopBar({ currentAgentId, agents, agentControls }: TopBarProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { isOnline } = useConnectionStatus();
@@ -66,7 +38,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
       {/* Logo */}
       <button
         onClick={() => navigate('/')}
-        className="hidden sm:flex items-center gap-2 focus-ring rounded-md shrink-0 cursor-pointer"
+        className="flex items-center gap-2 focus-ring rounded-md shrink-0 cursor-pointer"
         aria-label="TokenRing Home"
       >
         <div className="w-7 h-7 rounded-md bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -120,7 +92,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
                 <div className="border-t border-primary">
                     <button
                     onClick={() => {
-                      navigate('/');
+                      navigate('/agents');
                       setOpen(false);
                     }}
                     className="w-full px-3 py-2 text-xs flex items-center gap-2 text-primary hover:bg-hover transition-colors text-left cursor-pointer focus-ring rounded-md"
@@ -159,7 +131,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
                 <div className="border-t border-primary">
                   <button
                     onClick={() => {
-                      navigate('/');
+                      navigate('/agents');
                       setOpen(false);
                     }}
                     className="w-full px-3 py-2 text-xs flex items-center gap-2 text-primary hover:bg-hover transition-colors text-left cursor-pointer focus-ring rounded-md"
@@ -194,8 +166,14 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
           </div>
         )}
         <LightDarkSelector />
-        <ComingSoonDropdown icon={<User className="w-4 h-4" />} label="Account" />
-        <ComingSoonDropdown icon={<Settings className="w-4 h-4" />} label="Settings" />
+        <button
+          onClick={() => navigate('/settings')}
+          className={`p-2 rounded-md hover:bg-hover transition-colors focus-ring cursor-pointer ${location.pathname === '/settings' ? 'text-primary' : 'text-muted'}`}
+          aria-label="Settings"
+          title="Settings"
+        >
+          <Settings className="w-4 h-4"/>
+        </button>
         <NotificationMenu />
       </div>
     </header>

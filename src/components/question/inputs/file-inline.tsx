@@ -1,7 +1,7 @@
 import type {ParsedFileSelectQuestion} from "@tokenring-ai/agent/question";
 import {AlertCircle, Check, ChevronDown, ChevronRight, File, Folder, RefreshCw, Send, X} from 'lucide-react';
 import React, {useEffect, useRef, useState} from 'react';
-import {filesystemRPCClient} from "../../../rpc.ts";
+import {filesystemRPCClient, useFilesystemState} from "../../../rpc.ts";
 import {sendInteractionResponse} from "../sendInteractionResponse.ts";
 
 interface FileInlineProps {
@@ -44,12 +44,15 @@ export default function FileInlineQuestion({
     loadDirectory('.');
   }, []);
 
+  const fsState = useFilesystemState(agentId);
+  const provider = fsState.data?.provider ?? null;
+
   const loadDirectory = async (path: string) => {
     if (files.has(path)) return;
-    
+    if (!provider) return;
     setLoading((prev) => new Set(prev).add(path));
     try {
-      const result = await filesystemRPCClient.listDirectory({ path, showHidden: true, agentId, recursive: false });
+      const result = await filesystemRPCClient.listDirectory({ path, showHidden: true, provider, recursive: false });
       setFiles((prev) => new Map(prev).set(path, result.files));
     } catch (e) {
       setError('Failed to load directory');

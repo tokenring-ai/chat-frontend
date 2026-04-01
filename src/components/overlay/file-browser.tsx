@@ -2,7 +2,7 @@ import {FocusTrap} from 'focus-trap-react';
 import {Check, ChevronRight, Code, Download, Edit, Eye, EyeOff, File, FileText, Folder, Image as ImageIcon, Plus, Save, Search, Trash2, X} from 'lucide-react';
 import React, {useMemo, useRef, useState} from 'react';
 import {cn} from '../../lib/utils.ts';
-import {filesystemRPCClient, useDirectoryListing, useFileContents, useSelectedFiles} from '../../rpc.ts';
+import {filesystemRPCClient, useDirectoryListing, useFileContents, useFilesystemState} from '../../rpc.ts';
 import CodeEditor from '../editor/CodeEditor.tsx';
 import MarkdownEditor from "../editor/MarkdownEditor.tsx";
 import {toastManager} from '../ui/toast.tsx';
@@ -39,9 +39,11 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
   const fileTableRef = useRef<HTMLTableElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-    const directoryListing = useDirectoryListing({ path, showHidden: showHiddenFiles, agentId });
-    const selectedFiles = useSelectedFiles(agentId);
-    const fileContent = useFileContents(selectedFile, agentId);
+    const fsState = useFilesystemState(agentId);
+    const provider = fsState.data?.provider ?? null;
+    const directoryListing = useDirectoryListing(provider ? { path, showHidden: showHiddenFiles, provider } : undefined);
+    const selectedFiles = fsState;
+    const fileContent = useFileContents(selectedFile, provider);
 
     React.useEffect(() => {
         if (isOpen && initialFocusRef.current) {
@@ -148,7 +150,8 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
         const contentToSave = editorContent;
         setIsSaving(true);
         try {
-            await filesystemRPCClient.writeFile({ path: fileToSave, content: contentToSave, agentId });
+            if (!provider) throw new Error('No filesystem provider');
+            await filesystemRPCClient.writeFile({ path: fileToSave, content: contentToSave, provider });
             await fileContent.mutate();
         } catch (error) {
             console.error('Failed to save file:', error);
@@ -192,7 +195,8 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
         const isDir = file.endsWith('/');
         const fullPath = isDir ? file.slice(0, -1) : file;
         try {
-            const stat = await filesystemRPCClient.stat({ path: fullPath, agentId });
+            if (!provider) return;
+            const stat = await filesystemRPCClient.stat({ path: fullPath, provider });
             const stats = JSON.parse(stat.stats);
 
             if (stats.isDirectory) {
@@ -236,7 +240,8 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
         e?.stopPropagation();
         const cleanFile = file.endsWith('/') ? file.slice(0, -1) : file;
         try {
-            const result = await filesystemRPCClient.readTextFile({ path: cleanFile, agentId });
+            if (!provider) return;
+            const result = await filesystemRPCClient.readTextFile({ path: cleanFile, provider });
             const blob = new Blob([result.content ?? ""], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -265,7 +270,8 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
             try {
                 const content = await file.text();
                 const targetPath = path === '.' ? file.name : `${path}/${file.name}`;
-                await filesystemRPCClient.writeFile({ path: targetPath, content, agentId });
+                if (!provider) throw new Error('No filesystem provider');
+                await filesystemRPCClient.writeFile({ path: targetPath, content, provider });
             } catch (error) {
                 console.error('Failed to upload file:', error);
                 toastManager.error(`Failed to upload "${file.name}"`, { duration: 3000 });
@@ -414,7 +420,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                         const isDir = file.endsWith('/');
                                         const displayName = getBasename(file);
                                         const isSelected = selectedFile === file;
-                                        const isInChat = selectedFiles.data?.files.includes(file);
+                                        const isInChat = selectedFiles.data?.selectedFiles.includes(file);
 
                                         return (
                                             <tr
@@ -524,7 +530,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                         {/* Footer selection info */}
                         <div className="h-9 border-t border-primary bg-tertiary flex items-center justify-between px-4 shrink-0">
                             <span className="text-2xs text-muted">
-                                {selectedFiles.data?.files.length ?? 0} items in chat
+                                {selectedFiles.data?.selectedFiles.length ?? 0} items in chat
                             </span>
                         </div>
 
@@ -557,16 +563,16 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                 {/* Quick Actions */}
                                 <div className="p-4 grid grid-cols-2 gap-2 border-b border-primary">
                                     <button
-                                        onClick={() => selectedFiles.data?.files.includes(selectedFile) ? handleRemoveFile(selectedFile) : handleAddFile(selectedFile)}
+                                        onClick={() => selectedFiles.data?.selectedFiles.includes(selectedFile) ? handleRemoveFile(selectedFile) : handleAddFile(selectedFile)}
                                         className={cn(
                                             "col-span-2 flex items-center justify-center gap-2 text-white text-xs font-medium py-2 rounded-lg shadow-lg transition-all active:scale-[0.98] focus-ring",
-                                            selectedFiles.data?.files.includes(selectedFile)
+                                            selectedFiles.data?.selectedFiles.includes(selectedFile)
                                                 ? "bg-red-600 hover:bg-red-500 shadow-red-500/20"
                                                 : "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-500/20"
                                         )}
-                                        aria-label={selectedFiles.data?.files.includes(selectedFile) ? "Remove from chat" : "Add to chat"}
+                                        aria-label={selectedFiles.data?.selectedFiles.includes(selectedFile) ? "Remove from chat" : "Add to chat"}
                                     >
-                                        {selectedFiles.data?.files.includes(selectedFile) ? (
+                                        {selectedFiles.data?.selectedFiles.includes(selectedFile) ? (
                                             <>
                                                 <Trash2 size={16} />
                                                 Remove from Chat

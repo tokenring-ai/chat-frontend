@@ -2,6 +2,7 @@ import type {InputAttachment} from '@tokenring-ai/agent/AgentEvents';
 import {useMemo, useState} from 'react';
 import AutoScrollContainer from '../components/chat/AutoScrollContainer.tsx';
 import ChatFooter from '../components/chat/ChatFooter.tsx';
+import ConnectionStatusBanner from '../components/chat/ConnectionStatusBanner.tsx';
 import MessageList from '../components/chat/MessageList.tsx';
 import PendingQuestions from "../components/chat/PendingQuestions.tsx";
 import {useChatInput} from '../components/ChatInputContext.tsx';
@@ -23,7 +24,7 @@ export default function ChatPage({ agentId }: { agentId: string }) {
     setPersistedInput(agentId, value);
   };
 
-  const {messages, agentStatus, currentExecutionState} = useAgentEventState(agentId);
+  const {messages, agentStatus, currentExecutionState, isConnecting, connectionError, reconnectAttempts, manualReconnect} = useAgentEventState(agentId);
 
   const idle = agentStatus.status === "running" && agentStatus.inputExecutionQueue.length === 0;
 
@@ -84,7 +85,16 @@ export default function ChatPage({ agentId }: { agentId: string }) {
         isOpen={showFileBrowser}
         onClose={() => setShowFileBrowser(false)}
       />
-      <div className="flex flex-col flex-1 overflow-hidden">
+
+      {/* Connection status banner */}
+      <ConnectionStatusBanner
+        isConnecting={isConnecting}
+        connectionError={connectionError}
+        reconnectAttempts={reconnectAttempts}
+        onReconnect={manualReconnect}
+      />
+
+      <div className="flex flex-col flex-1 min-h-0">
         <AutoScrollContainer>
           <MessageList
             messages={messages}

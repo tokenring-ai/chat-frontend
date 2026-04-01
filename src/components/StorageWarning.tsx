@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { AlertTriangle, X } from 'lucide-react';
-import { useChatInput } from './ChatInputContext';
+import {AlertTriangle, X} from 'lucide-react';
+import React, {useState} from 'react';
+import {useChatInput} from './ChatInputContext';
 
 /**
  * StorageWarning component - displays a subtle warning indicator when
@@ -50,9 +50,9 @@ export const StorageWarning: React.FC = () => {
     <div 
       role="alert"
       aria-live="polite"
-      className="bg-amber-500/10 border border-amber-500/30 text-primary text-sm px-4 py-3 rounded-lg flex items-center gap-3 mb-2"
+      className="bg-warning/10 border border-warning/30 text-primary text-sm px-4 py-3 rounded-lg flex items-center gap-3 mb-2"
     >
-      <AlertTriangle className="w-4 h-4 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+      <AlertTriangle className="w-4 h-4 flex-shrink-0 text-warning"/>
       <span className="truncate flex-1" title={errorMessage}>
         {errorMessage}
       </span>
@@ -60,7 +60,7 @@ export const StorageWarning: React.FC = () => {
         onClick={handleClose}
         onKeyDown={handleKeyDown}
         aria-label="Dismiss warning"
-        className="flex-shrink-0 p-1.5 rounded-md hover:bg-amber-500/20 transition-colors focus-ring"
+        className="flex-shrink-0 p-1.5 rounded-md hover:bg-warning/20 transition-colors focus-ring"
       >
         <X className="w-4 h-4" />
       </button>
