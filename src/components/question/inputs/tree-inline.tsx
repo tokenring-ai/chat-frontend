@@ -306,7 +306,7 @@ export default function TreeInlineQuestion({
       <div
         role="tree"
         aria-label="Select from tree"
-        className="max-h-[300px] overflow-y-auto custom-scrollbar border border-primary/30 rounded-lg bg-secondary shadow-md"
+        className="max-h-75 overflow-y-auto custom-scrollbar border border-primary rounded-lg bg-secondary shadow-md"
       >
         {question.tree.map((root) => {
           const rootValue = getTreeNodeValue(root);

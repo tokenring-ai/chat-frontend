@@ -1,20 +1,16 @@
-import {
-  Bot,
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  GitBranch,
-  Loader2,
-  Plus,
-  Trash2,
-  X,
-} from 'lucide-react';
+import {Bot, Calendar, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Clock, GitBranch, Globe, Loader2, MapPin, Plus, Trash2, WifiOff, X,} from 'lucide-react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {toastManager} from '../../components/ui/toast.tsx';
 import {cn} from '../../lib/utils.ts';
-import {agentRPCClient, useAgentTypes, useWorkflows, workflowRPCClient} from '../../rpc.ts';
+import {
+  agentRPCClient,
+  useAgentTypes,
+  useCalendarEvents,
+  useCalendarProviders,
+  useWorkflows,
+  workflowRPCClient
+} from '../../rpc.ts';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -26,11 +22,14 @@ interface CalendarEvent {
   date: string;       // YYYY-MM-DD
   startTime?: string; // HH:MM (omit for all-day)
   endTime?: string;   // HH:MM
-  type: 'agent' | 'workflow';
+  type: 'agent' | 'workflow' | 'calendar';
   agentType?: string;
   workflowKey?: string;
   color: string;
   allDay?: boolean;
+  source?: 'local' | 'rpc';
+  description?: string;
+  location?: string;
 }
 
 // ─── Storage helpers ──────────────────────────────────────────────────────────
@@ -73,9 +72,91 @@ function startOfWeek(d: Date) {
   return r;
 }
 
+function rpcToLocalEvent(ev: any): CalendarEvent {
+  const start = new Date(ev.startAt);
+  const end = new Date(ev.endAt);
+  const fmt = (h: number, m: number) =>
+    `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  return {
+    id: ev.id,
+    title: ev.title,
+    date: toDateKey(start),
+    startTime: ev.allDay ? undefined : fmt(start.getHours(), start.getMinutes()),
+    endTime: ev.allDay ? undefined : fmt(end.getHours(), end.getMinutes()),
+    allDay: ev.allDay ?? false,
+    type: 'calendar',
+    color: 'bg-indigo-500',
+    source: 'rpc',
+    description: ev.description,
+    location: ev.location,
+  };
+}
+
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const WEEKDAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const WEEKDAYS_LETTER = ['S','M','T','W','T','F','S'];
+
+// ─── Provider selector ────────────────────────────────────────────────────────
+
+function ProviderSelector({
+  provider,
+  availableProviders,
+  loading,
+  onProviderChange,
+}: {
+  provider: string | null;
+  availableProviders: string[];
+  loading: boolean;
+  onProviderChange: (p: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  if (loading && availableProviders.length === 0) {
+    return (
+      <span className="text-2xs text-muted flex items-center gap-1">
+        <Loader2 className="w-3 h-3 animate-spin"/> Loading providers
+      </span>
+    );
+  }
+
+  if (availableProviders.length === 0) {
+    return (
+      <span className="text-2xs text-muted flex items-center gap-1">
+        <WifiOff className="w-3 h-3"/> No providers
+      </span>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-secondary border border-primary rounded-lg text-xs text-muted hover:text-primary hover:border-sky-500/40 transition-all focus-ring cursor-pointer"
+      >
+        <Globe className="w-3 h-3"/>
+        <span className="font-medium text-primary max-w-32 truncate">{provider ?? 'No provider'}</span>
+        <ChevronDown className="w-3 h-3"/>
+      </button>
+      {open && (
+        <div className="absolute top-full right-0 mt-1 w-48 bg-secondary border border-primary rounded-xl shadow-card z-50 overflow-hidden">
+          <div className="px-3 py-2 border-b border-primary">
+            <p className="text-2xs font-semibold text-muted uppercase tracking-wider">Switch Provider</p>
+          </div>
+          {availableProviders.map(p => (
+            <button
+              key={p}
+              onClick={() => { onProviderChange(p); setOpen(false); }}
+              className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs hover:bg-hover transition-colors cursor-pointer text-left focus-ring ${p === provider ? 'text-sky-500 font-medium' : 'text-primary'}`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${p === provider ? 'bg-sky-500' : 'bg-transparent'}`}/>
+              {p}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const EVENT_COLORS = [
   { label: 'Sky', value: 'bg-sky-500', text: 'text-sky-500', border: 'border-sky-500' },
@@ -90,7 +171,7 @@ const EVENT_COLORS = [
 // ─── Event chip ───────────────────────────────────────────────────────────────
 
 function EventChip({ event, onClick, compact = false }: { event: CalendarEvent; onClick: () => void; compact?: boolean }) {
-  const TypeIcon = event.type === 'workflow' ? GitBranch : Bot;
+  const TypeIcon = event.type === 'workflow' ? GitBranch : event.type === 'calendar' ? Calendar : Bot;
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
@@ -453,7 +534,7 @@ function EventModal({ event, defaultDate, defaultHour, onClose, onSave, onDelete
   const [startTime, setStartTime] = useState(event?.startTime ?? defaultTime ?? '09:00');
   const [endTime, setEndTime] = useState(event?.endTime ?? '');
   const [allDay, setAllDay] = useState(event?.allDay ?? !defaultTime);
-  const [type, setType] = useState<'agent' | 'workflow'>(event?.type ?? 'workflow');
+  const [type, setType] = useState<'agent' | 'workflow' | 'calendar'>(event?.type ?? 'workflow');
   const [agentType, setAgentType] = useState(event?.agentType ?? '');
   const [workflowKey, setWorkflowKey] = useState(event?.workflowKey ?? '');
   const [color, setColor] = useState(event?.color ?? EVENT_COLORS[0].value);
@@ -670,6 +751,55 @@ function EventModal({ event, defaultDate, defaultHour, onClose, onSave, onDelete
   );
 }
 
+// ─── RPC event detail ─────────────────────────────────────────────────────────
+
+function RpcEventDetail({event, onClose}: { event: CalendarEvent; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="bg-primary border border-primary rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 pt-5 pb-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Calendar size={16} className="shrink-0 text-indigo-500"/>
+            <h2 className="text-base font-bold text-primary truncate">{event.title}</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="shrink-0 p-1 rounded-lg hover:bg-hover transition-colors text-muted hover:text-primary cursor-pointer"
+            aria-label="Close"
+          >
+            <X size={18}/>
+          </button>
+        </div>
+        <div className="px-5 pb-5 space-y-2">
+          <div className="flex items-center gap-2 text-sm text-muted">
+            <CalendarDays size={14} className="shrink-0"/>
+            <span>
+              {event.date}
+              {event.allDay
+                ? ' · All day'
+                : event.startTime
+                  ? ` · ${event.startTime}${event.endTime ? ` – ${event.endTime}` : ''}`
+                  : ''}
+            </span>
+          </div>
+          {event.location && (
+            <div className="flex items-start gap-2 text-sm text-muted">
+              <MapPin size={14} className="shrink-0 mt-0.5"/>
+              <span>{event.location}</span>
+            </div>
+          )}
+          {event.description && (
+            <p className="text-xs text-primary/80 pt-1 whitespace-pre-wrap">{event.description}</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function CalendarApp() {
@@ -686,6 +816,42 @@ export default function CalendarApp() {
   const [defaultDate, setDefaultDate] = useState<string>('');
   const [defaultHour, setDefaultHour] = useState<number | null>(null);
   const [running, setRunning] = useState(false);
+
+  // Calendar provider state
+  const providers = useCalendarProviders();
+  const [provider, setProvider] = useState<string | null>(null);
+  const [rpcDetailEvent, setRpcDetailEvent] = useState<CalendarEvent | null>(null);
+
+  useEffect(() => {
+    const available = providers.data?.providers ?? [];
+    if (!available.length) return;
+    if (!provider || !available.includes(provider)) {
+      setProvider(available[0]);
+    }
+  }, [providers.data, provider]);
+
+  const {fetchFrom, fetchTo} = useMemo(() => {
+    let from: Date, to: Date;
+    if (view === 'month') {
+      from = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+      to = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0, 23, 59, 59, 999);
+    } else if (view === 'week') {
+      from = startOfWeek(cursor);
+      to = addDays(from, 7);
+      to.setHours(23, 59, 59, 999);
+    } else {
+      from = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate());
+      to = addDays(from, 1);
+    }
+    return {fetchFrom: from.toISOString(), fetchTo: to.toISOString()};
+  }, [view, cursor]);
+
+  const rpcEventsResult = useCalendarEvents(provider, fetchFrom, fetchTo);
+
+  const allEvents = useMemo(() => {
+    const rpc = (rpcEventsResult.data?.events ?? []).map(rpcToLocalEvent);
+    return [...events, ...rpc];
+  }, [events, rpcEventsResult.data]);
 
   // Persist events
   useEffect(() => { saveEvents(events); }, [events]);
@@ -737,6 +903,10 @@ export default function CalendarApp() {
   }, [today]);
 
   const openEdit = useCallback((ev: CalendarEvent) => {
+    if (ev.source === 'rpc') {
+      setRpcDetailEvent(ev);
+      return;
+    }
     setEditingEvent(ev);
     setDefaultDate(ev.date);
     setDefaultHour(null);
@@ -825,6 +995,14 @@ export default function CalendarApp() {
 
         <div className="flex-1" />
 
+        {/* Provider selector */}
+        <ProviderSelector
+          provider={provider}
+          availableProviders={providers.data?.providers ?? []}
+          loading={providers.isLoading}
+          onProviderChange={setProvider}
+        />
+
         {/* View switcher */}
         <div className="flex items-center bg-secondary border border-primary rounded-lg p-0.5 text-xs font-medium">
           {(['month', 'week', 'day'] as ViewMode[]).map(v => (
@@ -856,7 +1034,7 @@ export default function CalendarApp() {
           year={cursor.getFullYear()}
           month={cursor.getMonth()}
           today={today}
-          events={events}
+          events={allEvents}
           onDayClick={handleDayClick}
           onEventClick={openEdit}
         />
@@ -865,7 +1043,7 @@ export default function CalendarApp() {
         <WeekView
           weekStart={weekStart}
           today={today}
-          events={events}
+          events={allEvents}
           onSlotClick={handleSlotClick}
           onEventClick={openEdit}
         />
@@ -874,13 +1052,13 @@ export default function CalendarApp() {
         <DayView
           date={cursor}
           today={today}
-          events={events}
+          events={allEvents}
           onSlotClick={handleSlotClick}
           onEventClick={openEdit}
         />
       )}
 
-      {/* Modal */}
+      {/* Scheduler event modal */}
       {modalOpen && (
         <EventModal
           event={editingEvent}
@@ -892,6 +1070,11 @@ export default function CalendarApp() {
           onRun={handleRunEvent}
           running={running}
         />
+      )}
+
+      {/* RPC calendar event detail */}
+      {rpcDetailEvent && (
+        <RpcEventDetail event={rpcDetailEvent} onClose={() => setRpcDetailEvent(null)}/>
       )}
     </div>
   );

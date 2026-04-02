@@ -6,6 +6,7 @@ import {
   FolderOpen,
   GitBranch,
   Image,
+  Lock,
   Mail,
   MessageSquare,
   Package,
@@ -150,6 +151,14 @@ const APPS: AppCardDef[] = [
     description: 'Configure theme, agents, and preferences',
     icon: <Settings />,
     gradient: 'from-stone-500 to-gray-600',
+  },
+  {
+    id: 'vault',
+    path: '/vault',
+    label: 'Vault',
+    description: 'Manage encrypted credentials and secrets',
+    icon: <Lock />,
+    gradient: 'from-yellow-500 to-amber-600',
   },
 ];
 

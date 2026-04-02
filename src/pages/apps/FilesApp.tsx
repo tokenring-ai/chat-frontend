@@ -197,7 +197,7 @@ function BreadcrumbBar({ path, onNavigate, showHidden, onToggleHidden, onUpload,
       <div className="flex items-center gap-0.5 text-xs text-muted flex-1 min-w-0 overflow-hidden">
         <button onClick={() => onNavigate('.')} className="hover:text-primary shrink-0 focus-ring rounded px-1 cursor-pointer">root</button>
         {parts.map((part, i) => (
-          <React.Fragment key={i}>
+          <React.Fragment key={part}>
             <ChevronRight className="w-3 h-3 shrink-0 text-dim" />
             <button
               onClick={() => onNavigate(parts.slice(0, i + 1).join('/'))}
@@ -313,7 +313,7 @@ function FileListPane({
           </tr>
         </thead>
         <tbody className="text-xs">
-          {sortedFiles.map((file, i) => {
+          {sortedFiles.map((file) => {
             const isDir = file.endsWith('/');
             const name = getBasename(file);
             const isSelectedFile = selectedFile === file;
@@ -322,7 +322,7 @@ function FileListPane({
 
             return (
               <tr
-                key={i}
+                key={file}
                 onClick={() => handleRowClick(file)}
                 className={cn(
                   'group border-b border-primary cursor-pointer transition-colors outline-none',
@@ -520,9 +520,9 @@ function FileEditorPane({ file, content, onContentChange, isLoading, hasData }: 
         ) : hasData ? (
           <div className="h-full overflow-auto">
             {file.endsWith('.md') ? (
-              <MarkdownEditor content={content} onContentChange={onContentChange} />
+              <MarkdownEditor key={file} content={content} onContentChange={onContentChange} />
             ) : (
-              <CodeEditor file={file} content={content} onContentChange={onContentChange} />
+              <CodeEditor key={file} file={file} content={content} onContentChange={onContentChange} />
             )}
           </div>
         ) : (
@@ -555,22 +555,21 @@ export default function FilesApp() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const listing = useDirectoryListing(agentId && provider ? { path, showHidden, provider } : undefined);
 
-  const [editorContent, setEditorContent] = useState('');
   const [saving, setSaving] = useState(false);
   const fileContent = useFileContents(selectedFile, provider);
 
-  useEffect(() => {
-    if (fileContent.data?.content != null) {
-      setEditorContent(fileContent.data.content);
-    }
-  }, [fileContent.data?.content]);
+  const [updatedContent, setUpdatedContent] = useState<string|null>(null);
+
+  const editorContent = updatedContent ?? fileContent.data?.content ?? '';
 
   const handleSave = async () => {
     if (!selectedFile || !agentId || !provider) return;
     setSaving(true);
     try {
       await filesystemRPCClient.writeFile({ path: selectedFile, content: editorContent, provider });
-      await fileContent.mutate();
+      await fileContent.mutate(() => ({ content: editorContent}));
+      setUpdatedContent(null);
+
       toastManager.success('Saved', { duration: 2000 });
     } catch {
       toastManager.error('Save failed', { duration: 3000 });
@@ -747,7 +746,7 @@ export default function FilesApp() {
         <FileEditorPane
           file={selectedFile}
           content={editorContent}
-          onContentChange={setEditorContent}
+          onContentChange={setUpdatedContent}
           isLoading={fileContent.isLoading}
           hasData={!!fileContent.data}
         />

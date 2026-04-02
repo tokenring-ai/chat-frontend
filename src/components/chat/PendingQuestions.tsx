@@ -63,15 +63,15 @@ export default function PendingQuestions({ questions, agentId }: PendingQuestion
   }, [earliestAutoSubmit]);
 
   return (
-    <div className="shrink-0 border-t border-primary bg-secondary/50 dark:bg-secondary/30 shadow-lg">
-      <div className="px-4 py-3 border-b border-primary">
-        <div className="flex items-center gap-2 text-sm font-medium text-warning">
-          <span className="inline-block w-1.5 h-1.5 bg-warning rounded-full animate-pulse"/>
+    <div className="shrink-0 border-t border-primary bg-secondary/50 shadow-card">
+      <div className="px-4 py-2.5 border-b border-primary">
+        <div className={`flex items-center gap-2 text-sm font-medium ${hasAutoSubmit ? 'text-warning' : 'text-primary'}`}>
+          <span className={`inline-block w-1.5 h-1.5 rounded-full animate-pulse shrink-0 ${hasAutoSubmit ? 'bg-warning' : 'bg-accent'}`}/>
           <span>Active Questions ({questions.length})</span>
           {hasAutoSubmit && (
             <span
-              className="ml-auto flex items-center gap-1.5 text-xs font-medium text-warning bg-warning/10 px-2 py-1 rounded-md">
-              <span className="inline-block w-1.5 h-1.5 bg-warning rounded-full animate-pulse"/>
+              className="ml-auto flex items-center gap-1.5 text-xs font-medium text-warning bg-warning/10 border border-warning/20 px-2 py-1 rounded-md">
+              <span className="inline-block w-1.5 h-1.5 bg-warning rounded-full animate-pulse flex-shrink-0"/>
               <span>{urgentCount} urgent{urgentCount > 1 ? 's' : ''}</span>
               {timeRemaining && (
                 <span className="ml-1 text-[10px] font-bold bg-warning/20 px-1.5 py-0.5 rounded-md">
@@ -90,7 +90,7 @@ export default function PendingQuestions({ questions, agentId }: PendingQuestion
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className="border-b border-primary last:border-b-0"
+            className="border-b border-primary last:border-b-0 p-2"
           >
             <InlineQuestion
               request={question}

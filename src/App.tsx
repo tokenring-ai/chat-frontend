@@ -26,6 +26,7 @@ import SettingsApp from './pages/apps/SettingsApp.tsx';
 import SocialApp from './pages/apps/SocialApp.tsx';
 import StocksApp from './pages/apps/StocksApp.tsx';
 import TerminalApp from './pages/apps/TerminalApp.tsx';
+import VaultApp from './pages/apps/VaultApp.tsx';
 import WorkflowsApp from './pages/apps/WorkflowsApp.tsx';
 import ChatPage from './pages/ChatPage.tsx';
 import Dashboard from './pages/Dashboard.tsx';
@@ -126,6 +127,7 @@ export default function App() {
                     <Route path="/plugins" element={<PluginsApp/>}/>
                     <Route path="/services" element={<ServicesApp/>}/>
                     <Route path="/settings" element={<SettingsApp/>}/>
+                    <Route path="/vault" element={<VaultApp/>}/>
 
                     {/* Agent chat — existing */}
                     <Route path="/agent/:agentId/*" element={

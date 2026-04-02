@@ -90,7 +90,7 @@ export default function InlineQuestion({request, agentId, requestId, response, a
             setIsExpanded(!isExpanded);
           }
         }}
-        className={`flex items-center gap-2 py-0.5 w-full text-left cursor-pointer group/header hover:opacity-80 transition-opacity rounded-md focus-ring ${
+        className={`flex items-center gap-2 py-1 px-1.5 w-full text-left cursor-pointer group/header hover:opacity-80 transition-opacity rounded-md focus-ring ${
           autoSubmitted ? 'bg-emerald-500/10' : ''
         }`}
         tabIndex={0}
@@ -103,7 +103,7 @@ export default function InlineQuestion({request, agentId, requestId, response, a
         </div>
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {isUrgent && (
-            <span className="inline-block w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse flex-shrink-0" title="Urgent - auto-submit pending"/>
+            <span className="inline-block w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shrink-0" title="Urgent - auto-submit pending"/>
           )}
           <span className="text-sm font-medium text-primary truncate leading-none flex-1">
             {request.message}
@@ -114,7 +114,7 @@ export default function InlineQuestion({request, agentId, requestId, response, a
           {countdown !== null && countdown > 0 && (
             <>
               <span
-                className={`text-2xs font-medium leading-none pt-0.5 flex-shrink-0 ${
+                className={`text-2xs font-medium leading-none pt-0.5 shrink-0 ${
                   countdown <= 5 ? 'text-red-500 dark:text-red-400 font-bold animate-pulse' :
                     countdown <= 15 ? 'text-orange-500 dark:text-orange-400' :
                       'text-accent'
@@ -160,7 +160,6 @@ export default function InlineQuestion({request, agentId, requestId, response, a
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
             id={`question-content-${request.interactionId}`}
-            className="ml-2 mt-2 border-l-2 border-primary/30 pl-4 py-2"
             role="region"
             aria-labelledby={`question-title-${request.interactionId}`}
             onKeyDown={handleKeyDown}

@@ -2,16 +2,19 @@ import AgentRpcSchema from '@tokenring-ai/agent/rpc/schema';
 import AIClientRpcSchema from "@tokenring-ai/ai-client/rpc/schema";
 import AppRpcSchema from '@tokenring-ai/app/rpc/schema';
 import BlogRpcSchema from '@tokenring-ai/blog/rpc/schema';
+import CalendarRpcSchema from '@tokenring-ai/calendar/rpc/schema';
 import ChatRpcSchema from "@tokenring-ai/chat/rpc/schema";
 import CheckpointRpcSchema from "@tokenring-ai/checkpoint/rpc/schema";
 import CloudQuoteRpcSchema from '@tokenring-ai/cloudquote/rpc/schema';
+import EmailRpcSchema from '@tokenring-ai/email/rpc/schema';
 import FileSystemRpcSchema from '@tokenring-ai/filesystem/rpc/schema';
 import LifecycleRpcSchema from '@tokenring-ai/lifecycle/rpc/schema';
 import NewsRPMRpcSchema from '@tokenring-ai/newsrpm/rpc/schema';
 import type {IndexedDataSearch} from "@tokenring-ai/newsrpm/schema";
+import TerminalRpcSchema from '@tokenring-ai/terminal/rpc/schema';
+import VaultRpcSchema from '@tokenring-ai/vault/rpc/schema';
 import createWsRPCClient from "@tokenring-ai/web-host/createWsRPCClient";
 import WorkflowRpcSchema from '@tokenring-ai/workflow/rpc/schema';
-import TerminalRpcSchema from '../../../pkg/terminal/rpc/schema.ts';
 import useSWR from "swr";
 
 const baseURL = new URL(window.location.origin);
@@ -27,7 +30,10 @@ export const checkpointRPCClient = createWsRPCClient(baseURL, CheckpointRpcSchem
 export const filesystemRPCClient = createWsRPCClient(baseURL, FileSystemRpcSchema);
 export const lifecycleRPCClient = createWsRPCClient(baseURL, LifecycleRpcSchema);
 export const workflowRPCClient = createWsRPCClient(baseURL, WorkflowRpcSchema);
+export const calendarRPCClient = createWsRPCClient(baseURL, CalendarRpcSchema);
+export const emailRPCClient = createWsRPCClient(baseURL, EmailRpcSchema);
 export const terminalRPCClient = createWsRPCClient(baseURL, TerminalRpcSchema);
+export const vaultRPCClient = createWsRPCClient(baseURL, VaultRpcSchema);
 
 export function useAvailableCommands(agentId: string) {
   return useSWR(`/agent/getAvailableCommands/${agentId}`, () => agentId ? agentRPCClient.getAvailableCommands({ agentId }) : null);
@@ -182,4 +188,86 @@ export function useBlogState(agentId: string | null) {
     agentId ? `/blog/getBlogState/${agentId}` : null,
     () => agentId ? blogRPCClient.getBlogState({agentId}) : null,
   );
+}
+
+export function useCalendarState(agentId: string | null) {
+  return useSWR(
+    agentId ? `/calendar/getCalendarState/${agentId}` : null,
+    () => calendarRPCClient.getCalendarState({agentId: agentId!}),
+    {refreshInterval: 5000},
+  );
+}
+
+export function useCalendarProviders() {
+  return useSWR(
+    '/calendar/getCalendarProviders',
+    () => calendarRPCClient.getCalendarProviders({}),
+    {refreshInterval: 10000},
+  );
+}
+
+export function useCalendarEvents(provider: string | null, from: string, to: string) {
+  return useSWR(
+    provider ? `/calendar/getUpcomingEvents/${provider}/${from}/${to}` : null,
+    () => calendarRPCClient.getUpcomingEvents({provider: provider!, from, to}),
+    {refreshInterval: 30000},
+  );
+}
+
+export function useEmailState(agentId: string | null) {
+  return useSWR(
+    agentId ? `/email/getEmailState/${agentId}` : null,
+    () => emailRPCClient.getEmailState({agentId: agentId!}),
+    {refreshInterval: 5000},
+  );
+}
+
+export function useEmailProviders() {
+  return useSWR(
+    '/email/getEmailProviders',
+    () => emailRPCClient.getEmailProviders({}),
+    {refreshInterval: 10000},
+  );
+}
+
+export function useEmailBoxes(provider: string | null) {
+  return useSWR(
+    provider ? `/email/getEmailBoxes/${provider}` : null,
+    () => emailRPCClient.getEmailBoxes({provider: provider!}),
+    {refreshInterval: 30000},
+  );
+}
+
+export function useEmailMessages(provider: string | null, opts?: { box?: string; limit?: number; unreadOnly?: boolean; pageToken?: string }) {
+  const box = opts?.box ?? 'inbox';
+  const limit = opts?.limit ?? 50;
+  const unreadOnly = opts?.unreadOnly ?? false;
+  const pageToken = opts?.pageToken;
+  return useSWR(
+    provider ? `/email/getMessages/${provider}/${box}/${limit}/${unreadOnly}/${pageToken ?? ''}` : null,
+    () => emailRPCClient.getMessages({provider: provider!, box, limit, unreadOnly, pageToken}),
+    {refreshInterval: 30000},
+  );
+}
+
+export function useEmailSearch(provider: string | null, query: string | null, opts?: { box?: string; limit?: number; unreadOnly?: boolean }) {
+  const box = opts?.box ?? 'inbox';
+  const limit = opts?.limit ?? 50;
+  const unreadOnly = opts?.unreadOnly ?? false;
+  return useSWR(
+    provider && query ? `/email/searchMessages/${provider}/${box}/${query}/${limit}/${unreadOnly}` : null,
+    () => emailRPCClient.searchMessages({provider: provider!, query: query!, box, limit, unreadOnly}),
+    {refreshInterval: 30000},
+  );
+}
+
+export function useEmailMessage(provider: string | null, messageId: string | null) {
+  return useSWR(
+    provider && messageId ? `/email/getMessageById/${provider}/${messageId}` : null,
+    () => emailRPCClient.getMessageById({provider: provider!, id: messageId!}),
+  );
+}
+
+export function useVaultKeys() {
+  return useSWR('/vault/listEntries', () => vaultRPCClient.listEntries({}), {refreshInterval: 10000});
 }

@@ -7,6 +7,7 @@ import {
   GitBranch,
   Image,
   Loader2,
+  Lock,
   Mail,
   MessageSquare,
   Package,
@@ -61,6 +62,7 @@ const APP_NAV_ITEMS: AppNavItem[] = [
   {path: '/plugins', icon: <Package className="w-4 h-4"/>, label: 'Plugins', color: 'text-fuchsia-400'},
   {path: '/services', icon: <Plug className="w-4 h-4"/>, label: 'Services', color: 'text-violet-400'},
   {path: '/settings', icon: <Settings className="w-4 h-4"/>, label: 'Settings', color: 'text-stone-400'},
+  {path: '/vault', icon: <Lock className="w-4 h-4"/>, label: 'Vault', color: 'text-amber-400'},
 ];
 
 export default function Sidebar({ currentAgentId, agents, workflows, agentTypes }: SidebarProps) {
