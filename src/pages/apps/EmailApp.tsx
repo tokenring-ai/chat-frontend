@@ -61,11 +61,11 @@ function getBoxPresentation(box: EmailBoxRecord) {
 }
 
 function ProviderSelector({
-  provider,
-  availableProviders,
-  loading,
-  onProviderChange,
-}: {
+                            provider,
+                            availableProviders,
+                            loading,
+                            onProviderChange,
+                          }: {
   provider: string | null;
   availableProviders: string[];
   loading: boolean;
@@ -112,56 +112,86 @@ function ProviderSelector({
         {changing ? <Loader2 className="w-3 h-3 animate-spin"/> : <ChevronDown className="w-3 h-3"/>}
       </button>
       {open && (
-        <div className="absolute top-full right-0 mt-1 w-48 bg-secondary border border-primary rounded-xl shadow-card z-50 overflow-hidden">
-          <div className="px-3 py-2 border-b border-primary">
-            <p className="text-2xs font-semibold text-muted uppercase tracking-wider">Switch Provider</p>
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute top-full right-0 mt-1 w-48 bg-secondary border border-primary rounded-xl shadow-card z-50 overflow-hidden">
+            <div className="px-3 py-2 border-b border-primary">
+              <p className="text-2xs font-semibold text-muted uppercase tracking-wider">Switch Provider</p>
+            </div>
+            {availableProviders.map(p => (
+              <button
+                key={p}
+                onClick={() => switchProvider(p)}
+                className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs hover:bg-hover transition-colors cursor-pointer text-left focus-ring ${p === provider ? 'text-red-500 font-medium' : 'text-primary'}`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${p === provider ? 'bg-red-500' : 'bg-transparent'}`}/>
+                {p}
+              </button>
+            ))}
           </div>
-          {availableProviders.map(p => (
-            <button
-              key={p}
-              onClick={() => switchProvider(p)}
-              className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs hover:bg-hover transition-colors cursor-pointer text-left focus-ring ${p === provider ? 'text-red-500 font-medium' : 'text-primary'}`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${p === provider ? 'bg-red-500' : 'bg-transparent'}`}/>
-              {p}
-            </button>
-          ))}
-        </div>
+        </>
       )}
     </div>
   );
 }
 
-function FolderSidebar({
-  boxes,
-  selected,
-  onSelect,
-}: {
+function MailboxDropdown({
+                           boxes,
+                           selected,
+                           onSelect,
+                         }: {
   boxes: EmailBoxRecord[];
   selected: string;
   onSelect: (id: string) => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const currentBox = boxes.find(b => b.id === selected) ?? {id: selected, name: selected};
+  const {icon: Icon, color, label} = getBoxPresentation(currentBox);
+
   return (
-    <div className="w-44 shrink-0 border-r border-primary bg-secondary flex flex-col py-3">
-      <p className="text-2xs font-bold text-muted uppercase tracking-widest px-4 pb-2">Folders</p>
-      <nav className="space-y-0.5 px-2">
-        {boxes.map(box => {
-          const {label, icon: Icon, color} = getBoxPresentation(box);
-          return (
-          <button
-            key={box.id}
-            onClick={() => onSelect(box.id)}
-            className={cn(
-              'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors focus-ring cursor-pointer text-left',
-              selected === box.id ? 'bg-active text-primary' : 'hover:bg-hover text-muted hover:text-primary',
-            )}
-          >
-            <Icon className={cn('w-4 h-4 shrink-0', selected === box.id ? color : 'text-muted')} />
-            {label}
-          </button>
-          );
-        })}
-      </nav>
+    <div className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-hover transition-colors focus-ring cursor-pointer"
+      >
+        <Icon className={cn('w-4 h-4 shrink-0', color)} />
+        <span className="text-sm font-medium text-primary">{label}</span>
+        <ChevronDown className={cn('w-3.5 h-3.5 text-muted transition-transform', open && 'rotate-180')} />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute top-full left-0 mt-1 w-52 bg-secondary border border-primary rounded-xl shadow-card z-50 overflow-hidden">
+            <div className="px-3 py-2 border-b border-primary">
+              <p className="text-2xs font-semibold text-muted uppercase tracking-wider">Mailboxes</p>
+            </div>
+            <nav className="py-1">
+              {boxes.map(box => {
+                const {label: boxLabel, icon: BoxIcon, color: boxColor} = getBoxPresentation(box);
+                return (
+                  <button
+                    key={box.id}
+                    onClick={() => {
+                      onSelect(box.id);
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      'w-full flex items-center gap-2.5 px-3 py-2.5 text-xs hover:bg-hover transition-colors cursor-pointer text-left focus-ring',
+                      selected === box.id ? 'text-primary font-medium bg-active' : 'text-muted hover:text-primary',
+                    )}
+                  >
+                    <BoxIcon className={cn('w-4 h-4 shrink-0', selected === box.id ? boxColor : 'text-muted')} />
+                    {boxLabel}
+                    {selected === box.id && (
+                      <span className="ml-auto w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -196,10 +226,10 @@ function MessageListItem({msg, selected, onClick}: {msg: EmailMessage; selected:
 }
 
 function MessageViewer({
-  provider,
-  messageId,
-  onReply,
-}: {
+                         provider,
+                         messageId,
+                         onReply,
+                       }: {
   provider: string;
   messageId: string;
   onReply: (cmd: string) => void;
@@ -264,11 +294,11 @@ function MessageViewer({
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-5">
+      <div className="flex-1 overflow-y-auto px-5 py-5 bg-white">
         {msg.htmlBody ? (
           <iframe
             srcDoc={msg.htmlBody}
-            className="w-full h-full border-0 bg-white"
+            className="w-full h-full border-0"
             sandbox="allow-same-origin"
             title="Email content"
           />
@@ -286,13 +316,13 @@ function MessageViewer({
 }
 
 function MessageListPane({
-  provider,
-  box,
-  selectedId,
-  onSelect,
-  unreadOnly,
-  searchQuery,
-}: {
+                           provider,
+                           box,
+                           selectedId,
+                           onSelect,
+                           unreadOnly,
+                           searchQuery,
+                         }: {
   provider: string | null;
   box: string;
   selectedId: string | null;
@@ -347,14 +377,18 @@ function MessageListPane({
 }
 
 function EmailBrowserPane({
-  provider,
-  availableProviders,
-  providersLoading,
-  selectedMessageId,
-  onSelectMessage,
-  onProviderChange,
-  onSendToAgent,
-}: {
+                            provider,
+                            availableProviders,
+                            providersLoading,
+                            selectedMessageId,
+                            onSelectMessage,
+                            onProviderChange,
+                            onSendToAgent,
+                            agentId,
+                            startingAgent,
+                            agentError,
+                            onStartAgent,
+                          }: {
   provider: string | null;
   availableProviders: string[];
   providersLoading: boolean;
@@ -362,6 +396,10 @@ function EmailBrowserPane({
   onSelectMessage: (id: string | null) => void;
   onProviderChange: (p: string) => void | Promise<void>;
   onSendToAgent: (message: string) => void | Promise<void>;
+  agentId: string | null;
+  startingAgent: boolean;
+  agentError: string | null;
+  onStartAgent: () => Promise<void>;
 }) {
   const [selectedFolder, setSelectedFolder] = useState('inbox');
   const [searchInput, setSearchInput] = useState('');
@@ -381,9 +419,6 @@ function EmailBrowserPane({
     if (boxes.some(box => box.id === selectedFolder)) return;
     setSelectedFolder(boxes.find(box => box.id === 'inbox')?.id ?? boxes[0].id);
   }, [boxes, selectedFolder]);
-
-  const currentFolder = boxes.find(box => box.id === selectedFolder) ?? {id: selectedFolder, name: selectedFolder};
-  const {icon: FolderIcon, color: folderColor, label: folderLabel} = getBoxPresentation(currentFolder);
 
   const handleFolderSelect = (id: string) => {
     setSelectedFolder(id);
@@ -432,19 +467,54 @@ function EmailBrowserPane({
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <div className="shrink-0 h-10 border-b border-primary bg-secondary flex items-center gap-2 px-3">
-        <FolderIcon className={cn('w-4 h-4 shrink-0', folderColor)} />
-        <span className="text-sm font-medium text-primary">{folderLabel}</span>
-        <div className="flex-1"/>
+      {/* ── Title bar: mailbox dropdown + search + controls ── */}
+      <div className="shrink-0 h-11 border-b border-primary bg-secondary flex items-center gap-2 px-3">
+        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-sm shrink-0">
+          <Mail className="w-4 h-4 text-white" />
+        </div>
+
+        <MailboxDropdown
+          boxes={boxes}
+          selected={selectedFolder}
+          onSelect={handleFolderSelect}
+        />
+
+        {/* Search */}
+        <form onSubmit={handleSearch} className="flex-1 flex items-center gap-1.5 min-w-0 ml-2">
+          <div className="relative flex-1 min-w-0">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search emails…"
+              value={searchInput}
+              onChange={e => setSearchInput(e.target.value)}
+              className="w-full bg-input border border-primary rounded-lg py-1.5 pl-8 pr-3 text-xs text-primary placeholder-muted focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all"
+            />
+          </div>
+          {activeSearch && (
+            <button
+              type="button"
+              onClick={() => {
+                setActiveSearch(null);
+                setSearchInput('');
+              }}
+              className="px-2 text-2xs text-muted hover:text-primary transition-colors cursor-pointer shrink-0"
+            >
+              Clear
+            </button>
+          )}
+        </form>
+
         <button
           onClick={() => setUnreadOnly(v => !v)}
           className={cn(
-            'text-2xs px-2 py-1 rounded-md border transition-all focus-ring cursor-pointer',
+            'text-2xs px-2 py-1 rounded-md border transition-all focus-ring cursor-pointer shrink-0',
             unreadOnly ? 'bg-blue-500/10 border-blue-500/30 text-blue-500' : 'bg-secondary border-primary text-muted hover:text-primary',
           )}
         >
           Unread
         </button>
+
         <ProviderSelector
           provider={provider}
           availableProviders={availableProviders}
@@ -453,79 +523,78 @@ function EmailBrowserPane({
         />
       </div>
 
-      <form onSubmit={handleSearch} className="shrink-0 px-3 py-2 border-b border-primary bg-secondary flex gap-2">
-        <input
-          type="text"
-          placeholder="Search emails…"
-          value={searchInput}
-          onChange={e => setSearchInput(e.target.value)}
-          className="flex-1 bg-input border border-primary rounded-lg py-1 px-3 text-xs text-primary placeholder-muted focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all"
-        />
-        {activeSearch && (
-          <button
-            type="button"
-            onClick={() => {
-              setActiveSearch(null);
-              setSearchInput('');
-            }}
-            className="px-2 text-2xs text-muted hover:text-primary transition-colors cursor-pointer"
-          >
-            Clear
-          </button>
-        )}
-        <button
-          type="submit"
-          className="p-1.5 text-muted hover:text-primary transition-colors focus-ring rounded-md cursor-pointer"
-          title="Search"
+      {/* ── Main content: message list (left) | preview + agent (right) ── */}
+      <div className="flex-1 min-h-0">
+        <ResizableSplit
+          direction="horizontal"
+          initialRatio={0.3}
+          minFirst={200}
+          minSecond={300}
+          className="h-full"
         >
-          <Search className="w-3.5 h-3.5"/>
-        </button>
-      </form>
-
-      <div className="flex flex-1 min-h-0">
-        <FolderSidebar boxes={boxes} selected={selectedFolder} onSelect={handleFolderSelect} />
-
-        <div className="w-64 shrink-0 border-r border-primary flex flex-col min-h-0 bg-primary">
-          <MessageListPane
-            provider={provider}
-            box={selectedFolder}
-            selectedId={selectedMessageId}
-            onSelect={id => onSelectMessage(id)}
-            unreadOnly={unreadOnly}
-            searchQuery={activeSearch}
-          />
-        </div>
-
-        <div className="flex-1 min-w-0 overflow-hidden bg-primary">
-          {selectedMessageId ? (
-            <MessageViewer
+          {/* Left: Message list */}
+          <div className="h-full flex flex-col min-h-0 bg-primary">
+            <MessageListPane
               provider={provider}
-              messageId={selectedMessageId}
-              onReply={onSendToAgent}
+              box={selectedFolder}
+              selectedId={selectedMessageId}
+              onSelect={id => onSelectMessage(id)}
+              unreadOnly={unreadOnly}
+              searchQuery={activeSearch}
             />
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center text-muted">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg">
-                <Mail className="w-7 h-7 text-white"/>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-primary">No message selected</p>
-                <p className="text-xs mt-1 max-w-xs">Select a message from the list, or start the email agent below when you want drafting and AI actions.</p>
-              </div>
+          </div>
+
+          {/* Right: Preview (top) + Agent (bottom) */}
+          <ResizableSplit
+            direction="vertical"
+            initialRatio={0.70}
+            minFirst={250}
+            minSecond={100}
+            className="h-full"
+          >
+            {/* Email preview */}
+            <div className="h-full overflow-hidden bg-primary">
+              {selectedMessageId ? (
+                <MessageViewer
+                  provider={provider}
+                  messageId={selectedMessageId}
+                  onReply={onSendToAgent}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center text-muted">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg">
+                    <Mail className="w-7 h-7 text-white"/>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-primary">No message selected</p>
+                    <p className="text-xs mt-1 max-w-xs">Select a message from the list to preview it here.</p>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+
+            {/* AI Agent pane */}
+            <div className="h-full overflow-hidden bg-primary">
+              <EmailAgentPane
+                agentId={agentId}
+                startingAgent={startingAgent}
+                agentError={agentError}
+                onStart={onStartAgent}
+              />
+            </div>
+          </ResizableSplit>
+        </ResizableSplit>
       </div>
     </div>
   );
 }
 
 function EmailAgentPane({
-  agentId,
-  startingAgent,
-  agentError,
-  onStart,
-}: {
+                          agentId,
+                          startingAgent,
+                          agentError,
+                          onStart,
+                        }: {
   agentId: string | null;
   startingAgent: boolean;
   agentError: string | null;
@@ -653,52 +722,24 @@ export default function EmailApp() {
 
   return (
     <div className="w-full h-full flex flex-col overflow-hidden bg-primary">
-      <div className="shrink-0 border-b border-primary bg-secondary px-4 py-3 flex items-center gap-3">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-sm">
-          <Mail className="w-4 h-4 text-white" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-sm font-semibold text-primary">Email</h1>
-          <p className="text-2xs text-muted">Read, compose, and manage emails with AI</p>
-        </div>
-        <button
-          onClick={() => void ensureAgent()}
-          disabled={startingAgent}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer disabled:opacity-50 focus-ring shadow-button-primary"
-        >
-          {startingAgent ? <Loader2 className="w-3.5 h-3.5 animate-spin"/> : <FileText className="w-3.5 h-3.5"/>}
-          Compose With AI
-        </button>
-      </div>
-
-      <ResizableSplit
-        direction="vertical"
-        initialRatio={0.6}
-        minFirst={200}
-        minSecond={160}
-        className="flex-1 min-h-0"
-      >
-        <EmailBrowserPane
-          provider={provider}
-          availableProviders={providers.data?.providers ?? []}
-          providersLoading={providers.isLoading}
-          selectedMessageId={selectedMessageId}
-          onSelectMessage={setSelectedMessageId}
-          onProviderChange={async p => {
-            setProvider(p);
-            setSelectedMessageId(null);
-          }}
-          onSendToAgent={handleSendToAgent}
-        />
-        <EmailAgentPane
-          agentId={agentId}
-          startingAgent={startingAgent}
-          agentError={agentError}
-          onStart={async () => {
-            await ensureAgent();
-          }}
-        />
-      </ResizableSplit>
+      <EmailBrowserPane
+        provider={provider}
+        availableProviders={providers.data?.providers ?? []}
+        providersLoading={providers.isLoading}
+        selectedMessageId={selectedMessageId}
+        onSelectMessage={setSelectedMessageId}
+        onProviderChange={async p => {
+          setProvider(p);
+          setSelectedMessageId(null);
+        }}
+        onSendToAgent={handleSendToAgent}
+        agentId={agentId}
+        startingAgent={startingAgent}
+        agentError={agentError}
+        onStartAgent={async () => {
+          await ensureAgent();
+        }}
+      />
     </div>
   );
 }

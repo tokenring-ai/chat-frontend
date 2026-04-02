@@ -1,6 +1,6 @@
 import React, {useCallback, useRef, useState} from 'react';
 
-const HANDLE_PX = 6;
+const HANDLE_PX = 8;
 
 interface ResizableSplitProps {
   /** Split orientation: 'vertical' = top/bottom panes, 'horizontal' = left/right panes */
@@ -22,13 +22,13 @@ interface ResizableSplitProps {
  * size along the split axis (e.g. `flex-1 min-h-0` for a vertical split).
  */
 export default function ResizableSplit({
-  direction = 'vertical',
-  initialRatio = 0.5,
-  minFirst = 80,
-  minSecond = 80,
-  children,
-  className = '',
-}: ResizableSplitProps) {
+                                         direction = 'vertical',
+                                         initialRatio = 0.5,
+                                         minFirst = 80,
+                                         minSecond = 80,
+                                         children,
+                                         className = '',
+                                       }: ResizableSplitProps) {
   const [ratio, setRatio] = useState(
     Math.max(0.05, Math.min(0.95, initialRatio)),
   );
@@ -95,8 +95,8 @@ export default function ResizableSplit({
     'group shrink-0 relative flex items-center justify-center select-none transition-colors',
     isVertical ? 'w-full cursor-row-resize' : 'h-full cursor-col-resize',
     dragging
-      ? 'bg-indigo-500/20'
-      : 'bg-primary hover:bg-indigo-500/10',
+      ? 'bg-indigo-500/25'
+      : 'bg-secondary hover:bg-indigo-500/15',
   ].join(' ');
 
   const handleSizeStyle: React.CSSProperties = isVertical
@@ -137,17 +137,33 @@ export default function ResizableSplit({
           }
         }}
       >
+        {/* Visible border lines on each edge */}
+        <div
+          className={[
+            'absolute',
+            isVertical ? 'top-0 left-0 right-0 h-px' : 'left-0 top-0 bottom-0 w-px',
+            'bg-border',
+          ].join(' ')}
+        />
+        <div
+          className={[
+            'absolute',
+            isVertical ? 'bottom-0 left-0 right-0 h-px' : 'right-0 top-0 bottom-0 w-px',
+            'bg-border',
+          ].join(' ')}
+        />
+
         {/* Grip indicator */}
         <div className={gripDotsClass}>
-          {[0, 1, 2].map(i => (
+          {[0, 1, 2, 3, 4].map(i => (
             <div
               key={i}
               className={[
                 'rounded-full transition-colors',
-                isVertical ? 'w-4 h-0.5' : 'w-0.5 h-4',
+                isVertical ? 'w-5 h-[3px]' : 'w-[3px] h-5',
                 dragging
                   ? 'bg-indigo-400'
-                  : 'bg-muted/40 group-hover:bg-indigo-400/60',
+                  : 'bg-muted/50 group-hover:bg-indigo-400/70',
               ].join(' ')}
             />
           ))}
