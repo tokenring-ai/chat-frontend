@@ -32,7 +32,7 @@ import {
   useDirectoryListing,
   useFileContents,
   useFilesystemProviders,
-  useFilesystemState,
+
 } from '../../rpc.ts';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -93,11 +93,10 @@ function useInitAgent() {
 
 interface AgentLaunchPanelProps {
   selectedPaths: Set<string>;
-  agentId: string;
   onClear: () => void;
 }
 
-function AgentLaunchPanel({ selectedPaths, agentId, onClear }: AgentLaunchPanelProps) {
+function AgentLaunchPanel({ selectedPaths, onClear }: AgentLaunchPanelProps) {
   const navigate = useNavigate();
   const agentTypes = useAgentTypes();
   const [chosenType, setChosenType] = useState('');
@@ -410,6 +409,7 @@ function FileListPane({
 interface PreviewMetadataPaneProps {
   agentId: string;
   file: string | null;
+  provider: string | null;
   selectedPaths: Set<string>;
   onToggleSelected: (f: string) => void;
   onClose: () => void;
@@ -420,6 +420,7 @@ interface PreviewMetadataPaneProps {
 
 function PreviewMetadataPane({
   file,
+  provider,
   selectedPaths,
   onToggleSelected,
   onClose,
@@ -427,6 +428,7 @@ function PreviewMetadataPane({
   saving,
   onSave,
 }: PreviewMetadataPaneProps) {
+  const navigate = useNavigate();
   if (!file) {
     return (
       <div className="h-full bg-tertiary flex flex-col items-center justify-center text-center p-8">
@@ -469,6 +471,33 @@ function PreviewMetadataPane({
         >
           {isChecked ? <><Check className="w-3.5 h-3.5" /> Selected for launch</> : <><Plus className="w-3.5 h-3.5" /> Select for launch</>}
         </button>
+        {/\.md$/i.test(file) && provider && (
+          <button
+            onClick={async () => {
+              try {
+                const result = await filesystemRPCClient.readTextFile({path: file, provider});
+                const title = getBasename(file).replace(/\.md$/i, '');
+                navigate('/documents', {state: {filePath: file, fileContent: result.content ?? '', title, provider}});
+              } catch { toastManager.error('Could not read file', {duration: 3000}); }
+            }}
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-primary text-xs font-medium text-muted hover:text-primary hover:bg-hover transition-all focus-ring cursor-pointer"
+          >
+            <FileText className="w-3.5 h-3.5" /> Open in Documents
+          </button>
+        )}
+        {/\.html?$/i.test(file) && provider && (
+          <button
+            onClick={async () => {
+              try {
+                const result = await filesystemRPCClient.readTextFile({path: file, provider});
+                navigate('/canvas', {state: {filePath: file, fileContent: result.content ?? '', provider}});
+              } catch { toastManager.error('Could not read file', {duration: 3000}); }
+            }}
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-primary text-xs font-medium text-muted hover:text-primary hover:bg-hover transition-all focus-ring cursor-pointer"
+          >
+            <Code className="w-3.5 h-3.5" /> Open in Canvas
+          </button>
+        )}
         {isDirty && (
           <button
             onClick={onSave}
@@ -735,6 +764,7 @@ export default function FilesApp() {
           <PreviewMetadataPane
             agentId={agentId}
             file={selectedFile}
+            provider={provider}
             selectedPaths={selectedPaths}
             onToggleSelected={toggleSelected}
             onClose={() => setSelectedFile(null)}
@@ -756,7 +786,6 @@ export default function FilesApp() {
       {selectedPaths.size > 0 && (
         <AgentLaunchPanel
           selectedPaths={selectedPaths}
-          agentId={agentId}
           onClear={() => setSelectedPaths(new Set())}
         />
       )}

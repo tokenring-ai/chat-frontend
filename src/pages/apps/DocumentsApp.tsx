@@ -1,10 +1,11 @@
-import {Bot, Check, ChevronRight, Eye, FileText, Loader2, Sparkles, X} from 'lucide-react';
+import {Bot, Check, ChevronRight, Eye, FileText, Loader2, Save, Sparkles, X} from 'lucide-react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import {useLocation} from 'react-router-dom';
 import {toastManager} from '../../components/ui/toast.tsx';
 import {cn} from '../../lib/utils.ts';
-import {agentRPCClient} from '../../rpc.ts';
+import {agentRPCClient, filesystemRPCClient, useFilesystemProviders} from '../../rpc.ts';
 
 // ─── Initial content ──────────────────────────────────────────────────────────
 
@@ -325,9 +326,97 @@ function AIEditPanel({
   );
 }
 
+// ─── SaveAsModal ──────────────────────────────────────────────────────────────
+
+interface SaveAsModalProps {
+  providers: string[];
+  initialPath: string;
+  onSave: (path: string, provider: string) => Promise<void>;
+  onClose: () => void;
+}
+
+function SaveAsModal({providers, initialPath, onSave, onClose}: SaveAsModalProps) {
+  const [path, setPath] = useState(initialPath);
+  const [provider, setProvider] = useState(providers[0] ?? '');
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
+
+  const handleSubmit = async () => {
+    if (!path.trim() || !provider) return;
+    setSaving(true);
+    try { await onSave(path.trim(), provider); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-secondary border border-primary rounded-xl p-5 w-96 shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold text-primary">Save As</h2>
+          <button onClick={onClose} className="p-1 text-muted hover:text-primary focus-ring rounded cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="space-y-3">
+          {providers.length > 1 && (
+            <div className="space-y-1">
+              <label className="text-2xs font-semibold text-muted uppercase tracking-wide">Location</label>
+              <select
+                value={provider}
+                onChange={e => setProvider(e.target.value)}
+                className="w-full bg-input border border-primary rounded-lg px-3 py-2 text-xs text-primary focus-ring"
+              >
+                {providers.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+          )}
+          <div className="space-y-1">
+            <label className="text-2xs font-semibold text-muted uppercase tracking-wide">File path</label>
+            <input
+              ref={inputRef}
+              type="text"
+              value={path}
+              onChange={e => setPath(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && !saving) handleSubmit();
+                if (e.key === 'Escape') onClose();
+              }}
+              placeholder="documents/my-file.md"
+              className="w-full bg-input border border-primary rounded-lg px-3 py-2 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20"
+            />
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={onClose}
+              className="flex-1 py-2 border border-primary text-muted hover:text-primary hover:bg-hover text-xs font-medium rounded-lg transition-colors focus-ring cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={!path.trim() || !provider || saving}
+              className="flex-1 flex items-center justify-center gap-2 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg transition-colors focus-ring cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── DocumentsApp ─────────────────────────────────────────────────────────────
 
 export default function DocumentsApp() {
+  const location = useLocation();
+  const fsProviders = useFilesystemProviders();
   const {agentId, initialising} = useInitAgent();
   const {loading: aiLoading, response: aiResponse, sendEdit, cancel: cancelAI, clear: clearAI} = useAIEdit(agentId);
 
@@ -336,6 +425,65 @@ export default function DocumentsApp() {
   const [selection, setSelection] = useState<TextSelection | null>(null);
   const [rightPanel, setRightPanel] = useState<RightPanel>('preview');
   const [aiPrompt, setAiPrompt] = useState('');
+
+  // Save state
+  const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
+  const [currentProvider, setCurrentProvider] = useState<string | null>(null);
+  const [savedContent, setSavedContent] = useState(INITIAL_CONTENT);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSaveAs, setShowSaveAs] = useState(false);
+
+  const isDirty = content !== savedContent;
+  const providers = fsProviders.data?.providers ?? [];
+
+  // Load file from FilesApp navigation state
+  useEffect(() => {
+    const state = location.state as {filePath?: string; fileContent?: string; title?: string; provider?: string} | null;
+    if (state?.fileContent !== undefined) {
+      setContent(state.fileContent);
+      setSavedContent(state.fileContent);
+      if (state.filePath) setCurrentFilePath(state.filePath);
+      if (state.provider) setCurrentProvider(state.provider);
+      if (state.title) setTitle(state.title);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSave = useCallback(async () => {
+    if (!currentFilePath || !currentProvider) { setShowSaveAs(true); return; }
+    setIsSaving(true);
+    try {
+      await filesystemRPCClient.writeFile({path: currentFilePath, content, provider: currentProvider});
+      setSavedContent(content);
+      toastManager.success('Saved', {duration: 2000});
+    } catch (e: any) {
+      toastManager.error(e.message || 'Save failed', {duration: 4000});
+    } finally {
+      setIsSaving(false);
+    }
+  }, [currentFilePath, currentProvider, content]);
+
+  const handleSaveAs = useCallback(async (path: string, provider: string) => {
+    await filesystemRPCClient.writeFile({path, content, provider});
+    setCurrentFilePath(path);
+    setCurrentProvider(provider);
+    setSavedContent(content);
+    setShowSaveAs(false);
+    const name = path.split('/').pop() || path;
+    setTitle(name.replace(/\.md$/i, ''));
+    toastManager.success('Saved', {duration: 2000});
+  }, [content]);
+
+  // Ctrl/Cmd+S shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [handleSave]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -397,6 +545,14 @@ export default function DocumentsApp() {
 
   return (
     <div className="w-full h-full flex flex-col bg-primary overflow-hidden">
+      {showSaveAs && (
+        <SaveAsModal
+          providers={providers}
+          initialPath={currentFilePath ?? `${title.toLowerCase().replace(/\s+/g, '-')}.md`}
+          onSave={handleSaveAs}
+          onClose={() => setShowSaveAs(false)}
+        />
+      )}
 
       {/* App header */}
       <div className="shrink-0 border-b border-primary bg-secondary px-4 py-2.5 flex items-center gap-3">
@@ -413,6 +569,29 @@ export default function DocumentsApp() {
           placeholder="Document title…"
           aria-label="Document title"
         />
+
+        {/* Save controls */}
+        <div className="flex items-center gap-1 shrink-0">
+          {isDirty && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" title="Unsaved changes" />}
+          <button
+            onClick={handleSave}
+            disabled={isSaving || !isDirty}
+            title={currentFilePath ? `Save (Ctrl/⌘+S)` : 'Save As…'}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-muted hover:text-primary hover:bg-hover rounded-lg transition-colors focus-ring cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            {currentFilePath ? 'Save' : 'Save As…'}
+          </button>
+          {currentFilePath && (
+            <button
+              onClick={() => setShowSaveAs(true)}
+              title="Save As…"
+              className="px-2 py-1.5 text-xs text-muted hover:text-primary hover:bg-hover rounded-lg transition-colors focus-ring cursor-pointer"
+            >
+              Save As…
+            </button>
+          )}
+        </div>
 
         {/* Panel toggle */}
         <div className="flex rounded-lg border border-primary overflow-hidden shrink-0">

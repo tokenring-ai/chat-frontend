@@ -1,7 +1,10 @@
-import type {BlogPost} from "@tokenring-ai/blog/BlogProvider";
+import type {BlogPost, BlogPostListItem} from "@tokenring-ai/blog/BlogProvider";
 import {BookOpen, Calendar, ChevronDown, ExternalLink, FilePlus, Globe, Image, Loader2, Pencil, RefreshCw, Tag, WifiOff,} from 'lucide-react';
 import {useEffect, useMemo, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
+import AgentLauncherBar from '../../components/AgentLauncherBar.tsx';
+import ChatPanel from '../../components/chat/ChatPanel.tsx';
+import FilterTabs, {type FilterTabOption} from '../../components/ui/FilterTabs.tsx';
+import ResizableSplit from '../../components/ui/ResizableSplit.tsx';
 import {toastManager} from '../../components/ui/toast.tsx';
 import {agentRPCClient, blogRPCClient, useBlogPost, useBlogPosts, useBlogState} from '../../rpc.ts';
 
@@ -35,70 +38,85 @@ function StatusBadge({status}: { status: PostStatus }) {
   );
 }
 
-// ─── Provider selector ────────────────────────────────────────────────────────
+// ─── Blog selector ────────────────────────────────────────────────────────────
 
-function ProviderSelector({
-                            agentId,
-                            provider,
-                            availableProviders,
-                            onProviderChange,
-                          }: {
-  agentId: string;
+function BlogSelector({
+                        agentId,
+                        provider,
+                        availableProviders,
+                        onProviderChange,
+                      }: {
+  agentId: string | null;
   provider: string | null;
   availableProviders: string[];
   onProviderChange: (p: string) => void;
 }) {
-  const [changing, setChanging] = useState(false);
   const [open, setOpen] = useState(false);
-
-  if (availableProviders.length === 0) {
-    return (
-      <span className="text-2xs text-muted flex items-center gap-1">
-        <WifiOff className="w-3 h-3"/> No providers configured
-      </span>
-    );
-  }
+  const [switching, setSwitching] = useState(false);
 
   const switchProvider = async (name: string) => {
-    setChanging(true);
     setOpen(false);
+    if (!agentId || name === provider) return;
+    setSwitching(true);
     try {
       await blogRPCClient.updateBlogState({agentId, selectedProvider: name});
       onProviderChange(name);
     } catch (err: any) {
-      toastManager.error(err.message || 'Failed to switch provider', {duration: 4000});
+      toastManager.error(err.message || 'Failed to switch blog', {duration: 4000});
     } finally {
-      setChanging(false);
+      setSwitching(false);
     }
   };
+
+  const label = provider ?? 'No blog selected';
+
+  if (!agentId || availableProviders.length === 0) {
+    return (
+      <span className="flex items-center gap-2 px-2.5 py-1.5 text-sm font-medium text-muted">
+        {switching ? <Loader2 className="w-4 h-4 animate-spin"/> : <BookOpen className="w-4 h-4 shrink-0"/>}
+        {label}
+      </span>
+    );
+  }
 
   return (
     <div className="relative">
       <button
         onClick={() => setOpen(o => !o)}
-        disabled={changing}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-secondary border border-primary rounded-lg text-xs text-muted hover:text-primary hover:border-indigo-500/40 transition-all focus-ring cursor-pointer disabled:opacity-50"
+        disabled={switching}
+        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg hover:bg-hover transition-colors focus-ring cursor-pointer disabled:opacity-50"
       >
-        <Globe className="w-3 h-3"/>
-        <span className="font-medium text-primary max-w-32 truncate">{provider ?? 'No provider'}</span>
-        {changing ? <Loader2 className="w-3 h-3 animate-spin"/> : <ChevronDown className="w-3 h-3"/>}
+        <BookOpen className="w-4 h-4 shrink-0 text-rose-400"/>
+        <span className="text-sm font-medium text-primary">{label}</span>
+        {switching
+          ? <Loader2 className="w-3.5 h-3.5 text-muted animate-spin"/>
+          : <ChevronDown className={`w-3.5 h-3.5 text-muted transition-transform ${open ? 'rotate-180' : ''}`}/>
+        }
       </button>
       {open && (
-        <div className="absolute top-full right-0 mt-1 w-48 bg-secondary border border-primary rounded-xl shadow-card z-50 overflow-hidden">
-          <div className="px-3 py-2 border-b border-primary">
-            <p className="text-2xs font-semibold text-muted uppercase tracking-wider">Switch Provider</p>
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)}/>
+          <div className="absolute top-full left-0 mt-1 w-56 bg-secondary border border-primary rounded-xl shadow-card z-50 overflow-hidden">
+            <div className="px-3 py-2 border-b border-primary">
+              <p className="text-2xs font-semibold text-muted uppercase tracking-wider">Select Blog</p>
+            </div>
+            <nav className="py-1">
+              {availableProviders.map(p => (
+                <button
+                  key={p}
+                  onClick={() => void switchProvider(p)}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-xs hover:bg-hover transition-colors cursor-pointer text-left focus-ring ${
+                    p === provider ? 'text-primary font-medium bg-active' : 'text-muted hover:text-primary'
+                  }`}
+                >
+                  <BookOpen className={`w-4 h-4 shrink-0 ${p === provider ? 'text-rose-400' : 'text-muted'}`}/>
+                  {p}
+                  {p === provider && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"/>}
+                </button>
+              ))}
+            </nav>
           </div>
-          {availableProviders.map(p => (
-            <button
-              key={p}
-              onClick={() => switchProvider(p)}
-              className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs hover:bg-hover transition-colors cursor-pointer text-left focus-ring ${p === provider ? 'text-indigo-500 font-medium' : 'text-primary'}`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${p === provider ? 'bg-indigo-500' : 'bg-transparent'}`}/>
-              {p}
-            </button>
-          ))}
-        </div>
+        </>
       )}
     </div>
   );
@@ -106,7 +124,7 @@ function ProviderSelector({
 
 // ─── Post list item ───────────────────────────────────────────────────────────
 
-function PostListItem({post, selected, onClick}: { post: BlogPost; selected: boolean; onClick: () => void }) {
+function PostListItem({post, selected, onClick}: { post: BlogPostListItem; selected: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
@@ -141,14 +159,12 @@ function PostListItem({post, selected, onClick}: { post: BlogPost; selected: boo
 function PostViewer({
                       post,
                       provider,
-                      agentId,
-                      onStartAgent,
+                      onWorkOnPost,
                       onRefresh,
                     }: {
   post: BlogPost;
   provider: string;
-  agentId: string;
-  onStartAgent: (postId?: string) => Promise<void>;
+  onWorkOnPost: (postId: string) => Promise<void>;
   onRefresh: () => void;
 }) {
   const [starting, setStarting] = useState(false);
@@ -157,7 +173,7 @@ function PostViewer({
   const handleWorkOnPost = async () => {
     setStarting(true);
     try {
-      await onStartAgent(post.id);
+      await onWorkOnPost(post.id);
     } finally {
       setStarting(false);
     }
@@ -271,11 +287,186 @@ function PostViewer({
   );
 }
 
+// ─── Post list sidebar ────────────────────────────────────────────────────────
+
+const FILTERS: FilterTabOption<StatusFilter>[] = [
+  {id: 'all', label: 'All'},
+  {id: 'draft', label: 'Drafts'},
+  {id: 'published', label: 'Published'},
+];
+
+function PostListSidebar({
+                           filteredPosts,
+                           postsData,
+                           statusFilter,
+                           postCounts,
+                           selectedPostId,
+                           search,
+                           launchingNew,
+                           provider,
+                           onStatusFilter,
+                           onSearch,
+                           onSelectPost,
+                           onNewPost,
+                           onRefresh,
+                         }: {
+  filteredPosts: BlogPostListItem[];
+  postsData: { count: number; posts: BlogPostListItem[] } | undefined;
+  statusFilter: StatusFilter;
+  postCounts: Record<StatusFilter, number>;
+  selectedPostId: string | null;
+  search: string;
+  launchingNew: boolean;
+  provider: string | null;
+  onStatusFilter: (f: StatusFilter) => void;
+  onSearch: (q: string) => void;
+  onSelectPost: (id: string) => void;
+  onNewPost: () => void;
+  onRefresh: () => void;
+}) {
+  return (
+    <>
+      <FilterTabs
+        tabs={FILTERS.map(tab => ({...tab, count: postCounts[tab.id]}))}
+        value={statusFilter}
+        onChange={onStatusFilter}
+      />
+
+      <div className="px-3 py-2 border-b border-primary shrink-0">
+        <input
+          type="text"
+          placeholder="Search posts..."
+          value={search}
+          onChange={e => onSearch(e.target.value)}
+          className="w-full bg-input border border-primary rounded-lg py-1.5 px-3 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+        />
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {!provider || !postsData ? (
+          <div className="flex justify-center py-10">
+            <Loader2 className="w-5 h-5 text-muted animate-spin"/>
+          </div>
+        ) : filteredPosts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10 gap-3 text-center px-4">
+            <Image className="w-8 h-8 text-muted opacity-30"/>
+            <p className="text-sm text-muted">
+              {search ? `No posts matching "${search}"` : 'No posts found'}
+            </p>
+            {!search && (
+              <button
+                onClick={onNewPost}
+                disabled={launchingNew}
+                className="text-xs text-indigo-500 hover:text-indigo-400 cursor-pointer transition-colors"
+              >
+                Create your first post →
+              </button>
+            )}
+          </div>
+        ) : (
+          filteredPosts.map(post => (
+            <PostListItem
+              key={post.id}
+              post={post}
+              selected={post.id === selectedPostId}
+              onClick={() => onSelectPost(post.id)}
+            />
+          ))
+        )}
+      </div>
+
+      {postsData && (
+        <div className="shrink-0 border-t border-primary px-3 py-2 flex items-center justify-between">
+          <span className="text-2xs text-muted">{filteredPosts.length} of {postsData.count} posts</span>
+          <button
+            onClick={onRefresh}
+            className="p-1 text-muted hover:text-primary transition-colors cursor-pointer rounded focus-ring"
+            title="Refresh"
+          >
+            <RefreshCw className="w-3 h-3"/>
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ─── Post viewer area ─────────────────────────────────────────────────────────
+
+function PostViewerArea({
+                          agentId,
+                          provider,
+                          selectedPost,
+                          launchingNew,
+                          onWorkOnPost,
+                          onRefresh,
+                          onNewPost,
+                        }: {
+  agentId: string | null;
+  provider: string | null;
+  selectedPost: BlogPost | null;
+  launchingNew: boolean;
+  onWorkOnPost: (postId: string) => Promise<void>;
+  onRefresh: () => void;
+  onNewPost: () => void;
+}) {
+  if (!agentId) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-3 text-muted">
+        <Loader2 className="w-6 h-6 animate-spin"/>
+        <span className="text-sm">Connecting to blog service...</span>
+      </div>
+    );
+  }
+  if (!provider) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
+        <WifiOff className="w-10 h-10 text-muted opacity-30"/>
+        <div>
+          <h2 className="text-base font-semibold text-primary mb-1">No provider selected</h2>
+          <p className="text-sm text-muted max-w-xs">Select a blog provider from the dropdown to get started.</p>
+        </div>
+      </div>
+    );
+  }
+  if (selectedPost) {
+    return (
+      <PostViewer
+        post={selectedPost}
+        provider={provider}
+        onWorkOnPost={onWorkOnPost}
+        onRefresh={onRefresh}
+      />
+    );
+  }
+  return (
+    <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
+      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg">
+        <BookOpen className="w-8 h-8 text-white"/>
+      </div>
+      <div>
+        <h2 className="text-base font-semibold text-primary mb-1">No post selected</h2>
+        <p className="text-sm text-muted max-w-xs">Select a post from the list to view and edit it, or create a new one with an AI agent.</p>
+      </div>
+      <button
+        onClick={onNewPost}
+        disabled={launchingNew}
+        className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer disabled:opacity-50 focus-ring shadow-button-primary"
+      >
+        {launchingNew
+          ? <><Loader2 className="w-4 h-4 animate-spin"/> Starting...</>
+          : <><FilePlus className="w-4 h-4"/> New post with agent</>
+        }
+      </button>
+    </div>
+  );
+}
+
 // ─── Main BlogApp ─────────────────────────────────────────────────────────────
 
 export default function BlogApp() {
-  const navigate = useNavigate();
   const [agentId, setAgentId] = useState<string | null>(null);
+  const [chatAgentId, setChatAgentId] = useState<string | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
   const [provider, setProvider] = useState<string | null>(null);
   const [availableProviders, setAvailableProviders] = useState<string[]>([]);
@@ -340,7 +531,7 @@ export default function BlogApp() {
   }, [agentId]);
 
   const filteredPosts = useMemo(() => {
-    const all = (posts.data?.posts ?? []) as BlogPost[];
+    const all = (posts.data?.posts ?? []) as BlogPostListItem[];
     if (!search.trim()) return all;
     const q = search.toLowerCase();
     return all.filter(p =>
@@ -349,7 +540,19 @@ export default function BlogApp() {
     );
   }, [posts.data, search]);
 
-  const startAgent = async (postId?: string) => {
+  const launchChatAgent = async (agentType: string, postId?: string) => {
+    const {id} = await agentRPCClient.createAgent({agentType, headless: false});
+    if (postId && provider) {
+      try {
+        await blogRPCClient.updateBlogState({agentId: id, selectedPostId: postId, selectedProvider: provider});
+      } catch {
+        // Non-fatal
+      }
+    }
+    setChatAgentId(id);
+  };
+
+  const handleWorkOnPost = async (postId: string) => {
     const types = await agentRPCClient.getAgentTypes({});
     const preferred =
       types.find(t => ['blog', 'writer', 'contentWriter', 'content-writer', 'managingEditor'].includes(t.type)) ??
@@ -358,23 +561,13 @@ export default function BlogApp() {
       toastManager.error('No blog agent type available', {duration: 4000});
       return;
     }
-    const {id} = await agentRPCClient.createAgent({agentType: preferred.type, headless: false});
-
-    if (postId && provider) {
-      try {
-        await blogRPCClient.updateBlogState({agentId: id, selectedPostId: postId, selectedProvider: provider ?? undefined});
-      } catch {
-        // Non-fatal
-      }
-    }
-
-    navigate(`/agent/${id}`);
+    await launchChatAgent(preferred.type, postId);
   };
 
   const handleNewPost = async () => {
     setLaunchingNew(true);
     try {
-      await startAgent();
+      await handleWorkOnPost('');
     } catch (err: any) {
       toastManager.error(err.message || 'Failed to create agent', {duration: 5000});
     } finally {
@@ -398,14 +591,8 @@ export default function BlogApp() {
     );
   }
 
-  const FILTERS: { id: StatusFilter; label: string }[] = [
-    {id: 'all', label: 'All'},
-    {id: 'draft', label: 'Drafts'},
-    {id: 'published', label: 'Published'},
-  ];
-
   const postCounts = useMemo(() => {
-    const all = (posts.data?.posts ?? []) as BlogPost[];
+    const all = (posts.data?.posts ?? []) as BlogPostListItem[];
     return {
       all: all.length,
       draft: all.filter(p => p.status === 'draft').length,
@@ -416,168 +603,101 @@ export default function BlogApp() {
   return (
     <div className="w-full h-full flex flex-col bg-primary">
       {/* App header */}
-      <div className="shrink-0 border-b border-primary bg-secondary px-4 sm:px-6 py-3 flex items-center gap-3">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-sm">
+      <div className="shrink-0 h-11 border-b border-primary bg-secondary flex items-center gap-2 px-3">
+        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-sm shrink-0">
           <BookOpen className="w-4 h-4 text-white"/>
         </div>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-sm font-semibold text-primary">Blog</h1>
-          <p className="text-2xs text-muted">Manage posts across Ghost, WordPress, and more</p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {agentId && (
-            <ProviderSelector
-              agentId={agentId}
-              provider={provider}
-              availableProviders={availableProviders}
-              onProviderChange={p => {
-                setProvider(p);
-                posts.mutate();
-              }}
-            />
-          )}
-          <button
-            onClick={handleNewPost}
-            disabled={launchingNew || !agentId}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer disabled:opacity-50 focus-ring shadow-button-primary"
-          >
-            {launchingNew
-              ? <><Loader2 className="w-3.5 h-3.5 animate-spin"/> Starting...</>
-              : <><FilePlus className="w-3.5 h-3.5"/> New post</>
-            }
-          </button>
-        </div>
+
+        <BlogSelector
+          agentId={agentId}
+          provider={provider}
+          availableProviders={availableProviders}
+          onProviderChange={p => {
+            setProvider(p);
+            posts.mutate();
+          }}
+        />
+
+        <div className="flex-1"/>
+
+        <div className="w-px h-5 bg-primary/70 mx-0.5 shrink-0" aria-hidden="true"/>
+        <AgentLauncherBar
+          buttonLabel="New post"
+          buttonClassName="bg-indigo-600 hover:bg-indigo-500 text-white shadow-button-primary"
+          onLaunch={id => setChatAgentId(id)}
+        />
       </div>
 
-      {/* Body: split panel */}
-      <div className="flex flex-1 min-h-0">
-
-        {/* ── Left: Post list ── */}
-        <div className="w-72 shrink-0 border-r border-primary flex flex-col min-h-0 bg-secondary">
-          <div className="flex border-b border-primary shrink-0">
-            {FILTERS.map(f => (
-              <button
-                key={f.id}
-                onClick={() => setStatusFilter(f.id)}
-                className={`flex-1 flex items-center justify-center gap-1 py-2 text-xs font-medium border-b-2 transition-colors cursor-pointer focus-ring -mb-px ${
-                  statusFilter === f.id
-                    ? 'border-indigo-500 text-primary'
-                    : 'border-transparent text-muted hover:text-primary'
-                }`}
-              >
-                {f.label}
-                {postCounts[f.id] > 0 && (
-                  <span
-                    className={`text-2xs px-1.5 py-0.5 rounded-full font-mono ${statusFilter === f.id ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' : 'bg-tertiary text-muted'}`}>
-                    {postCounts[f.id]}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-
-          <div className="px-3 py-2 border-b border-primary shrink-0">
-            <input
-              type="text"
-              placeholder="Search posts..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full bg-input border border-primary rounded-lg py-1.5 px-3 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
-            />
-          </div>
-
-          <div className="flex-1 overflow-y-auto">
-            {!provider || posts.isLoading ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="w-5 h-5 text-muted animate-spin"/>
-              </div>
-            ) : filteredPosts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 gap-3 text-center px-4">
-                <Image className="w-8 h-8 text-muted opacity-30"/>
-                <p className="text-sm text-muted">
-                  {search ? `No posts matching "${search}"` : 'No posts found'}
-                </p>
-                {!search && (
-                  <button
-                    onClick={handleNewPost}
-                    disabled={launchingNew}
-                    className="text-xs text-indigo-500 hover:text-indigo-400 cursor-pointer transition-colors"
-                  >
-                    Create your first post →
-                  </button>
-                )}
-              </div>
-            ) : (
-              filteredPosts.map(post => (
-                <PostListItem
-                  key={post.id}
-                  post={post}
-                  selected={post.id === (selectedPost.data?.post.id ?? null)}
-                  onClick={() => setSelectedPostId(post.id)}
+      {/* Body */}
+      <div className="flex-1 min-h-0">
+        {chatAgentId ? (
+          <ResizableSplit direction="vertical" initialRatio={0.60} minFirst={200} minSecond={120} className="h-full">
+            <div className="flex h-full min-h-0">
+              <div className="w-72 shrink-0 border-r border-primary flex flex-col min-h-0 bg-secondary">
+                <PostListSidebar
+                  filteredPosts={filteredPosts}
+                  postsData={posts.data ?? undefined}
+                  statusFilter={statusFilter}
+                  postCounts={postCounts}
+                  selectedPostId={selectedPost.data?.post.id ?? null}
+                  search={search}
+                  launchingNew={launchingNew}
+                  provider={provider}
+                  onStatusFilter={setStatusFilter}
+                  onSearch={setSearch}
+                  onSelectPost={setSelectedPostId}
+                  onNewPost={handleNewPost}
+                  onRefresh={() => posts.mutate()}
                 />
-              ))
-            )}
+              </div>
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <PostViewerArea
+                  agentId={agentId}
+                  provider={provider}
+                  selectedPost={selectedPost.data?.post ?? null}
+                  onWorkOnPost={handleWorkOnPost}
+                  onRefresh={() => posts.mutate()}
+                  onNewPost={handleNewPost}
+                  launchingNew={launchingNew}
+                />
+              </div>
+            </div>
+            <div className="h-full overflow-hidden bg-primary">
+              <ChatPanel agentId={chatAgentId}/>
+            </div>
+          </ResizableSplit>
+        ) : (
+          <div className="flex h-full min-h-0">
+            <div className="w-72 shrink-0 border-r border-primary flex flex-col min-h-0 bg-secondary">
+              <PostListSidebar
+                filteredPosts={filteredPosts}
+                postsData={posts.data ?? undefined}
+                statusFilter={statusFilter}
+                postCounts={postCounts}
+                selectedPostId={selectedPost.data?.post.id ?? null}
+                search={search}
+                launchingNew={launchingNew}
+                provider={provider}
+                onStatusFilter={setStatusFilter}
+                onSearch={setSearch}
+                onSelectPost={setSelectedPostId}
+                onNewPost={handleNewPost}
+                onRefresh={() => posts.mutate()}
+              />
+            </div>
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <PostViewerArea
+                agentId={agentId}
+                provider={provider}
+                selectedPost={selectedPost.data?.post ?? null}
+                onWorkOnPost={handleWorkOnPost}
+                onRefresh={() => posts.mutate()}
+                onNewPost={handleNewPost}
+                launchingNew={launchingNew}
+              />
+            </div>
           </div>
-
-          {posts.data && (
-            <div className="shrink-0 border-t border-primary px-3 py-2 flex items-center justify-between">
-              <span className="text-2xs text-muted">{filteredPosts.length} of {posts.data.count} posts</span>
-              <button
-                onClick={() => posts.mutate()}
-                className="p-1 text-muted hover:text-primary transition-colors cursor-pointer rounded focus-ring"
-                title="Refresh"
-              >
-                <RefreshCw className="w-3 h-3"/>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* ── Right: Post viewer ── */}
-        <div className="flex-1 min-w-0 overflow-hidden">
-          {!agentId ? (
-            <div className="flex flex-col items-center justify-center h-full gap-3 text-muted">
-              <Loader2 className="w-6 h-6 animate-spin"/>
-              <span className="text-sm">Connecting to blog service...</span>
-            </div>
-          ) : !provider ? (
-            <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
-              <WifiOff className="w-10 h-10 text-muted opacity-30"/>
-              <div>
-                <h2 className="text-base font-semibold text-primary mb-1">No provider selected</h2>
-                <p className="text-sm text-muted max-w-xs">Select a blog provider from the dropdown to get started.</p>
-              </div>
-            </div>
-          ) : selectedPost.data ? (
-            <PostViewer
-              post={selectedPost.data?.post}
-              provider={provider}
-              agentId={agentId}
-              onStartAgent={startAgent}
-              onRefresh={() => posts.mutate()}
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg">
-                <BookOpen className="w-8 h-8 text-white"/>
-              </div>
-              <div>
-                <h2 className="text-base font-semibold text-primary mb-1">No post selected</h2>
-                <p className="text-sm text-muted max-w-xs">Select a post from the list to view and edit it, or create a new one with an AI agent.</p>
-              </div>
-              <button
-                onClick={handleNewPost}
-                disabled={launchingNew}
-                className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer disabled:opacity-50 focus-ring shadow-button-primary"
-              >
-                {launchingNew
-                  ? <><Loader2 className="w-4 h-4 animate-spin"/> Starting...</>
-                  : <><FilePlus className="w-4 h-4"/> New post with agent</>
-                }
-              </button>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

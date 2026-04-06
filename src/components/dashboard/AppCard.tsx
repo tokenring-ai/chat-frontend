@@ -28,12 +28,12 @@ export default function AppCard({ app }: AppCardProps) {
       aria-label={`Open ${app.label}`}
     >
       {/* Icon badge */}
-      <div className={`relative w-14 h-14 rounded-xl bg-gradient-to-br ${app.gradient} flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow`}>
+      <div className={`relative w-14 h-14 rounded-xl bg-linear-to-br ${app.gradient} flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow`}>
         <div className="text-white [&>svg]:w-7 [&>svg]:h-7">
           {app.icon}
         </div>
         {app.badge && (
-          <span className="absolute -top-1.5 -right-1.5 min-w-[1.25rem] h-5 px-1 bg-amber-500 text-white text-2xs font-bold rounded-full flex items-center justify-center shadow-sm">
+          <span className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 bg-amber-500 text-white text-2xs font-bold rounded-full flex items-center justify-center shadow-sm">
             {app.badge}
           </span>
         )}

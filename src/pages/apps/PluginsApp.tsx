@@ -1,18 +1,16 @@
 import {CheckCircle2, Loader2, Package, Settings2} from 'lucide-react';
 import {usePlugins} from '../../rpc.ts';
 
-function PluginCard({ plugin }: { plugin: { name: string; version: string; description: string; hasConfig: boolean } }) {
-  // Derive a short display name from the scoped package name, e.g. "@tokenring-ai/agent" → "agent"
-  const displayName = plugin.name.includes('/') ? plugin.name.split('/').pop()! : plugin.name;
-
+function PluginCard({ plugin }: { plugin: { name: string; displayName: string, version: string; description: string; hasConfig: boolean } }) {
   return (
     <div className="flex items-start gap-3 px-4 py-3 bg-secondary border border-primary rounded-xl hover:border-indigo-500/30 transition-colors group">
       <div className="shrink-0 w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-sm">
         <Package className="w-4 h-4 text-white" />
       </div>
       <div className="flex-1 min-w-0">
+        <span className="text-sm font-semibold text-primary capitalize truncate">{plugin.displayName}</span>
         <div className="flex items-center gap-2 mb-0.5">
-          <span className="text-sm font-semibold text-primary capitalize truncate">{displayName}</span>
+          <span className="text-2xs text-muted font-mono shrink-0">{plugin.name}</span>
           <span className="text-2xs text-muted font-mono shrink-0">v{plugin.version}</span>
           {plugin.hasConfig && (
             <span className="inline-flex items-center gap-0.5 text-2xs px-1.5 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full shrink-0">

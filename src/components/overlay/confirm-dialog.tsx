@@ -57,7 +57,7 @@ export default function ConfirmDialog({
               <X className="w-4 h-4" />
             </button>
           </div>
-          <div className="px-4 pb-4">
+          <div className="px-4 py-4">
             <p className="text-sm text-secondary">{message}</p>
           </div>
           <div className="flex gap-3 px-4 pb-4">

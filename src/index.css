@@ -202,19 +202,19 @@
  /* Toast-specific color utilities with proper contrast ratios */
  /* Light mode backgrounds use lighter shades, dark mode uses darker shades */
  .bg-toast-success {
-  @apply bg-emerald-50 dark:bg-emerald-900/20;
+  @apply bg-emerald-50 dark:bg-emerald-900;
  }
 
  .bg-toast-error {
-  @apply bg-red-50 dark:bg-red-900/20;
+  @apply bg-red-50 dark:bg-red-900;
  }
 
  .bg-toast-info {
-  @apply bg-blue-50 dark:bg-blue-900/20;
+  @apply bg-blue-50 dark:bg-blue-900;
  }
 
  .bg-toast-warning {
-  @apply bg-amber-50 dark:bg-amber-900/20;
+  @apply bg-amber-50 dark:bg-amber-900;
  }
 
  /* Toast text colors with WCAG AA contrast */

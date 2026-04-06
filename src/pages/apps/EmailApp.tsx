@@ -16,11 +16,14 @@ import {
   Star,
   Trash2,
   WifiOff,
+  X,
 } from 'lucide-react';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import AgentLauncherBar from '../../components/AgentLauncherBar.tsx';
+import ChatPanel from '../../components/chat/ChatPanel.tsx';
+import FilterTabs, {type FilterTabOption} from '../../components/ui/FilterTabs.tsx';
 import ResizableSplit from '../../components/ui/ResizableSplit.tsx';
 import {cn} from '../../lib/utils.ts';
-import ChatPage from '../ChatPage.tsx';
 import {agentRPCClient, emailRPCClient, useEmailBoxes, useEmailMessage, useEmailMessages, useEmailProviders, useEmailSearch} from '../../rpc.ts';
 
 const BOX_META = {
@@ -34,6 +37,13 @@ const BOX_META = {
 } as const;
 
 type EmailBoxRecord = {id: string; name: string};
+type MessageFilter = 'all' | 'read' | 'unread';
+
+const MESSAGE_FILTERS: FilterTabOption<MessageFilter>[] = [
+  {id: 'all', label: 'All'},
+  {id: 'read', label: 'Read'},
+  {id: 'unread', label: 'Unread'},
+];
 
 function formatDate(date: Date | string | undefined): string {
   if (!date) return '';
@@ -294,7 +304,7 @@ function MessageViewer({
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-5 bg-white">
+      <div className="flex-1 overflow-y-auto bg-white">
         {msg.htmlBody ? (
           <iframe
             srcDoc={msg.htmlBody}
@@ -320,24 +330,57 @@ function MessageListPane({
                            box,
                            selectedId,
                            onSelect,
-                           unreadOnly,
+                           messageFilter,
+                           onMessageFilterChange,
                            searchQuery,
                          }: {
   provider: string | null;
   box: string;
   selectedId: string | null;
   onSelect: (id: string) => void;
-  unreadOnly: boolean;
+  messageFilter: MessageFilter;
+  onMessageFilterChange: (filter: MessageFilter) => void;
   searchQuery: string | null;
 }) {
-  const listing = useEmailMessages(searchQuery ? null : provider, {box, limit: 50, unreadOnly});
-  const search = useEmailSearch(provider, searchQuery, {box, limit: 50, unreadOnly});
+  const listing = useEmailMessages(searchQuery ? null : provider, {box, limit: 50});
+  const search = useEmailSearch(provider, searchQuery, {box, limit: 50});
   const result = searchQuery ? search : listing;
   const messages = (result.data?.messages ?? []) as EmailMessage[];
-  const countLabel = searchQuery ? `${result.data?.count ?? 0} results` : result.data ? `${result.data.count} messages` : '';
+  const filteredMessages = useMemo(
+    () => messages.filter(msg => {
+      if (messageFilter === 'read') return msg.isRead;
+      if (messageFilter === 'unread') return !msg.isRead;
+      return true;
+    }),
+    [messageFilter, messages],
+  );
+  const countLabel = useMemo(() => {
+    if (!result.data) return '';
+    if (messageFilter === 'all') {
+      return searchQuery ? `${result.data.count} results` : `${result.data.count} messages`;
+    }
+    return searchQuery
+      ? `${filteredMessages.length} ${messageFilter} results`
+      : `${filteredMessages.length} ${messageFilter} messages`;
+  }, [filteredMessages.length, messageFilter, result.data, searchQuery]);
+  const emptyMessage = searchQuery
+    ? `No ${messageFilter === 'all' ? 'emails' : messageFilter} emails found for "${searchQuery}"`
+    : messageFilter === 'unread'
+      ? `No unread messages in ${box}`
+      : messageFilter === 'read'
+        ? `No read messages in ${box}`
+        : `${box} is empty`;
 
   return (
     <div className="flex flex-col h-full min-h-0">
+      <FilterTabs
+        tabs={MESSAGE_FILTERS}
+        value={messageFilter}
+        onChange={onMessageFilterChange}
+        className="bg-secondary"
+        activeTabClassName="border-red-500 text-primary"
+      />
+
       <div className="shrink-0 h-9 border-b border-primary bg-secondary flex items-center justify-between px-3">
         <span className="text-2xs text-muted">{countLabel}</span>
         <button
@@ -354,15 +397,13 @@ function MessageListPane({
           <div className="flex justify-center py-10">
             <Loader2 className="w-5 h-5 text-muted animate-spin"/>
           </div>
-        ) : messages.length === 0 ? (
+        ) : filteredMessages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 gap-3 text-muted p-4 text-center">
             <Inbox className="w-8 h-8 opacity-30"/>
-            <p className="text-sm">
-              {searchQuery ? `No emails found for "${searchQuery}"` : unreadOnly ? `No unread messages in ${box}` : `${box} is empty`}
-            </p>
+            <p className="text-sm">{emptyMessage}</p>
           </div>
         ) : (
-          messages.map(msg => (
+          filteredMessages.map(msg => (
             <MessageListItem
               key={msg.id}
               msg={msg}
@@ -371,6 +412,52 @@ function MessageListPane({
             />
           ))
         )}
+      </div>
+    </div>
+  );
+}
+
+function EmailPreview({
+                        provider,
+                        selectedMessageId,
+                        onSendToAgent,
+                        onClose,
+                      }: {
+  provider: string;
+  selectedMessageId: string | null;
+  onSendToAgent: (message: string) => void | Promise<void>;
+  onClose: () => void;
+}) {
+  if (selectedMessageId) {
+    return (
+      <div className="h-full flex flex-col">
+        <div className="shrink-0 flex justify-end px-3 py-1.5 border-b border-primary bg-secondary">
+          <button
+            onClick={onClose}
+            className="p-1 rounded-md text-muted hover:text-primary hover:bg-hover transition-colors focus-ring"
+            aria-label="Close email"
+          >
+            <X className="w-4 h-4"/>
+          </button>
+        </div>
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <MessageViewer
+            provider={provider}
+            messageId={selectedMessageId}
+            onReply={onSendToAgent}
+          />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center text-muted">
+      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg">
+        <Mail className="w-7 h-7 text-white"/>
+      </div>
+      <div>
+        <p className="text-sm font-medium text-primary">No message selected</p>
+        <p className="text-xs mt-1 max-w-xs">Select a message from the list to preview it here.</p>
       </div>
     </div>
   );
@@ -385,9 +472,7 @@ function EmailBrowserPane({
                             onProviderChange,
                             onSendToAgent,
                             agentId,
-                            startingAgent,
-                            agentError,
-                            onStartAgent,
+                            onAgentLaunched,
                           }: {
   provider: string | null;
   availableProviders: string[];
@@ -397,14 +482,12 @@ function EmailBrowserPane({
   onProviderChange: (p: string) => void | Promise<void>;
   onSendToAgent: (message: string) => void | Promise<void>;
   agentId: string | null;
-  startingAgent: boolean;
-  agentError: string | null;
-  onStartAgent: () => Promise<void>;
+  onAgentLaunched: (agentId: string) => void;
 }) {
   const [selectedFolder, setSelectedFolder] = useState('inbox');
   const [searchInput, setSearchInput] = useState('');
   const [activeSearch, setActiveSearch] = useState<string | null>(null);
-  const [unreadOnly, setUnreadOnly] = useState(false);
+  const [messageFilter, setMessageFilter] = useState<MessageFilter>('all');
   const {data: boxesData, isLoading: boxesLoading} = useEmailBoxes(provider);
   const boxes = boxesData?.boxes ?? [];
 
@@ -505,21 +588,19 @@ function EmailBrowserPane({
           )}
         </form>
 
-        <button
-          onClick={() => setUnreadOnly(v => !v)}
-          className={cn(
-            'text-2xs px-2 py-1 rounded-md border transition-all focus-ring cursor-pointer shrink-0',
-            unreadOnly ? 'bg-blue-500/10 border-blue-500/30 text-blue-500' : 'bg-secondary border-primary text-muted hover:text-primary',
-          )}
-        >
-          Unread
-        </button>
-
         <ProviderSelector
           provider={provider}
           availableProviders={availableProviders}
           loading={providersLoading}
           onProviderChange={onProviderChange}
+        />
+
+        <div className="w-px h-5 bg-primary/70 mx-0.5 shrink-0" aria-hidden="true"/>
+
+        <AgentLauncherBar
+          buttonLabel="Compose Email"
+          buttonClassName="bg-red-600 hover:bg-red-500 text-white shadow-button-primary"
+          onLaunch={onAgentLaunched}
         />
       </div>
 
@@ -539,116 +620,61 @@ function EmailBrowserPane({
               box={selectedFolder}
               selectedId={selectedMessageId}
               onSelect={id => onSelectMessage(id)}
-              unreadOnly={unreadOnly}
+              messageFilter={messageFilter}
+              onMessageFilterChange={filter => {
+                setMessageFilter(filter);
+                onSelectMessage(null);
+              }}
               searchQuery={activeSearch}
             />
           </div>
 
-          {/* Right: Preview (top) + Agent (bottom) */}
-          <ResizableSplit
-            direction="vertical"
-            initialRatio={0.70}
-            minFirst={250}
-            minSecond={100}
-            className="h-full"
-          >
-            {/* Email preview */}
-            <div className="h-full overflow-hidden bg-primary">
-              {selectedMessageId ? (
-                <MessageViewer
+          {/* Right: Preview (top) + Agent pane (bottom, only when active) */}
+          {agentId ? (
+            <ResizableSplit
+              direction="vertical"
+              initialRatio={0.60}
+              minFirst={200}
+              minSecond={120}
+              className="h-full"
+            >
+              {/* Email preview */}
+              <div className="h-full overflow-hidden bg-primary">
+                <EmailPreview
                   provider={provider}
-                  messageId={selectedMessageId}
-                  onReply={onSendToAgent}
+                  selectedMessageId={selectedMessageId}
+                  onSendToAgent={onSendToAgent}
+                  onClose={() => onSelectMessage(null)}
                 />
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center text-muted">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg">
-                    <Mail className="w-7 h-7 text-white"/>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-primary">No message selected</p>
-                    <p className="text-xs mt-1 max-w-xs">Select a message from the list to preview it here.</p>
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
 
-            {/* AI Agent pane */}
+              {/* AI Agent pane */}
+              <div className="h-full overflow-hidden bg-primary">
+                <ChatPanel agentId={agentId}/>
+              </div>
+            </ResizableSplit>
+          ) : (
             <div className="h-full overflow-hidden bg-primary">
-              <EmailAgentPane
-                agentId={agentId}
-                startingAgent={startingAgent}
-                agentError={agentError}
-                onStart={onStartAgent}
+              <EmailPreview
+                provider={provider}
+                selectedMessageId={selectedMessageId}
+                onSendToAgent={onSendToAgent}
+                onClose={() => onSelectMessage(null)}
               />
             </div>
-          </ResizableSplit>
+          )}
         </ResizableSplit>
       </div>
     </div>
   );
 }
 
-function EmailAgentPane({
-                          agentId,
-                          startingAgent,
-                          agentError,
-                          onStart,
-                        }: {
-  agentId: string | null;
-  startingAgent: boolean;
-  agentError: string | null;
-  onStart: () => Promise<void>;
-}) {
-  if (agentId) {
-    return <ChatPage agentId={agentId} />;
-  }
-
-  return (
-    <div className="h-full flex flex-col items-center justify-center gap-4 p-8 text-center">
-      {startingAgent ? (
-        <>
-          <Loader2 className="w-6 h-6 text-muted animate-spin"/>
-          <div>
-            <h2 className="text-sm font-semibold text-primary mb-1">Starting email agent…</h2>
-            <p className="text-xs text-muted max-w-xs">The inbox is already available above. This agent is only for drafting, replies, and AI-assisted workflows.</p>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500/15 to-rose-600/15 flex items-center justify-center">
-            <Mail className="w-6 h-6 text-red-500"/>
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-primary mb-1">Email agent is idle</h2>
-            <p className="text-xs text-muted max-w-xs">Browse your inbox without an agent. Start one when you want to compose a draft or work through email with AI.</p>
-          </div>
-          <button
-            onClick={() => void onStart()}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-medium rounded-lg transition-colors focus-ring cursor-pointer shadow-button-primary"
-          >
-            <FileText className="w-3.5 h-3.5"/> Compose With AI
-          </button>
-        </>
-      )}
-
-      {agentError && !startingAgent && (
-        <div className="flex items-center gap-2 text-xs text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-          <AlertCircle className="w-3.5 h-3.5"/>
-          {agentError}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function EmailApp() {
   const providers = useEmailProviders();
   const [provider, setProvider] = useState<string | null>(null);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [agentId, setAgentId] = useState<string | null>(null);
-  const [startingAgent, setStartingAgent] = useState(false);
-  const [agentError, setAgentError] = useState<string | null>(null);
   const ownedAgentRef = useRef<string | null>(null);
   const agentStartPromiseRef = useRef<Promise<string | null> | null>(null);
 
@@ -674,36 +700,22 @@ export default function EmailApp() {
     if (agentId) return agentId;
     if (agentStartPromiseRef.current) return agentStartPromiseRef.current;
 
-    setStartingAgent(true);
-    setAgentError(null);
-
     const startPromise = (async () => {
       try {
         const {id} = await agentRPCClient.createAgent({agentType: 'email', headless: false});
         ownedAgentRef.current = id;
         setAgentId(id);
-
-        if (provider || selectedMessageId) {
-          await emailRPCClient.updateEmailState({
-            agentId: id,
-            selectedProvider: provider ?? undefined,
-            selectedMessageId: selectedMessageId ?? undefined,
-          });
-        }
-
         return id;
-      } catch (error: any) {
-        setAgentError(error.message || 'Failed to start email agent');
+      } catch {
         return null;
       } finally {
-        setStartingAgent(false);
         agentStartPromiseRef.current = null;
       }
     })();
 
     agentStartPromiseRef.current = startPromise;
     return startPromise;
-  }, [agentId, provider, selectedMessageId]);
+  }, [agentId]);
 
   useEffect(() => {
     if (!agentId || (!provider && !selectedMessageId)) return;
@@ -720,6 +732,11 @@ export default function EmailApp() {
     await agentRPCClient.sendInput({agentId: id, input: {from: 'Email App', message}});
   }, [ensureAgent]);
 
+  const handleAgentLaunched = useCallback((id: string) => {
+    ownedAgentRef.current = id;
+    setAgentId(id);
+  }, []);
+
   return (
     <div className="w-full h-full flex flex-col overflow-hidden bg-primary">
       <EmailBrowserPane
@@ -734,11 +751,7 @@ export default function EmailApp() {
         }}
         onSendToAgent={handleSendToAgent}
         agentId={agentId}
-        startingAgent={startingAgent}
-        agentError={agentError}
-        onStartAgent={async () => {
-          await ensureAgent();
-        }}
+        onAgentLaunched={handleAgentLaunched}
       />
     </div>
   );

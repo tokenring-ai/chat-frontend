@@ -190,14 +190,6 @@ export function useBlogState(agentId: string | null) {
   );
 }
 
-export function useCalendarState(agentId: string | null) {
-  return useSWR(
-    agentId ? `/calendar/getCalendarState/${agentId}` : null,
-    () => calendarRPCClient.getCalendarState({agentId: agentId!}),
-    {refreshInterval: 5000},
-  );
-}
-
 export function useCalendarProviders() {
   return useSWR(
     '/calendar/getCalendarProviders',
@@ -211,14 +203,6 @@ export function useCalendarEvents(provider: string | null, from: string, to: str
     provider ? `/calendar/getUpcomingEvents/${provider}/${from}/${to}` : null,
     () => calendarRPCClient.getUpcomingEvents({provider: provider!, from, to}),
     {refreshInterval: 30000},
-  );
-}
-
-export function useEmailState(agentId: string | null) {
-  return useSWR(
-    agentId ? `/email/getEmailState/${agentId}` : null,
-    () => emailRPCClient.getEmailState({agentId: agentId!}),
-    {refreshInterval: 5000},
   );
 }
 

@@ -76,15 +76,6 @@ function fmt(n: number | string | null | undefined | '', digits = 2) {
   return Number(n).toLocaleString('en-US', {minimumFractionDigits: digits, maximumFractionDigits: digits});
 }
 
-function fmtLarge(n: number | string | null | undefined): string {
-  const v = Number(n);
-  if (!v) return '—';
-  if (v >= 1e12) return `$${(v / 1e12).toFixed(2)}T`;
-  if (v >= 1e9) return `$${(v / 1e9).toFixed(2)}B`;
-  if (v >= 1e6) return `$${(v / 1e6).toFixed(2)}M`;
-  return `$${v.toLocaleString()}`;
-}
-
 function fmtVol(n: number | string | null | undefined): string {
   const v = Number(n);
   if (!v) return '—';
@@ -92,13 +83,6 @@ function fmtVol(n: number | string | null | undefined): string {
   if (v >= 1e6) return `${(v / 1e6).toFixed(2)}M`;
   if (v >= 1e3) return `${(v / 1e3).toFixed(1)}K`;
   return String(v);
-}
-
-function changeColor(v: number | string | null | undefined): string {
-  const n = Number(v);
-  if (n > 0) return 'text-emerald-500';
-  if (n < 0) return 'text-red-500';
-  return 'text-muted';
 }
 
 function changeSign(v: number | string | null | undefined): string {
