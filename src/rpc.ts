@@ -2,6 +2,7 @@ import AgentRpcSchema from '@tokenring-ai/agent/rpc/schema';
 import AIClientRpcSchema from "@tokenring-ai/ai-client/rpc/schema";
 import AppRpcSchema from '@tokenring-ai/app/rpc/schema';
 import BlogRpcSchema from '@tokenring-ai/blog/rpc/schema';
+import ImageGenerationRpcSchema from '@tokenring-ai/image-generation/rpc/schema';
 import CalendarRpcSchema from '@tokenring-ai/calendar/rpc/schema';
 import ChatRpcSchema from "@tokenring-ai/chat/rpc/schema";
 import CheckpointRpcSchema from "@tokenring-ai/checkpoint/rpc/schema";
@@ -21,6 +22,7 @@ const baseURL = new URL(window.location.origin);
 
 export const agentRPCClient = createWsRPCClient(baseURL, AgentRpcSchema);
 export const blogRPCClient = createWsRPCClient(baseURL, BlogRpcSchema);
+export const imageGenerationRPCClient = createWsRPCClient(baseURL, ImageGenerationRpcSchema);
 export const appRPCClient = createWsRPCClient(baseURL, AppRpcSchema);
 export const cloudquoteRPCClient = createWsRPCClient(baseURL, CloudQuoteRpcSchema);
 export const newsrpmRPCClient = createWsRPCClient(baseURL, NewsRPMRpcSchema);
@@ -254,4 +256,13 @@ export function useEmailMessage(provider: string | null, messageId: string | nul
 
 export function useVaultKeys() {
   return useSWR('/vault/listEntries', () => vaultRPCClient.listEntries({}), {refreshInterval: 10000});
+}
+
+export function useImages(search?: string, limit?: number) {
+  const key = search ? `/image-generation/getImages/${search}/${limit ?? 200}` : `/image-generation/getImages/${limit ?? 200}`;
+  return useSWR(key, () => imageGenerationRPCClient.getImages({search, limit}), {refreshInterval: 10000});
+}
+
+export function useImageGenerationModels() {
+  return useSWR('/ai-client/listImageGenerationModels', () => aiRPCClient.listImageGenerationModels({}));
 }
