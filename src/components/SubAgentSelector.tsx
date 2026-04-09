@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {GiMegabot} from "react-icons/gi";
 import {RiCheckLine, RiCloseLine, RiLoader4Line, RiSearchLine} from "react-icons/ri";
-import {agentRPCClient, useAvailableSubAgents, useEnabledSubAgents} from '../rpc.ts';
+import {tasksRPCClient, useAvailableSubAgents, useEnabledSubAgents} from '../rpc.ts';
 import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from './ui/dropdown-menu.tsx';
 
 interface SubAgentSelectorProps {
@@ -24,9 +24,9 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
     try {
       const isEnabled = enabledSubAgents.data?.agents?.includes(agentType);
       if (isEnabled) {
-        await agentRPCClient.disableSubAgents({agentId, agents: [agentType]});
+        await tasksRPCClient.disableSubAgents({agentId, agents: [agentType]});
       } else {
-        await agentRPCClient.enableSubAgents({agentId, agents: [agentType]});
+        await tasksRPCClient.enableSubAgents({agentId, agents: [agentType]});
       }
       enabledSubAgents.mutate();
     } catch (error) {
@@ -76,9 +76,9 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="max-h-150 overflow-hidden flex flex-col bg-secondary border-primary shadow-card" style={{width: '400px'}}
-                           aria-label="Select sub-agents">
+                           aria-label="Select task agents">
         <div className="flex items-center gap-2 px-3 pt-2 pb-2 shrink-0 border-b border-primary">
-          <span className="text-sm flex-1 font-mono text-muted shrink-0">Sub-Agents</span>
+          <span className="text-sm flex-1 font-mono text-muted shrink-0">Task Agents</span>
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-2.5 flex items-center pointer-events-none">
               <RiSearchLine className="w-4 h-4 text-muted"/>
@@ -110,9 +110,9 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
                 try {
                   const allAgentTypes = (agents ?? []).map(a => a.type);
                   if (allEnabled) {
-                    await agentRPCClient.disableSubAgents({agentId, agents: allAgentTypes});
+                    await tasksRPCClient.disableSubAgents({agentId, agents: allAgentTypes});
                   } else {
-                    await agentRPCClient.enableSubAgents({agentId, agents: allAgentTypes});
+                    await tasksRPCClient.enableSubAgents({agentId, agents: allAgentTypes});
                   }
                   enabledSubAgents.mutate();
                 } finally {

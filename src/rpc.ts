@@ -12,6 +12,7 @@ import FileSystemRpcSchema from '@tokenring-ai/filesystem/rpc/schema';
 import LifecycleRpcSchema from '@tokenring-ai/lifecycle/rpc/schema';
 import NewsRPMRpcSchema from '@tokenring-ai/newsrpm/rpc/schema';
 import type {IndexedDataSearch} from "@tokenring-ai/newsrpm/schema";
+import TasksRpcSchema from '@tokenring-ai/tasks/rpc/schema';
 import TerminalRpcSchema from '@tokenring-ai/terminal/rpc/schema';
 import VaultRpcSchema from '@tokenring-ai/vault/rpc/schema';
 import createWsRPCClient from "@tokenring-ai/web-host/createWsRPCClient";
@@ -36,6 +37,7 @@ export const calendarRPCClient = createWsRPCClient(baseURL, CalendarRpcSchema);
 export const emailRPCClient = createWsRPCClient(baseURL, EmailRpcSchema);
 export const terminalRPCClient = createWsRPCClient(baseURL, TerminalRpcSchema);
 export const vaultRPCClient = createWsRPCClient(baseURL, VaultRpcSchema);
+export const tasksRPCClient = createWsRPCClient(baseURL, TasksRpcSchema);
 
 export function useAvailableCommands(agentId: string) {
   return useSWR(`/agent/getAvailableCommands/${agentId}`, () => agentId ? agentRPCClient.getAvailableCommands({ agentId }) : null);
@@ -112,11 +114,18 @@ export function useEnabledHooks(agentId: string) {
 }
 
 export function useAvailableSubAgents(agentId: string) {
-  return useSWR(`/agent/getAvailableSubAgents/${agentId}`, () => agentId ? agentRPCClient.getAvailableSubAgents({ agentId }) : null);
+  return useSWR(
+    `/agent/getAvailableSubAgents/${agentId}`,
+    () => agentId ? agentRPCClient.getAgentTypes({}).then(agents => ({agents})) : null
+  );
 }
 
 export function useEnabledSubAgents(agentId: string) {
-  return useSWR(`/agent/getEnabledSubAgents/${agentId}`, () => agentId ? agentRPCClient.getEnabledSubAgents({ agentId }) : null, { refreshInterval: 5000 });
+  return useSWR(
+    `/tasks/getEnabledSubAgents/${agentId}`,
+    () => agentId ? tasksRPCClient.getEnabledSubAgents({ agentId }) : null,
+    { refreshInterval: 5000 }
+  );
 }
 
 export function useStockQuote(symbols: string[]) {
