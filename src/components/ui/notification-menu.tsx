@@ -2,7 +2,7 @@ import {AnimatePresence, motion} from 'framer-motion';
 import {Bell, Trash2, X} from 'lucide-react';
 import {useEffect, useState} from 'react';
 import {cn} from '../../lib/utils.ts';
-import {NotificationItem, notificationManager} from './toast.tsx';
+import {type NotificationItem, notificationManager} from './toast.tsx';
 
 const toastIcons = {
   success: '✓',

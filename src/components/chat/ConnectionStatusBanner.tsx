@@ -1,6 +1,6 @@
 import {RefreshCw, WifiOff} from 'lucide-react';
 import {motion} from 'framer-motion';
-import React, {useEffect} from 'react';
+import {useEffect} from 'react';
 import {toastManager} from '../ui/toast.tsx';
 
 interface ConnectionStatusBannerProps {

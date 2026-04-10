@@ -1,5 +1,5 @@
 import {Bot, Calendar, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Clock, GitBranch, Globe, Loader2, MapPin, Plus, Trash2, WifiOff, X,} from 'lucide-react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {toastManager} from '../../components/ui/toast.tsx';
 import {cn} from '../../lib/utils.ts';

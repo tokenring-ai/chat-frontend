@@ -1,7 +1,8 @@
 import type {InputAttachment} from '@tokenring-ai/agent/AgentEvents';
 import {AnimatePresence, motion} from 'framer-motion';
 import {File, FileCode, FileText, FolderOpen, History, Image, Paperclip, Send, Square, X} from 'lucide-react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type React from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {agentRPCClient} from '../../rpc.ts';
 import HookSelector from '../HookSelector.tsx';
 import ModelSelector from '../ModelSelector.tsx';
@@ -102,7 +103,7 @@ export default function ChatFooter({
   }, []);
 
   // Read file and convert to InputAttachment
-  const readFileAsAttachment = useCallback(async (file: File): Promise<FileAttachment> => {
+  const readFileAsAttachment = useCallback((file: File): Promise<FileAttachment> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       

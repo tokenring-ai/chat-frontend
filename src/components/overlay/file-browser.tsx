@@ -80,7 +80,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
       const currentIndex = rows.findIndex((row) => row.classList.contains('ring-2') && row.classList.contains('ring-indigo-500'));
 
       switch (e.key) {
-        case 'ArrowDown':
+        case 'ArrowDown': {
           e.preventDefault();
           const nextIndex = currentIndex < rows.length - 1 ? currentIndex + 1 : 0;
           const nextRow = rows[nextIndex];
@@ -89,7 +89,8 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
             nextRow.scrollIntoView({block: 'nearest'});
           }
           break;
-        case 'ArrowUp':
+        }
+        case 'ArrowUp': {
           e.preventDefault();
           const prevIndex = currentIndex > 0 ? currentIndex - 1 : rows.length - 1;
           const prevRow = rows[prevIndex];
@@ -98,6 +99,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
             prevRow.scrollIntoView({block: 'nearest'});
           }
           break;
+        }
         case 'Home':
           e.preventDefault();
           if (rows.length > 0) {

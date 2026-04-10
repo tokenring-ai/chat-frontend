@@ -85,7 +85,7 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
       data={displayItems}
       followOutput="smooth"
       initialTopMostItemIndex={displayItems.length > 1 ? displayItems.length - 1 : 0}
-      itemContent={(index, item) => {
+      itemContent={(_index, item) => {
         if (item.type === 'header') {
           const firstMessage = messages.find(m => !isQuestionPromptMessage(m) && m.type !== 'input.interaction');
           const hasMessages = displayItems.some(i => i.type === 'message' || i.type === 'question-pair');

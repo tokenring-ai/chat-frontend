@@ -1,5 +1,6 @@
 import {Loader2, Plug, Wrench, Zap, Cpu} from 'lucide-react';
-import React, {useState} from 'react';
+import type React from 'react';
+import {useState} from 'react';
 import {useChatModelsByProvider, useAvailableTools, useAvailableHooks} from '../../rpc.ts';
 
 type Tab = 'tools' | 'models' | 'hooks';

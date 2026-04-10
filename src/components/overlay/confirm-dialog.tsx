@@ -1,6 +1,6 @@
 import {FocusTrap} from 'focus-trap-react';
 import {X} from 'lucide-react';
-import React from "react";
+import type React from "react";
 
 interface ConfirmDialogProps {
   title: string;

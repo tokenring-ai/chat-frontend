@@ -1,8 +1,9 @@
 import {ChevronDown, Loader2, Menu, Pause, Settings, WifiOff, Zap} from 'lucide-react';
-import React, {useEffect, useRef, useState} from 'react';
+import type React from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {useConnectionStatus} from '../hooks/useConnectionStatus.ts';
-import {useAgentList} from '../rpc.ts';
+import type {useAgentList} from '../rpc.ts';
 import {useSidebar} from './SidebarContext.tsx';
 import {LightDarkSelector} from './ui/light-dark-selector.tsx';
 import NotificationMenu from './ui/notification-menu.tsx';

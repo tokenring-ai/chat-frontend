@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type React from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   RiAmazonFill,
   RiArticleFill,
@@ -134,7 +135,7 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
     }
   }, [agentId, enabledTools]);
 
-  const handleToggleCategory = useCallback(async (category: string, categoryTools: Record<string, string>) => {
+  const handleToggleCategory = useCallback(async (_category: string, categoryTools: Record<string, string>) => {
     try {
       const allToolNames = Object.values(categoryTools);
       const enabledSet = new Set(enabledTools.data?.tools || []);
@@ -255,8 +256,8 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
             const packageIcon = packageIcons[category] || <RiDatabaseFill />;
             const packageColor = packageColors[category] || packageColors.default;
 
-            let categoryTools = filteredToolsByCategory.grouped[category];
-            let toolCount = Object.keys(categoryTools).length;
+            const categoryTools = filteredToolsByCategory.grouped[category];
+            const toolCount = Object.keys(categoryTools).length;
             let enabledToolCount = 0;
             for (const [, toolName] of Object.entries(categoryTools)) {
               if (enabledSet.has(toolName)) enabledToolCount++;

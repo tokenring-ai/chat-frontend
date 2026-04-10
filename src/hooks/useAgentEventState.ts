@@ -1,6 +1,6 @@
-import {type AgentEventEnvelope, AgentStatusSchema, InputExecutionStateSchema,} from "@tokenring-ai/agent/AgentEvents";
+import type {AgentEventEnvelope, AgentStatusSchema, InputExecutionStateSchema,} from "@tokenring-ai/agent/AgentEvents";
 import {useEffect, useRef, useState} from "react";
-import {z} from "zod";
+import type {z} from "zod";
 import {agentRPCClient} from "../rpc.ts";
 import type {ChatMessage, QuestionInteraction} from "../types/agent-events.ts";
 
@@ -64,10 +64,10 @@ export function useAgentEventState(agentId: string) {
 
     (async () => {
       let fromPosition = stateRef.current.position;
-      let currentMessages = [...stateRef.current.messages];
+      const currentMessages = [...stateRef.current.messages];
       let currentAgentStatus = stateRef.current.agentStatus;
-      let inputExecutions = new Map(stateRef.current.inputExecutions);
-      let seenQuestionIds = new Set(stateRef.current.seenQuestionIds);
+      const inputExecutions = new Map(stateRef.current.inputExecutions);
+      const seenQuestionIds = new Set(stateRef.current.seenQuestionIds);
 
       const appendMessage = (event: ChatMessage) => {
         currentMessages.push(event);

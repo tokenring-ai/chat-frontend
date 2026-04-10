@@ -1,6 +1,7 @@
 import {AnimatePresence, motion} from 'framer-motion';
 import {Check, Cpu} from 'lucide-react';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type React from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   RiAlibabaCloudFill,
   RiAnthropicFill,

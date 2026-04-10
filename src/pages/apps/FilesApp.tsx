@@ -248,7 +248,7 @@ interface FileListPaneProps {
 
 function FileListPane({
   provider, path, onNavigate, onSelectFile, selectedFile,
-  selectedPaths, onToggleSelected, onToggleSelectAll, uploadingFiles, searchQuery, onRefresh,
+  selectedPaths, onToggleSelected, onToggleSelectAll, uploadingFiles, searchQuery,
 }: FileListPaneProps) {
   const listing = useDirectoryListing(provider ? { path, showHidden: false, provider } : undefined);
 
@@ -274,7 +274,7 @@ function FileListPane({
   const fileOnly = sortedFiles.filter(f => !f.endsWith('/'));
   const allSelected = fileOnly.length > 0 && fileOnly.every(f => selectedPaths.has(f));
 
-  const handleRowClick = async (file: string) => {
+  const handleRowClick = (file: string) => {
     const isDir = file.endsWith('/');
     if (isDir) {
       const dirPath = file.endsWith('/') ? file.slice(0, -1) : file;
@@ -621,8 +621,8 @@ export default function FilesApp() {
     setSelectedPaths(prev => {
       const allIn = files.every(f => prev.has(f));
       const next = new Set(prev);
-      if (allIn) files.forEach(f => next.delete(f));
-      else files.forEach(f => next.add(f));
+      if (allIn) { files.forEach(f => { next.delete(f); }); }
+      else { files.forEach(f => { next.add(f); }); }
       return next;
     });
   }, []);

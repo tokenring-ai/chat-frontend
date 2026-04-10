@@ -1,4 +1,5 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import type React from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import {RiCheckLine, RiCloseCircleLine, RiCloseLine, RiFlashlightLine, RiSearchLine} from "react-icons/ri";
 import {lifecycleRPCClient, useAvailableHooks, useEnabledHooks} from '../rpc.ts';
 import {DropdownMenu, DropdownMenuContent, DropdownMenuTrigger} from './ui/dropdown-menu.tsx';

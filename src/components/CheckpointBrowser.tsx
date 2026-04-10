@@ -2,7 +2,7 @@ import {AnimatePresence, motion} from 'framer-motion';
 import {ChevronDown, ChevronRight, History, Loader2, RotateCcw, Search, X} from 'lucide-react';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {checkpointRPCClient, useAgentList, useCheckpointList} from '../rpc.ts';
+import {checkpointRPCClient, type useAgentList, useCheckpointList} from '../rpc.ts';
 import {toastManager} from './ui/toast.tsx';
 
 function formatTimeAgo(timestamp: number): string {

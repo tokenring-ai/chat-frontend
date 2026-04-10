@@ -1,4 +1,4 @@
-import React, {createContext, type ReactNode, useContext, useEffect, useState} from 'react';
+import {createContext, type ReactNode, useContext, useEffect, useState} from 'react';
 
 interface SidebarContextType {
   isSidebarExpanded: boolean;

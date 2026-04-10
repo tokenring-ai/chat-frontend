@@ -183,7 +183,7 @@ class NotificationManager {
   }
 
   markAllAsRead() {
-    this.notifications.forEach(n => n.read = true);
+    this.notifications.forEach(n => { n.read = true; });
     this.notifyNotifications();
   }
 
@@ -193,11 +193,11 @@ class NotificationManager {
   }
 
   private notifyNotifications() {
-    this.listeners.forEach(listener => listener([...this.notifications]));
+    this.listeners.forEach(listener => { listener([...this.notifications]); });
   }
 
   private notifyToasts() {
-    this.toastListeners.forEach(listener => listener([...this.activeToasts]));
+    this.toastListeners.forEach(listener => { listener([...this.activeToasts]); });
   }
 
   success(message: string, options?: Partial<ToastProps>) {

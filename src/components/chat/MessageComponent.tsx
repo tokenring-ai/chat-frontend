@@ -1,4 +1,4 @@
-import {type AgentEventEnvelope} from "@tokenring-ai/agent/AgentEvents";
+import type {AgentEventEnvelope} from "@tokenring-ai/agent/AgentEvents";
 import safeParseJSON from "@tokenring-ai/utility/json/safeParse";
 import {motion} from 'framer-motion';
 import {
@@ -19,7 +19,8 @@ import {
   Square,
   Zap
 } from 'lucide-react';
-import React, {useMemo, useState} from 'react';
+import type React from 'react';
+import {useMemo, useState} from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type {ChatMessage, InteractionResponseMessage, QuestionPromptMessage} from '../../types/agent-events.ts';
@@ -130,9 +131,16 @@ function getMessageText(msg: ChatMessage): string | null {
   }
 }
 
+function getInputSource(msg: ChatMessage): string | null {
+  if (msg.type === 'input.received' && msg.input.from) {
+    return msg.input.from;
+  }
+  return null;
+}
+
 function CodeBlock({ children, className }: { children: string; className?: string }) {
   const [copied, setCopied] = useState(false);
-  className = className?.replace('language-', '');
+  const lang = className?.replace('language-', '') ?? '';
 
   const handleCopy = async () => {
     try {
@@ -144,27 +152,21 @@ function CodeBlock({ children, className }: { children: string; className?: stri
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleCopy();
-    }
-  };
-
   return (
-    <div className="relative group">
-      <button
-        onClick={handleCopy}
-        onKeyDown={handleKeyDown}
-        className="absolute top-2 right-2 p-1.5 rounded-md bg-secondary hover:bg-hover opacity-0 group-hover:opacity-100 transition-opacity z-10 focus-ring"
-        title="Copy code (Press Enter or Space)"
-        aria-label="Copy code to clipboard"
-        role="button"
-      >
-        {copied ? <Check className="w-3.5 h-3.5 text-success"/> : <Copy className="w-3.5 h-3.5 text-muted"/>}
-      </button>
-      <pre className={`${className} bg-tertiary p-4 rounded-lg border border-primary shadow-md`}>
-        <code>{children}</code>
+    <div className="not-prose my-3 rounded-lg overflow-hidden border border-stone-200 dark:border-neutral-700 shadow-sm">
+      <div className="flex items-center justify-between px-4 py-1.5 bg-stone-100 dark:bg-neutral-800 border-b border-stone-200 dark:border-neutral-700">
+        <span className="text-[11px] font-mono text-stone-500 dark:text-neutral-400">{lang || 'code'}</span>
+        <button
+          onClick={handleCopy}
+          className="p-1 rounded hover:bg-stone-200 dark:hover:bg-neutral-700 transition-colors focus-ring"
+          title="Copy code"
+          aria-label="Copy code to clipboard"
+        >
+          {copied ? <Check className="w-3.5 h-3.5 text-emerald-500"/> : <Copy className="w-3.5 h-3.5 text-stone-400 dark:text-neutral-500"/>}
+        </button>
+      </div>
+      <pre className="p-4 overflow-x-auto bg-stone-50 dark:bg-neutral-900 m-0">
+        <code className="text-[13px] font-mono leading-relaxed text-stone-800 dark:text-neutral-200">{children}</code>
       </pre>
     </div>
   );
@@ -367,6 +369,7 @@ export default function MessageComponent({msg, question, response}: MessageCompo
   }, [msg]);
 
   const messageText = getMessageText(msg);
+  const inputSource = getInputSource(msg);
   const hasAttachments = attachments.length > 0;
   const pairedQuestion = question ?? (msg.type === 'question' ? msg : undefined);
   const isQuestionWithResponse = Boolean(pairedQuestion && response);
@@ -407,9 +410,16 @@ export default function MessageComponent({msg, question, response}: MessageCompo
           <InteractionResponseDisplay msg={msg as InteractionResponseMessage} />
         ) : messageText ? (
           <>
+            {/* Show 'from' field at the top for input.received messages */}
+            {inputSource && (
+              <div className="text-primary font-bold font-mono">
+                From: {inputSource}
+              </div>
+            )}
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
+                pre: ({ children }) => <>{children}</>,
                 code: ({ node, className, children, ...props }) => {
                   const text = String(children).trim();
                   if (text.includes("\n")) {

@@ -1,8 +1,8 @@
-import {TokenRingPlugin} from "@tokenring-ai/app";
+import type {TokenRingPlugin} from "@tokenring-ai/app";
 import {WebHostService} from "@tokenring-ai/web-host";
 import SPAResource from "@tokenring-ai/web-host/SPAResource";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import {z} from "zod";
 import packageJSON from "./package.json" with {type: "json"};
 

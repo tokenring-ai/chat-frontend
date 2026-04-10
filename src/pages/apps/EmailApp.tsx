@@ -696,7 +696,7 @@ export default function EmailApp() {
     };
   }, []);
 
-  const ensureAgent = useCallback(async () => {
+  const ensureAgent = useCallback(() => {
     if (agentId) return agentId;
     if (agentStartPromiseRef.current) return agentStartPromiseRef.current;
 
@@ -745,7 +745,7 @@ export default function EmailApp() {
         providersLoading={providers.isLoading}
         selectedMessageId={selectedMessageId}
         onSelectMessage={setSelectedMessageId}
-        onProviderChange={async p => {
+        onProviderChange={p => {
           setProvider(p);
           setSelectedMessageId(null);
         }}

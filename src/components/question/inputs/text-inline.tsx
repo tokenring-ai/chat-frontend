@@ -1,6 +1,7 @@
 import type {ParsedTextQuestion} from "@tokenring-ai/agent/question";
 import {Send, X} from 'lucide-react';
-import React, {useEffect, useRef, useState} from 'react';
+import type React from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {sendInteractionResponse} from "../sendInteractionResponse.ts";
 
 interface TextInlineProps {

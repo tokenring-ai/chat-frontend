@@ -1,6 +1,7 @@
 import {AnimatePresence, motion} from 'framer-motion';
 import {ChevronDown} from 'lucide-react';
-import React, {ReactNode, useEffect, useRef, useState} from 'react';
+import type React from 'react';
+import {type ReactNode, useEffect, useRef, useState} from 'react'
 
 interface AutoScrollContainerProps {
   children: ReactNode;

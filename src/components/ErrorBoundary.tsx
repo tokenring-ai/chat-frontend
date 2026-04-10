@@ -1,5 +1,6 @@
 import {AlertTriangle, Check, ChevronDown, Copy, Loader2} from 'lucide-react';
-import React, {Component, ReactNode, useState} from 'react';
+import type React from 'react';
+import {Component, type ReactNode, useState} from 'react'
 
 interface Props {
   children: ReactNode;

@@ -1,5 +1,6 @@
 import Editor from '@monaco-editor/react';
-import React, {useState} from 'react';
+import type React from 'react';
+import {useState} from 'react';
 import {useTheme} from "../../hooks/useTheme.ts";
 
 interface FileViewerProps {

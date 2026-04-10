@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import {GiMegabot} from "react-icons/gi";
 import {RiCheckLine, RiCloseLine, RiLoader4Line, RiSearchLine} from "react-icons/ri";
 import {tasksRPCClient, useAvailableSubAgents, useEnabledSubAgents} from '../rpc.ts';

@@ -1,4 +1,4 @@
-import {CloudQuoteQuoteHistoricalItemSchema, type CloudQuoteQuoteSchema} from "@tokenring-ai/cloudquote/schema";
+import type {CloudQuoteQuoteHistoricalItemSchema, CloudQuoteQuoteSchema} from "@tokenring-ai/cloudquote/schema";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -14,7 +14,8 @@ import {
   TrendingUp,
   Zap,
 } from 'lucide-react';
-import React, {useCallback, useRef, useState} from 'react';
+import type React from 'react';
+import {useCallback, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 
 import type {z} from 'zod';

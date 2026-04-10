@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import React, {useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
-import {agentRPCClient, useAgentList, useAgentTypes, useWorkflows, workflowRPCClient} from '../rpc';
+import {agentRPCClient, type useAgentList, type useAgentTypes, type useWorkflows, workflowRPCClient} from '../rpc';
 import ConfirmDialog from './overlay/confirm-dialog.tsx';
 import {useSidebar} from './SidebarContext';
 import {toastManager} from './ui/toast';

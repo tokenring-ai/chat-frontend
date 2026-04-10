@@ -1,6 +1,7 @@
 import {AnimatePresence, motion} from 'framer-motion';
 import {Check, ChevronDown} from 'lucide-react';
-import React, {useEffect, useRef, useState} from 'react';
+import type React from 'react';
+import {useEffect, useRef, useState} from 'react';
 import type {InteractionResponseMessage, QuestionInteraction} from "../../types/agent-events.ts";
 import FileInlineQuestion from "./inputs/file-inline.tsx";
 import FormInlineQuestion from "./inputs/form-inline.tsx";
