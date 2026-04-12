@@ -110,6 +110,10 @@ const events: Record<ChatMessage['type'], EventConfig> = {
     style: 'text-accent',
     icon: <span className="text-accent font-bold flex items-center">?</span>,
   },
+  'toolCall': {
+    style: 'text-primary font-mono',
+    icon: <span className="text-accent font-bold flex items-center">●</span>,
+  },
 };
 
 function getMessageText(msg: ChatMessage): string | null {
@@ -126,6 +130,8 @@ function getMessageText(msg: ChatMessage): string | null {
     case 'output.warning':
     case 'output.error':
       return msg.message.trim() || '[empty message]';
+    case 'toolCall':
+      return msg.summary;
     default:
       return null;
   }
@@ -259,6 +265,36 @@ function InteractionResponseDisplay({ msg }: { msg: InteractionResponseMessage }
         <div className="text-sm text-primary font-mono break-words whitespace-pre-wrap">
           {displayText}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ToolCallDisplay({msg}: { msg: Extract<AgentEventEnvelope, { type: 'toolCall' }> }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div className="prose prose-sm cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+      <button
+        className="flex items-center gap-1.5 w-full text-left cursor-pointer hover:opacity-80 transition-opacity"
+      >
+        <span className="text-primary font-medium">{msg.summary}</span>
+        <div className={`mr-auto transition-transform duration-150 ${isExpanded ? 'rotate-0' : '-rotate-90'}`}>
+          <ChevronDown size={13} className="text-dim"/>
+        </div>
+      </button>
+      <div className="mb-2 space-y-1">
+        {msg.actions?.map((action, i) => (
+          <div key={i} className="text-xs text-secondary">
+            <span className="px-1 shrink-0 text-stone-400 dark:text-neutral-500">└</span>
+            {action}
+          </div>
+        ))}
+        {isExpanded && msg.result && (
+          <div className="flex gap-1.5 prose-sm text-muted mt-1">
+            <span className="text-secondary whitespace-pre-wrap wrap-break-word">{msg.result}</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -399,7 +435,9 @@ export default function MessageComponent({msg, question, response}: MessageCompo
       </div>
 
       <div className={`prose prose-sm dark:prose-invert ${messageStyle} w-full`}>
-        {msg.type === 'output.artifact' ? (
+        {msg.type === 'toolCall' ? (
+          <ToolCallDisplay msg={msg}/>
+        ) : msg.type === 'output.artifact' ? (
           <ArtifactDisplay artifact={msg} />
         ) : isQuestionWithResponse ? (
           <QuestionWithResponseDisplay
@@ -438,7 +476,7 @@ export default function MessageComponent({msg, question, response}: MessageCompo
                 <div className="flex flex-wrap gap-2">
                   {attachments.map((attachment, index) => (
                     <AttachmentChip
-                      key={`${attachment.name}-${attachment.timestamp}-${index}`}
+                      key={`${attachment.name}-${index}`}
                       attachment={attachment}
                     />
                   ))}

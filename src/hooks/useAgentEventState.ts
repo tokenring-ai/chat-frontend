@@ -127,6 +127,7 @@ export function useAgentEventState(agentId: string) {
                   case "output.error":
                   case "input.received":
                   case "input.interaction":
+                  case "toolCall":
                     appendMessage(event);
                     break;
                   case "agent.status":

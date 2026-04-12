@@ -1,9 +1,9 @@
-import type {InputAttachment} from '@tokenring-ai/agent/AgentEvents';
+import type {BaseAttachment} from '@tokenring-ai/agent/AgentEvents';
 import {Check, Copy, Download, File, FileCode, FileJson, FileText, Image as ImageIcon, X} from 'lucide-react';
 import React, {useMemo, useState} from 'react';
 
 interface AttachmentChipProps {
-  attachment: InputAttachment;
+  attachment: BaseAttachment;
   onRemove?: () => void;
   showRemove?: boolean;
 }
@@ -135,7 +135,7 @@ function getAttachmentExtension(name: string, mimeType: string) {
   return getMimeLabel(mimeType);
 }
 
-function decodeAttachmentText(attachment: InputAttachment): string {
+function decodeAttachmentText(attachment: BaseAttachment): string {
   if (attachment.encoding === 'base64') {
     return atob(attachment.body);
   }
@@ -143,7 +143,7 @@ function decodeAttachmentText(attachment: InputAttachment): string {
   return attachment.body;
 }
 
-function getAttachmentPreview(attachment: InputAttachment): string {
+function getAttachmentPreview(attachment: BaseAttachment): string {
   if (!isTextAttachment(attachment.mimeType)) {
     return '';
   }
@@ -158,7 +158,7 @@ function getAttachmentPreview(attachment: InputAttachment): string {
   }
 }
 
-function getImagePreviewSrc(attachment: InputAttachment): string | null {
+function getImagePreviewSrc(attachment: BaseAttachment): string | null {
   if (!isImageAttachment(attachment.mimeType)) {
     return null;
   }
@@ -174,7 +174,7 @@ function getImagePreviewSrc(attachment: InputAttachment): string | null {
   return `data:${attachment.mimeType};charset=utf-8,${encodeURIComponent(attachment.body)}`;
 }
 
-function downloadAttachment(attachment: InputAttachment) {
+function downloadAttachment(attachment: BaseAttachment) {
   try {
     if (attachment.encoding === 'href') {
       const a = document.createElement('a');
@@ -218,7 +218,7 @@ function downloadAttachment(attachment: InputAttachment) {
   }
 }
 
-function formatFileSize(attachment: InputAttachment): string {
+function formatFileSize(attachment: BaseAttachment): string {
   try {
     let byteSize: number;
 

@@ -1,4 +1,4 @@
-import type {InputAttachment} from '@tokenring-ai/agent/AgentEvents';
+import {BaseAttachmentSchema, type InputAttachment} from '@tokenring-ai/agent/AgentEvents';
 import {AnimatePresence, motion} from 'framer-motion';
 import {File, FileCode, FileText, FolderOpen, History, Image, Paperclip, Send, Square, X} from 'lucide-react';
 import type React from 'react';
@@ -108,6 +108,12 @@ export default function ChatFooter({
       const reader = new FileReader();
       
       reader.onload = () => {
+        const mimeType = BaseAttachmentSchema.shape.mimeType.safeParse(file.type);
+        if (!mimeType.success) {
+          reject(new Error(`Invalid MIME type: ${file.type}`));
+          return;
+        }
+
         const arrayBuffer = reader.result as ArrayBuffer;
         const bytes = new Uint8Array(arrayBuffer);
 
@@ -123,7 +129,7 @@ export default function ChatFooter({
           type: 'attachment',
           name: file.name,
           encoding: 'base64',
-          mimeType: file.type || 'application/octet-stream',
+          mimeType: mimeType.data,
           body: base64,
           timestamp: Date.now(),
         };
@@ -422,7 +428,7 @@ export default function ChatFooter({
                       className="flex items-center gap-2 bg-tertiary px-3 py-1.5 rounded-md group shadow-card"
                     >
                       <Icon className="w-4 h-4 text-muted" />
-                      <span className="text-sm text-primary font-mono max-w-[150px] truncate">
+                      <span className="text-sm text-primary font-mono max-w-37.5 truncate">
                         {file.name}
                       </span>
                       <span className="text-xs text-muted font-mono">
