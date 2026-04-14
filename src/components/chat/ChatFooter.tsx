@@ -168,7 +168,7 @@ export default function ChatFooter({
         try {
           const attachment = await readFileAsAttachment(file);
           newAttachments.push(attachment);
-        } catch (error) {
+        } catch (error: unknown) {
           console.error(`Failed to read file ${file.name}:`, error);
         }
       }
@@ -179,7 +179,7 @@ export default function ChatFooter({
       setIsProcessingFiles(false);
     };
 
-    processFiles();
+    void processFiles();
   }, [readFileAsAttachment]);
 
   // Handle file selection
@@ -201,7 +201,7 @@ export default function ChatFooter({
         try {
           const attachment = await readFileAsAttachment(file);
           newAttachments.push(attachment);
-        } catch (error) {
+        } catch (error: unknown) {
           console.error(`Failed to read file ${file.name}:`, error);
         }
       }

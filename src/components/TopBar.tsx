@@ -93,7 +93,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
                 <div className="border-t border-primary">
                     <button
                     onClick={() => {
-                      navigate('/agents');
+                      void navigate('/agents');
                       setOpen(false);
                     }}
                     className="w-full px-3 py-2 text-xs flex items-center gap-2 text-primary hover:bg-hover transition-colors text-left cursor-pointer focus-ring rounded-md"
@@ -112,7 +112,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
                     role="option"
                     aria-selected={agent.id === currentAgentId}
                     onClick={() => {
-                      navigate(`/agent/${agent.id}`);
+                      void navigate(`/agent/${agent.id}`);
                       setOpen(false);
                     }}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-hover transition-colors cursor-pointer focus-ring rounded-md ${agent.id === currentAgentId ? 'bg-active' : ''}`}
@@ -132,7 +132,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
                 <div className="border-t border-primary">
                   <button
                     onClick={() => {
-                      navigate('/agents');
+                      void navigate('/agents');
                       setOpen(false);
                     }}
                     className="w-full px-3 py-2 text-xs flex items-center gap-2 text-primary hover:bg-hover transition-colors text-left cursor-pointer focus-ring rounded-md"

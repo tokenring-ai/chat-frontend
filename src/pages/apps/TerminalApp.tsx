@@ -66,7 +66,7 @@ export default function TerminalApp() {
       }
     };
 
-    poll();
+    void poll();
     pollRef.current = setInterval(poll, 800);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [activeTerminal]);
@@ -259,7 +259,7 @@ export default function TerminalApp() {
                   onKeyDown={e => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
-                      sendInput();
+                      void sendInput();
                     }
                   }}
                   disabled={activeSession?.complete}

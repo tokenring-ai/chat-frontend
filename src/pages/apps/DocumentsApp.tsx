@@ -38,7 +38,7 @@ function useInitAgent() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const types = await agentRPCClient.getAgentTypes({});
         if (cancelled) return;
@@ -383,7 +383,7 @@ function SaveAsModal({providers, initialPath, onSave, onClose}: SaveAsModalProps
               value={path}
               onChange={e => setPath(e.target.value)}
               onKeyDown={e => {
-                if (e.key === 'Enter' && !saving) handleSubmit();
+                if (e.key === 'Enter' && !saving) void handleSubmit();
                 if (e.key === 'Escape') onClose();
               }}
               placeholder="documents/my-file.md"
@@ -478,7 +478,7 @@ export default function DocumentsApp() {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        handleSave();
+        void handleSave();
       }
     };
     window.addEventListener('keydown', handler);

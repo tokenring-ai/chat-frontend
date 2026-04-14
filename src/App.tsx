@@ -151,7 +151,7 @@ export default function App() {
                             <button
                               onClick={() => {
                                 setIsNavigating(true);
-                                navigate('/agents');
+                                void navigate('/agents');
                               }}
                               disabled={isNavigating}
                               className="px-5 py-2.5 bg-accent hover:bg-accent/90 disabled:bg-accent/50 text-primary rounded-button transition-colors focus-ring font-medium flex items-center gap-2 shadow-button-primary"

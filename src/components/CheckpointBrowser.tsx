@@ -131,7 +131,7 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
     try {
       const { agentId } = await checkpointRPCClient.launchAgentFromCheckpoint({ checkpointId, headless: false });
       await agents.mutate();
-      navigate(`/agent/${agentId}`);
+      void navigate(`/agent/${agentId}`);
     } catch (error: any) {
       toastManager.error(error.message || 'Failed to launch from checkpoint', { duration: 5000 });
     } finally {

@@ -62,7 +62,7 @@ export function useAgentEventState(agentId: string) {
       }, reconnectDelay);
     };
 
-    (async () => {
+    void (async () => {
       let fromPosition = stateRef.current.position;
       const currentMessages = [...stateRef.current.messages];
       let currentAgentStatus = stateRef.current.agentStatus;
@@ -173,7 +173,7 @@ export function useAgentEventState(agentId: string) {
               setAgentStatus(currentAgentStatus);
               setPosition(eventsData.position);
             }
-          } catch (error) {
+          } catch (error: unknown) {
             if (abortController.signal.aborted) return;
 
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';

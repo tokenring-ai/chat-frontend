@@ -482,7 +482,7 @@ export default function BlogApp() {
   // Create a headless blog agent on mount
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const types = await agentRPCClient.getAgentTypes({});
         if (cancelled) return;
@@ -527,7 +527,7 @@ export default function BlogApp() {
   // Fetch blog state once agentId is ready
   useEffect(() => {
     if (!agentId) return;
-    blogState.mutate();
+    void blogState.mutate();
   }, [agentId]);
 
   const filteredPosts = useMemo(() => {
@@ -614,7 +614,7 @@ export default function BlogApp() {
           availableProviders={availableProviders}
           onProviderChange={p => {
             setProvider(p);
-            posts.mutate();
+            void posts.mutate();
           }}
         />
 

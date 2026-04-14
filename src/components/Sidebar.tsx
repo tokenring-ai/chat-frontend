@@ -72,7 +72,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [showStorageWarning, setShowStorageWarning] = useState(false);
 
-  const navigateAndClose = (path: string) => { navigate(path); setMobileOpen(false); };
+  const navigateAndClose = (path: string) => { void navigate(path); setMobileOpen(false); };
 
   React.useEffect(() => {
     if (!localStorageAvailable && !showStorageWarning) {
@@ -260,7 +260,7 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
                         <div className="text-2xs text-muted mt-0.5 truncate">{agent.currentActivity}</div>
                       </div>
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleDeleteClick(agent.id, agent.idle); }}
+                        onClick={(e) => { e.stopPropagation(); void handleDeleteClick(agent.id, agent.idle); }}
                         className="p-1.5 text-muted hover:text-red-500 transition-colors opacity-40 hover:opacity-100 group-focus-within:opacity-100 focus-ring cursor-pointer rounded-md active:scale-[0.98]"
                         aria-label={`Delete agent ${agent.displayName}`}
                       >

@@ -26,8 +26,8 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
       } else {
         await lifecycleRPCClient.enableHooks({ agentId, hooks: [hookName] });
       }
-      enabledHooks.mutate();
-    } catch (error) {
+      void enabledHooks.mutate();
+    } catch (error: unknown) {
       console.error('Failed to toggle hook:', error);
     }
   }, [agentId, enabledHooks]);
@@ -48,7 +48,7 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       e.stopPropagation();
-      handleToggleHook(hookName);
+      void handleToggleHook(hookName);
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       setFocusedIndex((prev) => {
@@ -145,11 +145,11 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
               onClick={() => {
                 const allHookNames = Object.keys(hooks ?? {});
                 if (allEnabled) {
-                  lifecycleRPCClient.disableHooks({ agentId, hooks: allHookNames });
+                  void lifecycleRPCClient.disableHooks({ agentId, hooks: allHookNames });
                 } else {
-                  lifecycleRPCClient.enableHooks({ agentId, hooks: allHookNames });
+                  void lifecycleRPCClient.enableHooks({ agentId, hooks: allHookNames });
                 }
-                enabledHooks.mutate();
+                void enabledHooks.mutate();
               }}
               className="w-full flex items-center justify-between p-2 rounded-md hover:bg-hover transition-colors text-xs font-mono focus-ring"
             >
@@ -176,7 +176,7 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
                 tabIndex={0}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleToggleHook(hookName);
+                  void handleToggleHook(hookName);
                 }}
                 onKeyDown={(e) => {
                   e.stopPropagation();

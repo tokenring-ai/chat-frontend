@@ -938,11 +938,11 @@ export default function CalendarApp() {
       if (ev.type === 'workflow' && ev.workflowKey) {
         const { id } = await workflowRPCClient.spawnWorkflow({ workflowName: ev.workflowKey, headless: false });
         setModalOpen(false);
-        navigate(`/agent/${id}`);
+        void navigate(`/agent/${id}`);
       } else if (ev.type === 'agent' && ev.agentType) {
         const { id } = await agentRPCClient.createAgent({ agentType: ev.agentType, headless: false });
         setModalOpen(false);
-        navigate(`/agent/${id}`);
+        void navigate(`/agent/${id}`);
       }
     } catch (error: any) {
       toastManager.error(error.message || 'Failed to run event');

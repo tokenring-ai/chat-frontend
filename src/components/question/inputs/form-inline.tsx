@@ -161,9 +161,9 @@ export default function FormInlineQuestion({
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  handleFieldSubmit(e.currentTarget.value);
+                  void handleFieldSubmit(e.currentTarget.value);
                 } else if (e.key === 'Escape') {
-                  handleCancel();
+                  void handleCancel();
                 }
               }}
               className={`w-full bg-primary border border-primary rounded-md text-primary text-sm p-2 outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/20 ${
@@ -235,7 +235,7 @@ export default function FormInlineQuestion({
           <button
             onClick={(e) => {
               const input = e.currentTarget.parentElement?.parentElement?.querySelector('input') as HTMLInputElement;
-              if (input?.value) handleFieldSubmit(input.value);
+              if (input?.value) void handleFieldSubmit(input.value);
             }}
             disabled={isSubmitting}
             className="flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-ring"

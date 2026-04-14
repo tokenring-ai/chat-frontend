@@ -111,7 +111,7 @@ function KeyRow({
               placeholder="New value..."
               value={value}
               onChange={e => setValue(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') { setEditing(false); setValue(''); } }}
+              onKeyDown={e => { if (e.key === 'Enter') void handleSave(); if (e.key === 'Escape') { setEditing(false); setValue(''); } }}
               autoFocus
               className="w-full bg-input border border-primary rounded-lg py-1.5 pl-3 pr-8 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 font-mono"
             />
@@ -196,7 +196,7 @@ function AddKeyForm({category, onAdded}: {category: string; onAdded: () => void}
             placeholder="Value"
             value={value}
             onChange={e => setValue(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setOpen(false); }}
+            onKeyDown={e => { if (e.key === 'Enter') void handleSave(); if (e.key === 'Escape') setOpen(false); }}
             className="w-full bg-input border border-primary rounded-lg py-1.5 pl-3 pr-8 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 font-mono"
           />
           <button

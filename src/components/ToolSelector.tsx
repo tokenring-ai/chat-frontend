@@ -129,8 +129,8 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
       } else {
         await chatRPCClient.enableTools({ agentId, tools: [toolName] });
       }
-      enabledTools.mutate();
-    } catch (error) {
+      void enabledTools.mutate();
+    } catch (error: unknown) {
       console.error('Failed to toggle tool:', error);
     }
   }, [agentId, enabledTools]);
@@ -147,8 +147,8 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
       } else {
         await chatRPCClient.enableTools({ agentId, tools: allToolNames });
       }
-      enabledTools.mutate();
-    } catch (error) {
+      void enabledTools.mutate();
+    } catch (error: unknown) {
       console.error('Failed to toggle category:', error);
     }
   }, [agentId, enabledTools]);
@@ -316,7 +316,7 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
                     className="flex items-center gap-1.5 cursor-pointer hover:bg-hover rounded-md px-2 py-1 transition-colors border border-transparent hover:border-primary focus-ring"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleToggleCategory(category, categoryTools);
+                      void handleToggleCategory(category, categoryTools);
                     }}
                     title={allEnabled ? "Disable all tools" : allDisabled ? "Enable all tools" : "Toggle all tools"}
                   >
@@ -353,7 +353,7 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
                           key={toolName}
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleToggleTool(toolName);
+                            void handleToggleTool(toolName);
                           }}
                           className="flex items-center cursor-pointer py-1.5 rounded-md px-3 transition-colors group hover:bg-hover"
                         >

@@ -153,7 +153,7 @@ function CodeBlock({ children, className }: { children: string; className?: stri
       await navigator.clipboard.writeText(children);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Failed to copy:', err);
     }
   };
@@ -203,7 +203,7 @@ function QuestionWithResponseDisplay({
       return JSON.stringify(result, null, 2);
     }
 
-    return String(result);
+    return String(result as string);
   };
 
   return (
@@ -321,7 +321,7 @@ function MessageFooter({ msg, onDownload }: { msg: ChatMessage; onDownload?: () 
       }
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Failed to copy:', err);
     }
   };
@@ -329,7 +329,7 @@ function MessageFooter({ msg, onDownload }: { msg: ChatMessage; onDownload?: () 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      handleCopy();
+      void handleCopy();
     }
   };
 
@@ -458,8 +458,8 @@ export default function MessageComponent({msg, question, response}: MessageCompo
               remarkPlugins={[remarkGfm]}
               components={{
                 pre: ({ children }) => <>{children}</>,
-                code: ({ node, className, children, ...props }) => {
-                  const text = String(children).trim();
+                code: ({ className, children, ...props }) => {
+                  const text = String(children as string).trim();
                   if (text.includes("\n")) {
                     return <CodeBlock className={className}>{text}</CodeBlock>;
                   } else {

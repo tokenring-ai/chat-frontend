@@ -61,7 +61,7 @@ function useInitAgent() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const types = await agentRPCClient.getAgentTypes({});
         if (cancelled) return;
@@ -120,7 +120,7 @@ function AgentLaunchPanel({ selectedPaths, onClear }: AgentLaunchPanelProps) {
           filesystemRPCClient.addFileToChat({ agentId: newAgentId, file })
         )
       );
-      navigate(`/agent/${newAgentId}`);
+      void navigate(`/agent/${newAgentId}`);
     } catch (e: any) {
       toastManager.error(e.message || 'Failed to launch agent', { duration: 5000 });
     } finally {
@@ -477,7 +477,7 @@ function PreviewMetadataPane({
               try {
                 const result = await filesystemRPCClient.readTextFile({path: file, provider});
                 const title = getBasename(file).replace(/\.md$/i, '');
-                navigate('/documents', {state: {filePath: file, fileContent: result.content ?? '', title, provider}});
+                void navigate('/documents', {state: {filePath: file, fileContent: result.content ?? '', title, provider}});
               } catch { toastManager.error('Could not read file', {duration: 3000}); }
             }}
             className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-primary text-xs font-medium text-muted hover:text-primary hover:bg-hover transition-all focus-ring cursor-pointer"
@@ -490,7 +490,7 @@ function PreviewMetadataPane({
             onClick={async () => {
               try {
                 const result = await filesystemRPCClient.readTextFile({path: file, provider});
-                navigate('/canvas', {state: {filePath: file, fileContent: result.content ?? '', provider}});
+                void navigate('/canvas', {state: {filePath: file, fileContent: result.content ?? '', provider}});
               } catch { toastManager.error('Could not read file', {duration: 3000}); }
             }}
             className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-primary text-xs font-medium text-muted hover:text-primary hover:bg-hover transition-all focus-ring cursor-pointer"

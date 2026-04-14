@@ -15,7 +15,7 @@ export default function WorkflowsApp() {
     try {
       const { id } = await workflowRPCClient.spawnWorkflow({ workflowName, headless: false });
       await agents.mutate();
-      navigate(`/agent/${id}`);
+      void navigate(`/agent/${id}`);
     } catch (error: any) {
       toastManager.error(error.message || 'Failed to spawn workflow', { duration: 5000 });
     } finally {

@@ -89,7 +89,7 @@ function SaveAsModal({providers, initialPath, onSave, onClose}: {
               type="text"
               value={path}
               onChange={e => setPath(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !saving) handleSubmit(); if (e.key === 'Escape') onClose(); }}
+              onKeyDown={e => { if (e.key === 'Enter' && !saving) void handleSubmit(); if (e.key === 'Escape') onClose(); }}
               placeholder="pages/index.html"
               className="w-full bg-input border border-primary rounded-lg px-3 py-2 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20"
             />
@@ -203,7 +203,7 @@ function CanvasWorkspace({ fileState }: { fileState?: FileState | null }) {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        handleSave();
+        void handleSave();
       }
     };
     window.addEventListener('keydown', handler);

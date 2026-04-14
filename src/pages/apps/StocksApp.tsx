@@ -72,7 +72,7 @@ export interface StockNewsResponse {
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-function fmt(n: number | string | null | undefined | '', digits = 2) {
+function fmt(n: number | string | null | undefined, digits = 2) {
   if (n == null || n === '' || isNaN(Number(n))) return '—';
   return Number(n).toLocaleString('en-US', {minimumFractionDigits: digits, maximumFractionDigits: digits});
 }
@@ -456,7 +456,7 @@ function AskAIModal({
       await filesystemRPCClient.addFileToChat({agentId, file: contextPath});
 
       onClose();
-      navigate(`/agent/${agentId}`);
+      void navigate(`/agent/${agentId}`);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to launch agent';
       toastManager.error(errorMessage, {duration: 5000});

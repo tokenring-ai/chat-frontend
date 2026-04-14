@@ -42,7 +42,7 @@ export default function FileInlineQuestion({
   }, [autoFocus]);
 
   useEffect(() => {
-    loadDirectory('.');
+    void loadDirectory('.');
   }, []);
 
   const fsState = useFilesystemState(agentId);
@@ -55,7 +55,7 @@ export default function FileInlineQuestion({
     try {
       const result = await filesystemRPCClient.listDirectory({ path, showHidden: true, provider, recursive: false });
       setFiles((prev) => new Map(prev).set(path, result.files));
-    } catch (_e) {
+    } catch {
       setError('Failed to load directory');
       setTimeout(() => setError(null), 3000);
     } finally {
@@ -181,7 +181,7 @@ export default function FileInlineQuestion({
           onClick={() => {
             if (!isSelectable) return;
             if (isDir) {
-              toggleExpand(cleanPath);
+              void toggleExpand(cleanPath);
             } else {
               toggleSelect(item, false);
             }
@@ -190,7 +190,7 @@ export default function FileInlineQuestion({
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
               if (isDir) {
-                toggleExpand(cleanPath);
+                void toggleExpand(cleanPath);
               } else {
                 toggleSelect(item, false);
               }

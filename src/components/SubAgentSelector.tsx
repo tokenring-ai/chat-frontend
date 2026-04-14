@@ -28,8 +28,8 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
       } else {
         await tasksRPCClient.enableSubAgents({agentId, agents: [agentType]});
       }
-      enabledSubAgents.mutate();
-    } catch (error) {
+      void enabledSubAgents.mutate();
+    } catch (error: unknown) {
       console.error('Failed to toggle sub-agent:', error);
     } finally {
       setLoadingAgent(null);
@@ -114,7 +114,7 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
                   } else {
                     await tasksRPCClient.enableSubAgents({agentId, agents: allAgentTypes});
                   }
-                  enabledSubAgents.mutate();
+                  void enabledSubAgents.mutate();
                 } finally {
                   setLoadingAll(false);
                 }
@@ -144,7 +144,7 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
                 key={agent.type}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleToggleAgent(agent.type);
+                  void handleToggleAgent(agent.type);
                 }}
                 className="flex items-center cursor-pointer py-1.5 rounded-md px-3 transition-colors group hover:bg-hover"
               >

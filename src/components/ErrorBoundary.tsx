@@ -104,7 +104,7 @@ function ErrorDetails({error, errorInfo}: { error?: Error; errorInfo?: React.Err
       await navigator.clipboard.writeText(errorText);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Failed to copy error details:', err);
     }
   };

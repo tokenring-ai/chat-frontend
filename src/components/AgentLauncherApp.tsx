@@ -46,7 +46,7 @@ export default function AgentLauncherApp({
     try {
       const { id } = await agentRPCClient.createAgent({ agentType, headless: false });
       await agents.mutate();
-      navigate(`/agent/${id}`);
+      void navigate(`/agent/${id}`);
     } catch (error: any) {
       toastManager.error(error.message || `Failed to launch ${label} agent`, { duration: 5000 });
     } finally {

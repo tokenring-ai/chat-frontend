@@ -438,7 +438,7 @@ export default function MediaApp() {
   // Create a headless agent on mount for image generation operations
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const types = await agentRPCClient.getAgentTypes({});
         if (cancelled) return;

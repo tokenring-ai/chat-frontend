@@ -22,7 +22,7 @@ export default function AgentsApp() {
     try {
       const { id } = await agentRPCClient.createAgent({ agentType: type, headless: false });
       await agents.mutate();
-      navigate(`/agent/${id}`);
+      void navigate(`/agent/${id}`);
     } catch (error: any) {
       toastManager.error(error.message || 'Failed to create agent', { duration: 5000 });
     } finally {
@@ -35,7 +35,7 @@ export default function AgentsApp() {
     try {
       const { id } = await workflowRPCClient.spawnWorkflow({ workflowName, headless: false });
       await agents.mutate();
-      navigate(`/agent/${id}`);
+      void navigate(`/agent/${id}`);
     } catch (error: any) {
       toastManager.error(error.message || 'Failed to spawn workflow', { duration: 5000 });
     } finally {

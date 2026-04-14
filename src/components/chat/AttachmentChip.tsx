@@ -213,7 +213,7 @@ function downloadAttachment(attachment: BaseAttachment) {
     setTimeout(() => {
       URL.revokeObjectURL(url);
     }, 100);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Failed to download attachment:', error);
   }
 }
@@ -272,7 +272,7 @@ export default function AttachmentChip({ attachment, onRemove, showRemove = fals
       await navigator.clipboard.writeText(decodeAttachmentText(attachment));
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to copy to clipboard:', error);
     }
   };

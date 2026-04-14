@@ -61,9 +61,9 @@ export default function TextInlineQuestion({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit();
+      void handleSubmit();
     } else if (e.key === 'Escape') {
-      handleCancel();
+      void handleCancel();
     }
   };
 

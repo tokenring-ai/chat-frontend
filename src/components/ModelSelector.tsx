@@ -74,7 +74,7 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
     setIsSelecting(true);
     try {
       await chatRPCClient.setModel({ agentId, model: modelId });
-      currentModel.mutate({ model: modelId });
+      void currentModel.mutate({ model: modelId });
       setIsSelecting(false);
       setSelectingModelId(null);
       setIsOpen(false);
@@ -211,7 +211,7 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
                   } else if (e.key === 'Enter' && focusedModelIndex >= 0) {
                     e.preventDefault();
                     const model = allFlatModels[focusedModelIndex];
-                    if (model) handleSelectModel(model.modelId);
+                    if (model) void handleSelectModel(model.modelId);
                   }
                 }}
                 className="w-full bg-input border border-primary rounded-md py-1.5 pl-9 pr-8 text-xs text-primary placeholder-muted focus-ring transition-all"
@@ -295,7 +295,7 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                   e.preventDefault();
-                                  handleSelectModel(model.modelId);
+                                  void handleSelectModel(model.modelId);
                                 }
                               }}
                               onFocus={() => setFocusedModelIndex(globalIndex)}

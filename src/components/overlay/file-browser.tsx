@@ -155,7 +155,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
             if (!provider) throw new Error('No filesystem provider');
             await filesystemRPCClient.writeFile({ path: fileToSave, content: contentToSave, provider });
             await fileContent.mutate();
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to save file:', error);
         } finally {
             setIsSaving(false);
@@ -207,7 +207,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
             } else {
                 setSelectedFile(file);
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to read file:', error);
         }
     };
@@ -220,7 +220,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
             await filesystemRPCClient.addFileToChat({ agentId, file });
             await selectedFiles.mutate();
             toastManager.success(`Added ${getBasename(file)} to chat`, { duration: 2000 });
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to add file:', error);
             toastManager.error('Failed to add file to chat', { duration: 3000 });
         }
@@ -232,7 +232,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
             await filesystemRPCClient.removeFileFromChat({ agentId, file });
             await selectedFiles.mutate();
             toastManager.info(`Removed ${getBasename(file)} from chat`, { duration: 2000 });
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to remove file:', error);
           toastManager.error('Failed to remove file to chat', {duration: 3000});
         }
@@ -251,7 +251,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
             a.download = cleanFile.split('/').pop() || 'download';
             a.click();
             URL.revokeObjectURL(url);
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Failed to download file:', error);
         }
     };
@@ -274,7 +274,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                 const targetPath = path === '.' ? file.name : `${path}/${file.name}`;
                 if (!provider) throw new Error('No filesystem provider');
                 await filesystemRPCClient.writeFile({ path: targetPath, content, provider });
-            } catch (error) {
+            } catch (error: unknown) {
                 console.error('Failed to upload file:', error);
                 toastManager.error(`Failed to upload "${file.name}"`, { duration: 3000 });
             }
@@ -438,7 +438,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                                 onKeyDown={(e) => {
                                                     if (e.key === 'Enter' || e.key === ' ') {
                                                         e.preventDefault();
-                                                        handleFileClick(file);
+                                                      void handleFileClick(file);
                                                     }
                                                 }}
                                             >
@@ -446,7 +446,11 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                                     <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            isInChat ? handleRemoveFile(file) : handleAddFile(file);
+                                                            if (isInChat) {
+                                                              void handleRemoveFile(file);
+                                                            } else {
+                                                              void handleAddFile(file);
+                                                            }
                                                         }}
                                                         className={cn(
                                                             "w-3 h-3 border rounded-sm flex items-center justify-center transition-all focus-ring",
@@ -502,7 +506,11 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
                                                       <button
                                                         onClick={(e) => {
                                                           e.stopPropagation();
-                                                          isInChat ? handleRemoveFile(file) : handleAddFile(file);
+                                                          if (isInChat) {
+                                                            void handleRemoveFile(file);
+                                                          } else {
+                                                            void handleAddFile(file);
+                                                          }
                                                         }}
                                                         className={cn(
                                                           "p-1.5 focus-ring rounded-md",
