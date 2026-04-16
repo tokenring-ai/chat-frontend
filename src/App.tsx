@@ -90,8 +90,8 @@ export default function App() {
               agents={agents}
               agentControls={currentAgentId ? (
                 <>
-                  <ModelSelector agentId={currentAgentId} />
-                  <ToolSelector agentId={currentAgentId} />
+                  <ModelSelector agentId={currentAgentId}/>
+                  <ToolSelector agentId={currentAgentId}/>
                 </>
               ) : undefined}
             />
@@ -145,7 +145,7 @@ export default function App() {
                               <p className="text-sm text-muted">
                                 The agent <code
                                 className="px-1.5 py-0.5 bg-tertiary border border-primary rounded-md text-primary font-mono text-xs">{currentAgentId}</code>
-                                could not be found.<br /> It may have been stopped or removed.
+                                could not be found.<br/> It may have been stopped or removed.
                               </p>
                             </div>
                             <button
@@ -168,8 +168,8 @@ export default function App() {
                             </button>
                           </div>
                         )
-                        : <ChatPage key={currentAgentId} agentId={currentAgentId!} />
-                    } />
+                        : <ChatPage key={currentAgentId} agentId={currentAgentId!}/>
+                    }/>
                   </Routes>
                 </ErrorBoundary>
               </main>

@@ -30,10 +30,10 @@ export default function AgentsApp() {
     }
   };
 
-  const spawnWorkflow = async (workflowName: string) => {
-    setSpawningWorkflow(workflowName);
+  const spawnWorkflow = async (name: string) => {
+    setSpawningWorkflow(name);
     try {
-      const { id } = await workflowRPCClient.spawnWorkflow({ workflowName, headless: false });
+      const { id } = await workflowRPCClient.spawnWorkflow({ name, headless: false });
       await agents.mutate();
       void navigate(`/agent/${id}`);
     } catch (error: any) {
@@ -150,21 +150,21 @@ export default function AgentsApp() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {workflows.data!.map(workflow => (
                   <button
-                    key={workflow.key}
-                    onClick={() => spawnWorkflow(workflow.key)}
-                    disabled={spawningWorkflow === workflow.key}
+                    key={workflow.name}
+                    onClick={() => spawnWorkflow(workflow.name)}
+                    disabled={spawningWorkflow === workflow.name}
                     className="flex items-center gap-3 bg-secondary border border-primary px-3 py-2.5 rounded-lg text-left hover:bg-hover hover:border-cyan-500/50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring shadow-sm"
-                    aria-label={`Spawn workflow: ${workflow.name}`}
+                    aria-label={`Spawn workflow: ${workflow.displayName}`}
                   >
                     <div className="shrink-0 text-cyan-500">
-                      {spawningWorkflow === workflow.key ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (
+                      {spawningWorkflow === workflow.name ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (
                         <div className="w-3.5 h-3.5 rounded-full bg-cyan-500/20 flex items-center justify-center">
                           <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
                         </div>
                       )}
                     </div>
                     <div className="min-w-0">
-                      <div className="text-sm font-medium text-primary truncate">{workflow.name}</div>
+                      <div className="text-sm font-medium text-primary truncate">{workflow.displayName}</div>
                       <div className="text-2xs text-muted line-clamp-1 mt-0.5">{workflow.description}</div>
                     </div>
                   </button>

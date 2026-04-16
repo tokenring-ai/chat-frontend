@@ -10,10 +10,10 @@ export default function WorkflowsApp() {
   const agents = useAgentList();
   const [spawning, setSpawning] = useState<string | null>(null);
 
-  const spawnWorkflow = async (workflowName: string) => {
-    setSpawning(workflowName);
+  const spawnWorkflow = async (name: string) => {
+    setSpawning(name);
     try {
-      const { id } = await workflowRPCClient.spawnWorkflow({ workflowName, headless: false });
+      const { id } = await workflowRPCClient.spawnWorkflow({ name, headless: false });
       await agents.mutate();
       void navigate(`/agent/${id}`);
     } catch (error: any) {
@@ -86,7 +86,7 @@ export default function WorkflowsApp() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {workflows.data!.map(workflow => (
                   <div
-                    key={workflow.key}
+                    key={workflow.name}
                     className="flex flex-col gap-3 bg-secondary border border-primary px-4 py-4 rounded-xl hover:border-cyan-500/40 hover:shadow-card transition-all shadow-sm"
                   >
                     <div className="flex items-start gap-3">
@@ -94,19 +94,19 @@ export default function WorkflowsApp() {
                         <GitBranch className="w-4 h-4 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-primary truncate">{workflow.name}</div>
+                        <div className="text-sm font-semibold text-primary truncate">{workflow.displayName}</div>
                         {workflow.description && (
                           <div className="text-2xs text-muted mt-1 line-clamp-2 leading-relaxed">{workflow.description}</div>
                         )}
                       </div>
                     </div>
                     <button
-                      onClick={() => spawnWorkflow(workflow.key)}
-                      disabled={spawning === workflow.key}
+                      onClick={() => spawnWorkflow(workflow.name)}
+                      disabled={spawning === workflow.name}
                       className="flex items-center justify-center gap-2 px-3 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring shadow-sm w-full"
-                      aria-label={`Launch workflow: ${workflow.name}`}
+                      aria-label={`Launch workflow: ${workflow.displayName}`}
                     >
-                      {spawning === workflow.key
+                      {spawning === workflow.name
                         ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Launching...</>
                         : <><Pause className="w-3.5 h-3.5 rotate-180 fill-current" /> Launch</>
                       }

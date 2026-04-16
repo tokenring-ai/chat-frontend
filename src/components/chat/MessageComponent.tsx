@@ -1,5 +1,6 @@
 import type {AgentEventEnvelope} from "@tokenring-ai/agent/AgentEvents";
 import safeParseJSON from "@tokenring-ai/utility/json/safeParse";
+import markdownList from "@tokenring-ai/utility/string/markdownList";
 import {motion} from 'framer-motion';
 import {
   Activity,
@@ -137,6 +138,10 @@ function getMessageText(msg: ChatMessage): string | null {
   }
 }
 
+function getMessageDetails(msg: ChatMessage): string[] {
+  return "details" in msg ? msg.details ?? [] : [];
+}
+
 function getInputSource(msg: ChatMessage): string | null {
   if (msg.type === 'input.received' && msg.input.from) {
     return msg.input.from;
@@ -207,7 +212,7 @@ function QuestionWithResponseDisplay({
   };
 
   return (
-    <div className="not-prose font-medium">
+    <div className="font-medium text-sm">
       {/* Question part */}
       <div className="text-primary">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -262,7 +267,7 @@ function InteractionResponseDisplay({ msg }: { msg: InteractionResponseMessage }
         <div className="text-xs text-success font-medium mb-1">
           Response Result:
         </div>
-        <div className="text-sm text-primary font-mono break-words whitespace-pre-wrap">
+        <div className="text-sm text-primary font-mono wrap-break-word whitespace-pre-wrap">
           {displayText}
         </div>
       </div>
@@ -274,7 +279,7 @@ function ToolCallDisplay({msg}: { msg: Extract<AgentEventEnvelope, { type: 'tool
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="prose prose-sm cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+    <div className="cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
       <button
         className="flex items-center gap-1.5 w-full text-left cursor-pointer hover:opacity-80 transition-opacity"
       >
@@ -300,18 +305,47 @@ function ToolCallDisplay({msg}: { msg: Extract<AgentEventEnvelope, { type: 'tool
   );
 }
 
+function MessageDetails({details}: { details: string[] }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  if (details.length === 0) return null;
+
+  return (
+    <div className="not-prose my-1">
+      <button
+        type="button"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex items-center gap-1.5 text-[11px] font-mono text-dim hover:text-muted transition-colors focus:outline-none select-none"
+      >
+        <ChevronDown size={10} className={`transition-transform duration-150 ${isExpanded ? 'rotate-0' : '-rotate-90'}`}/>
+        {isExpanded ? 'hide details' : 'details'}
+      </button>
+      {isExpanded && (
+        <div className="mt-1 prose prose-sm dark:prose-invert">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {markdownList(details)}
+          </ReactMarkdown>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MessageFooter({ msg, onDownload }: { msg: ChatMessage; onDownload?: () => void }) {
   const [copied, setCopied] = useState(false);
 
   const messageText = getMessageText(msg);
+  const details = getMessageDetails(msg);
+  const copyText = messageText && details.length > 0
+    ? `${messageText}\n${markdownList(details)}`
+    : messageText;
 
   const handleCopy = async () => {
     try {
       if (navigator.clipboard) {
-        await navigator.clipboard.writeText(messageText!);
+        await navigator.clipboard.writeText(copyText!);
       } else {
         const ta = document.createElement('textarea');
-        ta.value = messageText!;
+        ta.value = copyText!;
         ta.style.position = 'fixed';
         ta.style.opacity = '0';
         document.body.appendChild(ta);
@@ -334,8 +368,8 @@ function MessageFooter({ msg, onDownload }: { msg: ChatMessage; onDownload?: () 
   };
 
   return (
-    <div className="not-prose flex flex-row items-center gap-3 pb-2 text-xs text-muted font-mono">
-      {messageText && (
+    <div className="flex flex-row items-center gap-3 pt-1 text-xs text-muted font-mono">
+      {copyText && (
         <button
           type="button"
           onClick={handleCopy}
@@ -405,10 +439,12 @@ export default function MessageComponent({msg, question, response}: MessageCompo
   }, [msg]);
 
   const messageText = getMessageText(msg);
+  const messageDetails = getMessageDetails(msg);
   const inputSource = getInputSource(msg);
   const hasAttachments = attachments.length > 0;
   const pairedQuestion = question ?? (msg.type === 'question' ? msg : undefined);
   const isQuestionWithResponse = Boolean(pairedQuestion && response);
+
 
   return (
     <motion.div
@@ -434,7 +470,7 @@ export default function MessageComponent({msg, question, response}: MessageCompo
         ) : messageIcon}
       </div>
 
-      <div className={`prose prose-sm dark:prose-invert ${messageStyle} w-full`}>
+      <div className={`${messageStyle} w-full min-w-0`}>
         {msg.type === 'toolCall' ? (
           <ToolCallDisplay msg={msg}/>
         ) : msg.type === 'output.artifact' ? (
@@ -448,39 +484,40 @@ export default function MessageComponent({msg, question, response}: MessageCompo
           <InteractionResponseDisplay msg={msg as InteractionResponseMessage} />
         ) : messageText ? (
           <>
-            {/* Show 'from' field at the top for input.received messages */}
             {inputSource && (
-              <div className="text-primary font-bold font-mono">
+              <div className="text-primary font-bold font-mono text-sm mb-1">
                 From: {inputSource}
               </div>
             )}
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                pre: ({ children }) => <>{children}</>,
-                code: ({ className, children, ...props }) => {
-                  const text = String(children as string).trim();
-                  if (text.includes("\n")) {
-                    return <CodeBlock className={className}>{text}</CodeBlock>;
-                  } else {
-                    return <code className={className} {...props}>{text}</code>;
+            <div className="prose prose-sm dark:prose-invert">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  pre: ({children}) => <>{children}</>,
+                  code: ({className, children, ...props}) => {
+                    const text = String(children as string).trim();
+                    if (text.includes("\n")) {
+                      return <CodeBlock className={className}>{text}</CodeBlock>;
+                    } else {
+                      return <code className={className} {...props}>{text}</code>;
+                    }
                   }
-                }
-              }}
-            >
-              {messageText}
-            </ReactMarkdown>
+                }}
+              >
+                {messageText}
+              </ReactMarkdown>
+            </div>
+
+            <MessageDetails details={messageDetails}/>
 
             {hasAttachments && (
-              <div className="not-prose mt-4 mb-2">
-                <div className="flex flex-wrap gap-2">
-                  {attachments.map((attachment, index) => (
-                    <AttachmentChip
-                      key={`${attachment.name}-${index}`}
-                      attachment={attachment}
-                    />
-                  ))}
-                </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {attachments.map((attachment, index) => (
+                  <AttachmentChip
+                    key={`${attachment.name}-${index}`}
+                    attachment={attachment}
+                  />
+                ))}
               </div>
             )}
           </>
@@ -529,7 +566,7 @@ function ArtifactDisplay({ artifact }: { artifact: Extract<AgentEventEnvelope, {
   }, [mime, textBody]);
 
   return (
-    <div className="not-prose mb-2">
+    <div className="mb-2">
       <button
         className="flex items-center gap-2 py-0.5 w-full text-left cursor-pointer group/header hover:opacity-80 transition-opacity"
         onClick={() => setIsExpanded(!isExpanded)}

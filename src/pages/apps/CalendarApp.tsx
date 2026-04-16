@@ -668,7 +668,7 @@ function EventModal({ event, defaultDate, defaultHour, onClose, onSave, onDelete
                   className="w-full bg-secondary border border-primary rounded-lg px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-colors"
                 >
                   <option value="">Select a workflow…</option>
-                  {workflows.data!.map(w => <option key={w.key} value={w.key}>{w.name}</option>)}
+                  {workflows.data!.map(w => <option key={w.name} value={w.name}>{w.displayName}</option>)}
                 </select>
               )}
             </div>
@@ -936,7 +936,7 @@ export default function CalendarApp() {
     setRunning(true);
     try {
       if (ev.type === 'workflow' && ev.workflowKey) {
-        const { id } = await workflowRPCClient.spawnWorkflow({ workflowName: ev.workflowKey, headless: false });
+        const { id } = await workflowRPCClient.spawnWorkflow({ name: ev.workflowKey, headless: false });
         setModalOpen(false);
         void navigate(`/agent/${id}`);
       } else if (ev.type === 'agent' && ev.agentType) {
