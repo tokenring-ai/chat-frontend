@@ -1,35 +1,12 @@
+import {formatDate} from "@tokenring-ai/utility/date/formatDate";
+import {formatTime} from "@tokenring-ai/utility/date/formatTime";
+import {formatTimeAgo} from "@tokenring-ai/utility/date/formatTimeAgo";
 import {AnimatePresence, motion} from 'framer-motion';
 import {ChevronDown, ChevronRight, History, Loader2, RotateCcw, Search, X} from 'lucide-react';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {checkpointRPCClient, type useAgentList, useCheckpointList} from '../rpc.ts';
 import {toastManager} from './ui/toast.tsx';
-
-function formatTimeAgo(timestamp: number): string {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if (seconds < 60) return 'just now';
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-}
-
-function formatDate(timestamp: number): string {
-  const date = new Date(timestamp);
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-
-  if (date.toDateString() === today.toDateString()) return 'Today';
-  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined });
-}
-
-function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-}
 
 type CheckpointItem = { id: string; name: string; agentId: string; createdAt: number };
 

@@ -1,4 +1,5 @@
 import type {EmailMessage} from "@tokenring-ai/email";
+import {formatDate} from "@tokenring-ai/utility/date/formatDate";
 import {
   AlertCircle,
   Archive,
@@ -44,17 +45,6 @@ const MESSAGE_FILTERS: FilterTabOption<MessageFilter>[] = [
   {id: 'read', label: 'Read'},
   {id: 'unread', label: 'Unread'},
 ];
-
-function formatDate(date: Date | string | undefined): string {
-  if (!date) return '';
-  const d = new Date(date);
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffDays = Math.floor(diffMs / 86400000);
-  if (diffDays === 0) return d.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'});
-  if (diffDays < 7) return d.toLocaleDateString(undefined, {weekday: 'short'});
-  return d.toLocaleDateString(undefined, {month: 'short', day: 'numeric'});
-}
 
 function senderName(msg: EmailMessage): string {
   return msg.from.name || msg.from.email;

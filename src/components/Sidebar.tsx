@@ -115,14 +115,14 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
     setConfirmDelete(null);
     await agentRPCClient.deleteAgent({agentId, reason: 'User initiated agent deletion from sidebar in Chat Web UI'});
     await agents.mutate();
-    if (currentAgentId === agentId) navigateAndClose('/');
+    if (currentAgentId === agentId) navigateAndClose('/agents');
   };
 
   const handleDeleteClick = async (agentId: string, isIdle: boolean) => {
     if (isIdle) {
       await agentRPCClient.deleteAgent({agentId, reason: 'User initiated agent deletion from sidebar in Chat Web UI'});
       await agents.mutate();
-      if (currentAgentId === agentId) navigateAndClose('/');
+      if (currentAgentId === agentId) navigateAndClose('/agents');
     } else {
       setConfirmDelete(agentId);
     }

@@ -1,3 +1,4 @@
+import {formatTimeAgo} from "@tokenring-ai/utility/date/formatTimeAgo";
 import {AnimatePresence, motion} from 'framer-motion';
 import {Bell, Trash2, X} from 'lucide-react';
 import {useEffect, useState} from 'react';
@@ -36,14 +37,6 @@ export default function NotificationMenu() {
       setTimeout(() => setJustOpened(false), 2000);
     }
     setIsOpen(true);
-  };
-
-  const formatTime = (timestamp: number) => {
-    const diff = Date.now() - timestamp;
-    if (diff < 60000) return 'Just now';
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-    return `${Math.floor(diff / 86400000)}d ago`;
   };
 
   return (
@@ -148,7 +141,7 @@ export default function NotificationMenu() {
                             <h4 className="text-sm font-medium text-primary mb-1">{notification.title}</h4>
                           )}
                           <p className="text-sm text-muted break-words">{notification.message}</p>
-                          <span className="text-xs text-dim mt-1 block">{formatTime(notification.timestamp)}</span>
+                          <span className="text-xs text-dim mt-1 block">{formatTimeAgo(notification.timestamp)}</span>
                         </div>
                       </div>
                     </motion.div>

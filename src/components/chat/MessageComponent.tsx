@@ -1,4 +1,5 @@
 import type {AgentEventEnvelope} from "@tokenring-ai/agent/AgentEvents";
+import {formatTime} from "@tokenring-ai/utility/date/formatTime";
 import safeParseJSON from "@tokenring-ai/utility/json/safeParse";
 import markdownList from "@tokenring-ai/utility/string/markdownList";
 import {motion} from 'framer-motion';
@@ -28,15 +29,6 @@ import type {ChatMessage, InteractionResponseMessage, QuestionPromptMessage} fro
 import AttachmentChip from './AttachmentChip';
 
 const utf8decoder = new TextDecoder('utf-8');
-
-const formatTimestamp = (timestamp: number) => {
-  return new Date(timestamp).toLocaleTimeString([], {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  });
-};
 
 interface MessageComponentProps {
   msg: ChatMessage;
@@ -402,7 +394,7 @@ function MessageFooter({ msg, onDownload }: { msg: ChatMessage; onDownload?: () 
           <Download className="w-3.5 h-3.5 text-muted hover:text-primary" />
         </button>
       )}
-      {formatTimestamp(msg.timestamp)}
+      {formatTime(msg.timestamp)}
     </div>
   );
 }

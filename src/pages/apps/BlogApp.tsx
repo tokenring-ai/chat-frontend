@@ -1,4 +1,5 @@
 import type {BlogPost, BlogPostListItem} from "@tokenring-ai/blog/BlogProvider";
+import {formatDate} from "@tokenring-ai/utility/date/formatDate";
 import {BookOpen, Calendar, ChevronDown, ExternalLink, FilePlus, Globe, Image, Loader2, Pencil, RefreshCw, Tag, WifiOff,} from 'lucide-react';
 import {useEffect, useMemo, useState} from 'react';
 import AgentLauncherBar from '../../components/AgentLauncherBar.tsx';
@@ -22,11 +23,6 @@ const STATUS_STYLES: Record<PostStatus, { label: string; dot: string; badge: str
   pending: {label: 'Pending', dot: 'bg-orange-400', badge: 'bg-orange-400/10 text-orange-600 dark:text-orange-400 border-orange-400/30'},
   private: {label: 'Private', dot: 'bg-violet-400', badge: 'bg-violet-400/10 text-violet-600 dark:text-violet-400 border-violet-400/30'},
 };
-
-function formatDate(ts: number | undefined) {
-  if (!ts) return '';
-  return new Date(ts).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'});
-}
 
 function StatusBadge({status}: { status: PostStatus }) {
   const s = STATUS_STYLES[status] ?? STATUS_STYLES.draft;
