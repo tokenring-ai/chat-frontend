@@ -1,9 +1,9 @@
-import {Loader2} from 'lucide-react';
-import type React from 'react';
-import {useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {agentRPCClient, useAgentList} from '../rpc.ts';
-import {toastManager} from './ui/toast.tsx';
+import { Loader2 } from "lucide-react";
+import type React from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { agentRPCClient, useAgentList } from "../rpc.ts";
+import { toastManager } from "./ui/toast.tsx";
 
 interface AgentLauncherAppProps {
   /** App name shown in header */
@@ -31,7 +31,7 @@ export default function AgentLauncherApp({
   gradient,
   agentType,
   launchDescription,
-  launchLabel = 'Launch Agent',
+  launchLabel = "Launch Agent",
   chrome,
 }: AgentLauncherAppProps) {
   const navigate = useNavigate();
@@ -58,7 +58,9 @@ export default function AgentLauncherApp({
     <div className="w-full h-full flex flex-col bg-primary">
       {/* App header */}
       <div className="shrink-0 border-b border-primary bg-secondary px-4 sm:px-6 py-3 flex items-center gap-3">
-        <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm [&>svg]:w-4 [&>svg]:h-4 [&>svg]:text-white`}>
+        <div
+          className={`w-7 h-7 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm [&>svg]:w-4 [&>svg]:h-4 [&>svg]:text-white`}
+        >
           {icon}
         </div>
         <div>
@@ -69,19 +71,17 @@ export default function AgentLauncherApp({
 
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
         <div className="max-w-2xl mx-auto space-y-6">
-
           {/* Optional chrome (decorative/status UI) */}
           {chrome}
 
           {/* Existing agents of this type */}
           {existingAgents.length > 0 && (
             <div className="space-y-2">
-              <p className="text-2xs font-bold text-amber-600 dark:text-amber-500/90 uppercase tracking-widest px-1">
-                Running Sessions
-              </p>
+              <p className="text-2xs font-bold text-amber-600 dark:text-amber-500/90 uppercase tracking-widest px-1">Running Sessions</p>
               <div className="space-y-2">
                 {existingAgents.map(agent => (
                   <button
+                    type="button"
                     key={agent.id}
                     onClick={() => navigate(`/agent/${agent.id}`)}
                     className="w-full flex items-center gap-3 bg-secondary border border-amber-500/30 px-3 py-2.5 rounded-xl text-left hover:bg-hover hover:border-amber-500/60 transition-all cursor-pointer focus-ring shadow-sm"
@@ -101,7 +101,9 @@ export default function AgentLauncherApp({
 
           {/* Launch card */}
           <div className="bg-secondary border border-primary rounded-xl p-6 flex flex-col items-center text-center gap-4">
-            <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg [&>svg]:w-8 [&>svg]:h-8 [&>svg]:text-white`}>
+            <div
+              className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg [&>svg]:w-8 [&>svg]:h-8 [&>svg]:text-white`}
+            >
               {icon}
             </div>
             <div>
@@ -109,19 +111,22 @@ export default function AgentLauncherApp({
               <p className="text-sm text-muted mt-1 max-w-sm leading-relaxed">{launchDescription}</p>
             </div>
             <button
+              type="button"
               onClick={launch}
               disabled={creating}
               className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring shadow-button-primary"
               aria-label={`Launch ${label} agent`}
             >
-              {creating
-                ? <><Loader2 className="w-4 h-4 animate-spin" /> Launching...</>
-                : <>{launchLabel}</>
-              }
+              {creating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Launching...
+                </>
+              ) : (
+                launchLabel
+              )}
             </button>
             <p className="text-2xs text-muted">Powered by TokenRing AI agents</p>
           </div>
-
         </div>
       </div>
     </div>

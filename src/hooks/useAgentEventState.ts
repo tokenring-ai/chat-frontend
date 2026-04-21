@@ -1,8 +1,8 @@
-import type {AgentEventEnvelope, AgentStatusSchema, InputExecutionStateSchema,} from "@tokenring-ai/agent/AgentEvents";
-import {useEffect, useRef, useState} from "react";
-import type {z} from "zod";
-import {agentRPCClient} from "../rpc.ts";
-import type {ChatMessage, QuestionInteraction} from "../types/agent-events.ts";
+import type { AgentEventEnvelope, AgentStatusSchema, InputExecutionStateSchema } from "@tokenring-ai/agent/AgentEvents";
+import { useEffect, useRef, useState } from "react";
+import type { z } from "zod";
+import { agentRPCClient } from "../rpc.ts";
+import type { ChatMessage, QuestionInteraction } from "../types/agent-events.ts";
 
 export type RemoteAgentStatus = Omit<AgentStatus, "status"> & {
   status: AgentStatus["status"] | "connecting";
@@ -15,10 +15,10 @@ const INITIAL_AGENT_STATUS: RemoteAgentStatus = {
   status: "connecting",
   currentActivity: "Connecting to the agent...",
   timestamp: 0,
-  inputExecutionQueue: []
+  inputExecutionQueue: [],
 };
 
-function hasMessage(event: AgentEventEnvelope): event is Extract<AgentEventEnvelope, {message: string}> {
+function hasMessage(event: AgentEventEnvelope): event is Extract<AgentEventEnvelope, { message: string }> {
   return "message" in event;
 }
 
@@ -26,11 +26,11 @@ export function useAgentEventState(agentId: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [agentStatus, setAgentStatus] = useState<RemoteAgentStatus>(INITIAL_AGENT_STATUS);
   const [position, setPosition] = useState(0);
-  const [currentExecutionState, setCurrentExecutionState] = useState<InputExecutionState|null>();
+  const [currentExecutionState, setCurrentExecutionState] = useState<InputExecutionState | null>();
   const [isConnecting, setIsConnecting] = useState(true);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
-  const [triggerReconnect, setTriggerReconnect] = useState(0);
+  const [_triggerReconnect, setTriggerReconnect] = useState(0);
   const [agentNotFound, setAgentNotFound] = useState(false);
 
   const stateRef = useRef({
@@ -74,7 +74,7 @@ export function useAgentEventState(agentId: string) {
         currentMessages.push(event);
       };
 
-      const mergeStreamingMessage = (event: Extract<AgentEventEnvelope, {type: "output.chat" | "output.reasoning"}>) => {
+      const mergeStreamingMessage = (event: Extract<AgentEventEnvelope, { type: "output.chat" | "output.reasoning" }>) => {
         const lastIndex = currentMessages.length - 1;
         const lastMessage = currentMessages[lastIndex];
         if (lastMessage && lastMessage.type === event.type && hasMessage(lastMessage)) {
@@ -104,17 +104,20 @@ export function useAgentEventState(agentId: string) {
             setIsConnecting(true);
             setConnectionError(null);
 
-            for await (const eventsData of agentRPCClient.streamAgentEvents({
-              agentId,
-              fromPosition,
-            }, abortController.signal)) {
-              if (eventsData.status === 'agentNotFound') {
+            for await (const eventsData of agentRPCClient.streamAgentEvents(
+              {
+                agentId,
+                fromPosition,
+              },
+              abortController.signal,
+            )) {
+              if (eventsData.status === "agentNotFound") {
                 setAgentNotFound(true);
                 setIsConnecting(false);
                 return;
               }
 
-              if (eventsData.status !== 'success') continue;
+              if (eventsData.status !== "success") continue;
 
               // Reset reconnect delay on successful connection
               reconnectDelay = INITIAL_RECONNECT_DELAY;
@@ -150,13 +153,11 @@ export function useAgentEventState(agentId: string) {
                       const prevEvent = inputExecutions.get(event.requestId);
                       inputExecutions.set(event.requestId, {
                         ...prevEvent,
-                        ...event
+                        ...event,
                       });
                       addQuestionPrompts(
                         event.requestId,
-                        (event.availableInteractions ?? []).filter(
-                          (interaction): interaction is QuestionInteraction => interaction.type === "question"
-                        )
+                        (event.availableInteractions ?? []).filter((interaction): interaction is QuestionInteraction => interaction.type === "question"),
                       );
                     }
                     break;
@@ -185,7 +186,7 @@ export function useAgentEventState(agentId: string) {
           } catch (error: unknown) {
             if (abortController.signal.aborted) return;
 
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            const errorMessage = error instanceof Error ? error.message : "Unknown error";
             console.error("Stream error, scheduling reconnection...", errorMessage);
             setConnectionError(errorMessage);
             setIsConnecting(false);
@@ -205,7 +206,7 @@ export function useAgentEventState(agentId: string) {
         clearTimeout(reconnectTimeout);
       }
     };
-  }, [agentId, triggerReconnect]);
+  }, [agentId]);
 
   return {
     messages,

@@ -1,12 +1,12 @@
-import {Share2} from 'lucide-react';
-import AgentLauncherApp from '../../components/AgentLauncherApp.tsx';
+import { Share2 } from "lucide-react";
+import AgentLauncherApp from "../../components/AgentLauncherApp.tsx";
 
 const PLATFORM_CARDS = [
-  { name: 'Reddit', color: 'from-orange-500 to-red-600', description: 'Browse and post to Reddit' },
-  { name: 'Discord', color: 'from-indigo-500 to-violet-600', description: 'Manage Discord servers and channels' },
-  { name: 'Slack', color: 'from-purple-500 to-indigo-600', description: 'Send messages and manage workspaces' },
-  { name: 'Telegram', color: 'from-sky-500 to-blue-600', description: 'Send messages via Telegram' },
-  { name: 'X / Twitter', color: 'from-gray-700 to-gray-900', description: 'Post and browse X (Twitter)' },
+  { name: "Reddit", color: "from-orange-500 to-red-600", description: "Browse and post to Reddit" },
+  { name: "Discord", color: "from-indigo-500 to-violet-600", description: "Manage Discord servers and channels" },
+  { name: "Slack", color: "from-purple-500 to-indigo-600", description: "Send messages and manage workspaces" },
+  { name: "Telegram", color: "from-sky-500 to-blue-600", description: "Send messages via Telegram" },
+  { name: "X / Twitter", color: "from-gray-700 to-gray-900", description: "Post and browse X (Twitter)" },
 ];
 
 function PlatformGrid() {

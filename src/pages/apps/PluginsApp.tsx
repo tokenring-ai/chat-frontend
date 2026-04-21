@@ -1,7 +1,7 @@
-import {CheckCircle2, Loader2, Package, Settings2} from 'lucide-react';
-import {usePlugins} from '../../rpc.ts';
+import { CheckCircle2, Loader2, Package, Settings2 } from "lucide-react";
+import { usePlugins } from "../../rpc.ts";
 
-function PluginCard({ plugin }: { plugin: { name: string; displayName: string, version: string; description: string; hasConfig: boolean } }) {
+function PluginCard({ plugin }: { plugin: { name: string; displayName: string; version: string; description: string; hasConfig: boolean } }) {
   return (
     <div className="flex items-start gap-3 px-4 py-3 bg-secondary border border-primary rounded-xl hover:border-indigo-500/30 transition-colors group">
       <div className="shrink-0 w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-sm">
@@ -37,7 +37,6 @@ export default function PluginsApp() {
     <div className="w-full h-full flex flex-col bg-primary overflow-y-auto">
       <div className="flex-1 py-6 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto space-y-8">
-
           {/* Header */}
           <div>
             <h1 className="text-primary text-2xl font-bold tracking-tight mb-1">Plugins</h1>
@@ -47,13 +46,9 @@ export default function PluginsApp() {
           {/* Installed plugins */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <p className="text-2xs font-bold text-muted uppercase tracking-widest px-1">
-                Installed
-              </p>
+              <p className="text-2xs font-bold text-muted uppercase tracking-widest px-1">Installed</p>
               {!plugins.isLoading && (
-                <span className="text-2xs text-muted px-2 py-0.5 bg-secondary border border-primary rounded-full">
-                  {installedPlugins.length} active
-                </span>
+                <span className="text-2xs text-muted px-2 py-0.5 bg-secondary border border-primary rounded-full">{installedPlugins.length} active</span>
               )}
             </div>
 
@@ -86,12 +81,9 @@ export default function PluginsApp() {
             <div className="px-6 py-10 bg-secondary border border-primary border-dashed rounded-xl text-center">
               <Package className="w-8 h-8 text-muted mx-auto mb-3" />
               <p className="text-sm font-medium text-secondary mb-1">Coming soon</p>
-              <p className="text-2xs text-muted max-w-xs mx-auto">
-                Browse and install community plugins from the TokenRing plugin registry.
-              </p>
+              <p className="text-2xs text-muted max-w-xs mx-auto">Browse and install community plugins from the TokenRing plugin registry.</p>
             </div>
           </div>
-
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
-import {AlertTriangle, Check, ChevronDown, Copy, Loader2} from 'lucide-react';
-import type React from 'react';
-import {Component, type ReactNode, useState} from 'react'
+import { AlertTriangle, Check, ChevronDown, Copy, Loader2 } from "lucide-react";
+import type React from "react";
+import { Component, type ReactNode, useState } from "react";
 
 interface Props {
   children: ReactNode;
@@ -9,8 +9,8 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error?: Error;
-  errorInfo?: React.ErrorInfo;
+  error?: Error | undefined;
+  errorInfo?: React.ErrorInfo | undefined;
 }
 
 export default class ErrorBoundary extends Component<Props, State> {
@@ -24,8 +24,8 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught:', error, errorInfo);
-    this.setState({error, errorInfo});
+    console.error("ErrorBoundary caught:", error, errorInfo);
+    this.setState({ error, errorInfo });
   }
 
   render() {
@@ -36,19 +36,15 @@ export default class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="flex flex-col items-center justify-center h-full p-6 text-center bg-primary">
-          <AlertTriangle className="w-16 h-16 text-amber-600 dark:text-amber-400 mb-4" aria-hidden="true"/>
+          <AlertTriangle className="w-16 h-16 text-amber-600 dark:text-amber-400 mb-4" aria-hidden="true" />
           <h1 className="text-lg font-bold text-primary mb-2">Oops! Something went wrong</h1>
-          <p className="text-sm text-muted mb-2 max-w-md">
-            We encountered an unexpected error while processing your request.
-          </p>
-          <p className="text-sm text-muted mb-6 max-w-md">
-            {this.state.error?.message || 'An unexpected error occurred'}
-          </p>
+          <p className="text-sm text-muted mb-2 max-w-md">We encountered an unexpected error while processing your request.</p>
+          <p className="text-sm text-muted mb-6 max-w-md">{this.state.error?.message || "An unexpected error occurred"}</p>
 
           {/* Expandable error details */}
-          <ErrorDetails error={this.state.error} errorInfo={this.state.errorInfo}/>
+          <ErrorDetails error={this.state.error} errorInfo={this.state.errorInfo} />
 
-          <ResetButton onReset={() => this.setState({hasError: false, error: undefined, errorInfo: undefined})}/>
+          <ResetButton onReset={() => this.setState({ hasError: false, error: undefined, errorInfo: undefined })} />
         </div>
       );
     }
@@ -58,7 +54,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 }
 
 // Helper component for the reset button with immediate feedback
-function ResetButton({onReset}: { onReset: () => void }) {
+function ResetButton({ onReset }: { onReset: () => void }) {
   const [isResetting, setIsResetting] = useState(false);
 
   const handleReset = () => {
@@ -73,13 +69,14 @@ function ResetButton({onReset}: { onReset: () => void }) {
 
   return (
     <button
+      type="button"
       onClick={handleReset}
       disabled={isResetting}
       className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white rounded-lg transition-all mt-4 flex items-center gap-2 shadow-lg shadow-indigo-600/20 focus-ring"
     >
       {isResetting ? (
         <>
-          <Loader2 className="w-4 h-4 animate-spin"/>
+          <Loader2 className="w-4 h-4 animate-spin" />
           <span>Resetting...</span>
         </>
       ) : (
@@ -89,7 +86,7 @@ function ResetButton({onReset}: { onReset: () => void }) {
   );
 }
 
-function ErrorDetails({error, errorInfo}: { error?: Error; errorInfo?: React.ErrorInfo }) {
+function ErrorDetails({ error, errorInfo }: { error?: Error | undefined; errorInfo?: React.ErrorInfo | undefined }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -105,7 +102,7 @@ function ErrorDetails({error, errorInfo}: { error?: Error; errorInfo?: React.Err
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err: unknown) {
-      console.error('Failed to copy error details:', err);
+      console.error("Failed to copy error details:", err);
     }
   };
 
@@ -114,13 +111,12 @@ function ErrorDetails({error, errorInfo}: { error?: Error; errorInfo?: React.Err
   return (
     <div className="mt-4 w-full max-w-2xl text-left">
       <button
+        type="button"
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex items-center gap-2 text-sm text-muted hover:text-primary transition-colors focus-ring rounded-md px-2 py-1 -ml-2"
       >
-        <ChevronDown
-          className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-        />
-        <span>{isExpanded ? 'Hide error details' : 'Show error details'}</span>
+        <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+        <span>{isExpanded ? "Hide error details" : "Show error details"}</span>
       </button>
 
       {isExpanded && (
@@ -128,33 +124,26 @@ function ErrorDetails({error, errorInfo}: { error?: Error; errorInfo?: React.Err
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-mono text-muted">Error Details</span>
             <button
+              type="button"
               onClick={handleCopy}
               className="p-1.5 rounded-md hover:bg-hover transition-colors focus-ring"
-              title={copied ? 'Copied!' : 'Copy error details'}
-              aria-label={copied ? 'Error details copied' : 'Copy error details to clipboard'}
+              title={copied ? "Copied!" : "Copy error details"}
+              aria-label={copied ? "Error details copied" : "Copy error details to clipboard"}
             >
-              {copied ? (
-                <Check className="w-3.5 h-3.5 text-emerald-500"/>
-              ) : (
-                <Copy className="w-3.5 h-3.5 text-muted"/>
-              )}
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-muted" />}
             </button>
           </div>
 
           <div className="space-y-3">
             <div>
               <div className="text-xs font-mono text-muted mb-1">Message:</div>
-              <code className="text-sm text-red-500 font-mono break-words whitespace-pre-wrap">
-                {error.message}
-              </code>
+              <code className="text-sm text-red-500 font-mono break-words whitespace-pre-wrap">{error.message}</code>
             </div>
 
             {error.stack && (
               <div>
                 <div className="text-xs font-mono text-muted mb-1">Stack trace:</div>
-                <pre className="text-xs font-mono text-secondary bg-tertiary p-2 rounded-md overflow-auto max-h-48 border border-primary/20">
-                  {error.stack}
-                </pre>
+                <pre className="text-xs font-mono text-secondary bg-tertiary p-2 rounded-md overflow-auto max-h-48 border border-primary/20">{error.stack}</pre>
               </div>
             )}
 

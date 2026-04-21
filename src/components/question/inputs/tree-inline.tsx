@@ -1,8 +1,8 @@
-import {getTreeNodeValue, isTreeBranch, type ParsedTreeSelectQuestion, type TreeLeaf} from '@tokenring-ai/agent/question';
-import {Check, ChevronDown, ChevronRight, Send, X} from 'lucide-react';
-import type React from 'react';
-import {useEffect, useRef, useState} from 'react';
-import {sendInteractionResponse} from "../sendInteractionResponse.ts";
+import { getTreeNodeValue, isTreeBranch, type ParsedTreeSelectQuestion, type TreeLeaf } from "@tokenring-ai/agent/question";
+import { Check, ChevronDown, ChevronRight, Send, X } from "lucide-react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
+import { sendInteractionResponse } from "../sendInteractionResponse.ts";
 
 interface TreeInlineProps {
   question: ParsedTreeSelectQuestion;
@@ -26,9 +26,9 @@ const CompactTreeNode: React.FC<{
   focusedValue: string | null;
   isFocused: boolean;
   onFocus: (value: string) => void;
-  onNavigate: (direction: 'up' | 'down') => void;
+  onNavigate: (direction: "up" | "down") => void;
   isExpandedChild: (value: string) => boolean;
-}> = ({node, depth, selected, onToggle, onExpand, isExpanded, multiple, canSelect, focusedValue, isFocused, onFocus, onNavigate, isExpandedChild}) => {
+}> = ({ node, depth, selected, onToggle, onExpand, isExpanded, multiple, canSelect, focusedValue, isFocused, onFocus, onNavigate, isExpandedChild }) => {
   const value = getTreeNodeValue(node);
   const isSelected = selected.has(value);
   const hasChildren = isTreeBranch(node) && node.children.length > 0;
@@ -44,34 +44,34 @@ const CompactTreeNode: React.FC<{
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       if (hasChildren && !multiple) {
         onExpand(value);
       } else if (canSelect(value)) {
         onToggle(value);
       }
-    } else if (e.key === 'ArrowRight' && !isExpanded && hasChildren) {
+    } else if (e.key === "ArrowRight" && !isExpanded && hasChildren) {
       e.preventDefault();
       onExpand(value);
-    } else if (e.key === 'ArrowLeft' && isExpanded) {
+    } else if (e.key === "ArrowLeft" && isExpanded) {
       e.preventDefault();
       onExpand(value);
-    } else if (e.key === 'ArrowDown') {
+    } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      onNavigate('down');
-    } else if (e.key === 'ArrowUp') {
+      onNavigate("down");
+    } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      onNavigate('up');
-    } else if (e.key === 'Home') {
+      onNavigate("up");
+    } else if (e.key === "Home") {
       e.preventDefault();
       // Focus will be handled by parent
-      const firstElement = document.querySelector('[data-tree-value]') as HTMLElement;
+      const firstElement = document.querySelector("[data-tree-value]") as HTMLElement;
       firstElement?.focus();
-    } else if (e.key === 'End') {
+    } else if (e.key === "End") {
       e.preventDefault();
       // Focus will be handled by parent
-      const allElements = document.querySelectorAll('[data-tree-value]');
+      const allElements = document.querySelectorAll("[data-tree-value]");
       const lastElement = allElements[allElements.length - 1] as HTMLElement;
       lastElement?.focus();
     }
@@ -95,32 +95,22 @@ const CompactTreeNode: React.FC<{
         tabIndex={isSelectable ? 0 : -1}
         data-tree-value={value}
         className={`flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors outline-none focus-ring ${
-          isFocused ? 'bg-accent/10' : ''
-        } ${isSelected && !isFocused ? 'bg-accent/20' : ''} ${
-          !isSelected && !isFocused ? 'hover:bg-hover' : ''
-        }`}
+          isFocused ? "bg-accent/10" : ""
+        } ${isSelected && !isFocused ? "bg-accent/20" : ""} ${!isSelected && !isFocused ? "hover:bg-hover" : ""}`}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
       >
         {hasChildren ? (
-          <span
-            onClick={handleExpandClick}
-            className="text-muted hover:text-accent transition-colors"
-            aria-hidden="true"
-          >
-            {isExpanded ? <ChevronDown className="w-3.5 h-3.5"/> : <ChevronRight className="w-3.5 h-3.5"/>}
+          <span onClick={handleExpandClick} className="text-muted hover:text-accent transition-colors" aria-hidden="true">
+            {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
           </span>
         ) : (
           <span className="w-3.5" aria-hidden="true"></span>
         )}
-        <span className={`text-sm ${isFocused ? 'text-accent font-medium' : isSelected ? 'text-accent font-medium' : 'text-primary'}`}>
-          {node.name}
-        </span>
-        {isSelected && (
-          <Check className="w-3.5 h-3.5 text-accent ml-auto" aria-hidden="true" />
-        )}
+        <span className={`text-sm ${isFocused ? "text-accent font-medium" : isSelected ? "text-accent font-medium" : "text-primary"}`}>{node.name}</span>
+        {isSelected && <Check className="w-3.5 h-3.5 text-accent ml-auto" aria-hidden="true" />}
       </div>
       {isExpanded && hasChildren && (
         <div role="group">
@@ -151,15 +141,7 @@ const CompactTreeNode: React.FC<{
   );
 };
 
-export default function TreeInlineQuestion({
-  question,
-  agentId,
-  requestId,
-  interactionId,
-  onSubmitValue,
-  onClose,
-  autoFocus = true
-}: TreeInlineProps) {
+export default function TreeInlineQuestion({ question, agentId, requestId, interactionId, onSubmitValue, onClose, autoFocus = true }: TreeInlineProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set(question.defaultValue ?? []));
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -172,12 +154,12 @@ export default function TreeInlineQuestion({
   // Auto-focus on mount and scroll into view
   useEffect(() => {
     if (autoFocus && containerRef.current) {
-      containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      containerRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
       // Focus the first selectable item
       const firstFocusable = containerRef.current.querySelector('[tabindex="0"]') as HTMLElement;
       if (firstFocusable) {
         firstFocusable.focus();
-        const value = firstFocusable.getAttribute('data-tree-value');
+        const value = firstFocusable.getAttribute("data-tree-value");
         if (value) setFocusedValue(value);
       }
     }
@@ -194,8 +176,8 @@ export default function TreeInlineQuestion({
 
   const handleToggle = (value: string) => {
     if (!canSelect(value)) return;
-    
-    setSelected((prev) => {
+
+    setSelected(prev => {
       const next = new Set(prev);
       if (next.has(value)) {
         next.delete(value);
@@ -208,7 +190,7 @@ export default function TreeInlineQuestion({
   };
 
   const toggleExpand = (nodeValue: string) => {
-    setExpandedNodes((prev) => {
+    setExpandedNodes(prev => {
       const next = new Set(prev);
       if (next.has(nodeValue)) {
         next.delete(nodeValue);
@@ -225,20 +207,18 @@ export default function TreeInlineQuestion({
       const firstValue = getTreeNodeValue(question.tree[0]);
       setExpandedNodes(new Set([firstValue]));
     }
-  }, [question.tree]);
+  }, [question.tree, expandedNodes.size]);
 
   // Handle keyboard navigation between tree items
-  const handleNavigate = (direction: 'up' | 'down') => {
-    const allFocusable = Array.from(
-      containerRef.current?.querySelectorAll('[data-tree-value][tabindex="0"]') || []
-    ) as HTMLElement[];
+  const handleNavigate = (direction: "up" | "down") => {
+    const allFocusable = Array.from(containerRef.current?.querySelectorAll('[data-tree-value][tabindex="0"]') || []) as HTMLElement[];
 
     if (allFocusable.length === 0) return;
 
-    const currentIndex = allFocusable.findIndex(el => el.getAttribute('data-tree-value') === focusedValue);
+    const currentIndex = allFocusable.findIndex(el => el.getAttribute("data-tree-value") === focusedValue);
     let newIndex: number;
 
-    if (direction === 'up') {
+    if (direction === "up") {
       newIndex = currentIndex > 0 ? currentIndex - 1 : allFocusable.length - 1;
     } else {
       newIndex = currentIndex < allFocusable.length - 1 ? currentIndex + 1 : 0;
@@ -247,11 +227,11 @@ export default function TreeInlineQuestion({
     const nextElement = allFocusable[newIndex];
     if (nextElement) {
       nextElement.focus();
-      const value = nextElement.getAttribute('data-tree-value');
+      const value = nextElement.getAttribute("data-tree-value");
       if (value) {
         setFocusedValue(value);
         // Scroll the focused element into view
-        nextElement.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+        nextElement.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
     }
   };
@@ -309,7 +289,7 @@ export default function TreeInlineQuestion({
         aria-label="Select from tree"
         className="max-h-75 overflow-y-auto custom-scrollbar border border-primary rounded-lg bg-secondary shadow-md"
       >
-        {question.tree.map((root) => {
+        {question.tree.map(root => {
           const rootValue = getTreeNodeValue(root);
           return (
             <CompactTreeNode
@@ -333,19 +313,20 @@ export default function TreeInlineQuestion({
       </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className={`text-2xs ${isValid ? 'text-primary' : 'text-error'}`} aria-live="polite">
+          <span className={`text-2xs ${isValid ? "text-primary" : "text-error"}`} aria-live="polite">
             {selectionCount} selected
           </span>
           {(minimumSelections !== undefined || maximumSelections !== undefined) && (
             <span className="text-2xs text-muted">
               {minimumSelections !== undefined && `min ${minimumSelections}`}
-              {minimumSelections !== undefined && maximumSelections !== undefined && ' · '}
+              {minimumSelections !== undefined && maximumSelections !== undefined && " · "}
               {maximumSelections !== undefined && `max ${maximumSelections}`}
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={handleCancel}
             disabled={isSubmitting}
             className="flex items-center gap-1.5 p-1.5 rounded-md text-xs text-muted hover:text-primary transition-colors disabled:opacity-50 focus-ring"
@@ -354,11 +335,12 @@ export default function TreeInlineQuestion({
             Cancel
           </button>
           <button
+            type="button"
             onClick={handleSubmit}
             disabled={isSubmitting || !isValid}
             className="flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
           >
-            {isSubmitting ? 'Sending...' : 'Submit'}
+            {isSubmitting ? "Sending..." : "Submit"}
             <Send className="w-3.5 h-3.5" />
           </button>
         </div>

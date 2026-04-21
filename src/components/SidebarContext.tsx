@@ -1,4 +1,4 @@
-import {createContext, type ReactNode, useContext, useEffect, useState} from 'react';
+import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
 
 interface SidebarContextType {
   isSidebarExpanded: boolean;
@@ -13,11 +13,11 @@ interface SidebarContextType {
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
-const SIDEBAR_EXPANDED_STORAGE_KEY = 'tokenring-sidebar-expanded';
-const MOBILE_OPEN_STORAGE_KEY = 'tokenring-mobile-open';
+const SIDEBAR_EXPANDED_STORAGE_KEY = "tokenring-sidebar-expanded";
+const MOBILE_OPEN_STORAGE_KEY = "tokenring-mobile-open";
 
 function safeParseLocalStorage(key: string, defaultValue: boolean): boolean {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return defaultValue;
   }
   try {
@@ -30,7 +30,7 @@ function safeParseLocalStorage(key: string, defaultValue: boolean): boolean {
 }
 
 function safeSetLocalStorage(key: string, value: boolean): boolean {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return false;
   }
   try {
@@ -44,23 +44,19 @@ function safeSetLocalStorage(key: string, value: boolean): boolean {
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
   // Load initial state from localStorage with error handling
-  const [isSidebarExpanded, setSidebarExpandedState] = useState<boolean>(() =>
-    safeParseLocalStorage(SIDEBAR_EXPANDED_STORAGE_KEY, true)
-  );
+  const [isSidebarExpanded, setSidebarExpandedState] = useState<boolean>(() => safeParseLocalStorage(SIDEBAR_EXPANDED_STORAGE_KEY, true));
 
-  const [isMobileOpen, setMobileOpenState] = useState<boolean>(() =>
-    safeParseLocalStorage(MOBILE_OPEN_STORAGE_KEY, false)
-  );
+  const [isMobileOpen, setMobileOpenState] = useState<boolean>(() => safeParseLocalStorage(MOBILE_OPEN_STORAGE_KEY, false));
 
   // Track localStorage availability for user feedback
   const [localStorageAvailable, setLocalStorageAvailable] = useState<boolean>(() => {
     // Check availability on initial mount
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return false;
     }
     try {
-      const testKey = '__localStorage_test__';
-      localStorage.setItem(testKey, 'test');
+      const testKey = "__localStorage_test__";
+      localStorage.setItem(testKey, "test");
       localStorage.removeItem(testKey);
       return true;
     } catch {
@@ -75,7 +71,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     const success = safeSetLocalStorage(SIDEBAR_EXPANDED_STORAGE_KEY, isSidebarExpanded);
     if (!success) {
       setLocalStorageAvailable(false);
-      console.warn('SidebarContext: localStorage unavailable - sidebar state will not persist across sessions');
+      console.warn("SidebarContext: localStorage unavailable - sidebar state will not persist across sessions");
     }
   }, [isSidebarExpanded, localStorageAvailable]);
 
@@ -85,7 +81,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     const success = safeSetLocalStorage(MOBILE_OPEN_STORAGE_KEY, isMobileOpen);
     if (!success) {
       setLocalStorageAvailable(false);
-      console.warn('SidebarContext: localStorage unavailable - sidebar state will not persist across sessions');
+      console.warn("SidebarContext: localStorage unavailable - sidebar state will not persist across sessions");
     }
   }, [isMobileOpen, localStorageAvailable]);
 
@@ -98,11 +94,11 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   };
 
   const toggleSidebar = () => {
-    setSidebarExpandedState((prev) => !prev);
+    setSidebarExpandedState(prev => !prev);
   };
 
   const toggleMobileSidebar = () => {
-    setMobileOpenState((prev) => !prev);
+    setMobileOpenState(prev => !prev);
   };
 
   const resetToDefaults = () => {
@@ -111,16 +107,18 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <SidebarContext.Provider value={{
-      isSidebarExpanded,
-      setSidebarExpanded,
-      toggleSidebar,
-      isMobileOpen,
-      setMobileOpen,
-      toggleMobileSidebar,
-      resetToDefaults,
-      localStorageAvailable
-    }}>
+    <SidebarContext.Provider
+      value={{
+        isSidebarExpanded,
+        setSidebarExpanded,
+        toggleSidebar,
+        isMobileOpen,
+        setMobileOpen,
+        toggleMobileSidebar,
+        resetToDefaults,
+        localStorageAvailable,
+      }}
+    >
       {children}
     </SidebarContext.Provider>
   );
@@ -129,7 +127,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 export function useSidebar() {
   const context = useContext(SidebarContext);
   if (!context) {
-    throw new Error('useSidebar must be used within a SidebarProvider');
+    throw new Error("useSidebar must be used within a SidebarProvider");
   }
   return context;
 }

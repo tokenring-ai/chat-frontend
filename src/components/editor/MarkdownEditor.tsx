@@ -1,16 +1,16 @@
-import MDEditor from '@uiw/react-md-editor';
-import React, {useMemo, useState} from 'react';
+import MDEditor from "@uiw/react-md-editor";
+import React, { useCallback, useMemo, useState } from "react";
 
 interface FileViewerProps {
   content: string;
   onContentChange?: (content: string) => void;
 }
 
-type PreviewMode = NonNullable<React.ComponentProps<typeof MDEditor>['preview']>;
+type PreviewMode = NonNullable<React.ComponentProps<typeof MDEditor>["preview"]>;
 
-export default function MarkdownEditor({content, onContentChange}: FileViewerProps) {
+export default function MarkdownEditor({ content, onContentChange }: FileViewerProps) {
   const [editorContent, setEditorContent] = useState(content);
-  const [previewMode, setPreviewMode] = useState<PreviewMode>('preview');
+  const [previewMode, setPreviewMode] = useState<PreviewMode>("preview");
 
   const handleContentChange = (value?: string) => {
     if (value) {
@@ -23,23 +23,23 @@ export default function MarkdownEditor({content, onContentChange}: FileViewerPro
   const stats = useMemo(() => {
     const chars = editorContent.length;
     const words = editorContent.trim() ? editorContent.trim().split(/\s+/).length : 0;
-    return {chars, words};
+    return { chars, words };
   }, [editorContent]);
 
   // Toggle preview mode
-  const cyclePreviewMode = () => {
-    setPreviewMode((current) => {
-      const modes: PreviewMode[] = ['preview', 'live', 'edit'];
+  const cyclePreviewMode = useCallback(() => {
+    setPreviewMode(current => {
+      const modes: PreviewMode[] = ["preview", "live", "edit"];
       const currentIndex = modes.indexOf(current);
       return modes[(currentIndex + 1) % modes.length];
     });
-  };
+  }, []);
 
   // Handle keyboard shortcut for preview mode toggle
   React.useEffect(() => {
     const handleKeyDown = (e: globalThis.KeyboardEvent) => {
       // Ctrl+P or Cmd+P to toggle preview mode
-      if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+      if ((e.ctrlKey || e.metaKey) && e.key === "p") {
         e.preventDefault();
         cyclePreviewMode();
       }
@@ -47,22 +47,16 @@ export default function MarkdownEditor({content, onContentChange}: FileViewerPro
 
     // Only attach to the editor container to avoid global conflicts
     const editorElement = document.querySelector<HTMLElement>('[role="region"][aria-label="Markdown Editor"]');
-    editorElement?.addEventListener('keydown', handleKeyDown);
+    editorElement?.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      editorElement?.removeEventListener('keydown', handleKeyDown);
+      editorElement?.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [cyclePreviewMode]);
 
   return (
     <div className="flex flex-col h-full" role="region" aria-label="Markdown Editor">
-      <MDEditor
-        className="flex-1 flex flex-row h-full"
-        preview={previewMode}
-        value={editorContent}
-        onChange={handleContentChange}
-        data-gramm="false"
-      />
+      <MDEditor className="flex-1 flex flex-row h-full" preview={previewMode} value={editorContent} onChange={handleContentChange} data-gramm="false" />
       {/* Status bar with content stats and shortcuts */}
       <div
         className="bg-tertiary border border-primary px-4 py-3 text-xs flex justify-between items-center rounded-b-lg shadow-md"
@@ -75,18 +69,17 @@ export default function MarkdownEditor({content, onContentChange}: FileViewerPro
         </div>
         <div className="flex items-center gap-4">
           <button
+            type="button"
             onClick={cyclePreviewMode}
             className="text-muted hover:text-primary transition-colors focus-ring p-1.5 rounded-md"
-            title={`Current mode: ${previewMode === 'preview' ? 'Preview only' : previewMode === 'edit' ? 'Edit only' : 'Split view'}. Click or press Ctrl/Cmd+P to change.`}
+            title={`Current mode: ${previewMode === "preview" ? "Preview only" : previewMode === "edit" ? "Edit only" : "Split view"}. Click or press Ctrl/Cmd+P to change.`}
             aria-label="Toggle preview mode (Ctrl/Cmd+P)"
           >
-            {previewMode === 'preview' && '👁 Preview'}
-            {previewMode === 'edit' && '✏️ Edit'}
-            {previewMode === 'live' && '🔄 Split'}
+            {previewMode === "preview" && "👁 Preview"}
+            {previewMode === "edit" && "✏️ Edit"}
+            {previewMode === "live" && "🔄 Split"}
           </button>
-          <span className="text-muted">
-            ⌘/Ctrl + B: Bold | ⌘/Ctrl + I: Italic | ⌘/Ctrl + K: Link | ⌘/Ctrl + P: Toggle Preview
-          </span>
+          <span className="text-muted">⌘/Ctrl + B: Bold | ⌘/Ctrl + I: Italic | ⌘/Ctrl + K: Link | ⌘/Ctrl + P: Toggle Preview</span>
         </div>
       </div>
     </div>

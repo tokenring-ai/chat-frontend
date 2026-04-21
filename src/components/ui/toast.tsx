@@ -1,13 +1,13 @@
-import {AnimatePresence, motion} from 'framer-motion';
-import {AlertCircle, AlertTriangle, CheckCircle, Info, X} from 'lucide-react';
-import React, {useEffect, useState} from 'react';
-import {cn} from '../../lib/utils.ts';
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertCircle, AlertTriangle, CheckCircle, Info, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { cn } from "../../lib/utils.ts";
 
-export type ToastType = 'success' | 'error' | 'info' | 'warning';
+export type ToastType = "success" | "error" | "info" | "warning";
 
 export interface ToastProps {
-  id?: string;
-  type?: ToastType;
+  id: string;
+  type: ToastType;
   title?: string;
   message: string;
   duration?: number;
@@ -22,20 +22,20 @@ const toastIcons = {
 };
 
 const toastStyles = {
-  success: 'border-toast-success bg-toast-success text-toast-success',
-  error: 'border-toast-error bg-toast-error text-toast-error',
-  info: 'border-toast-info bg-toast-info text-toast-info',
-  warning: 'border-toast-warning bg-toast-warning text-toast-warning',
+  success: "border-toast-success bg-toast-success text-toast-success",
+  error: "border-toast-error bg-toast-error text-toast-error",
+  info: "border-toast-info bg-toast-info text-toast-info",
+  warning: "border-toast-warning bg-toast-warning text-toast-warning",
 };
 
-export default function Toast({id, type = 'info', title, message, duration = 5000, onClose}: ToastProps) {
+export default function Toast({ type = "info", title, message, duration = 5000, onClose }: ToastProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setIsVisible(true);
-  }, [id, message]);
+  }, []);
 
   useEffect(() => {
     if (duration > 0 && !isPaused) {
@@ -48,7 +48,7 @@ export default function Toast({id, type = 'info', title, message, duration = 500
         clearTimeout(timerRef.current);
       }
     };
-  }, [duration, id, message, isPaused]);
+  }, [duration, isPaused]);
 
   useEffect(() => {
     if (!isVisible && onClose) {
@@ -66,13 +66,10 @@ export default function Toast({id, type = 'info', title, message, duration = 500
           initial={{ opacity: 0, x: 100, scale: 0.95 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: 100, scale: 0.95 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
-          className={cn(
-            'flex items-start gap-3 px-4 py-3 rounded-lg border shadow-lg min-w-[300px] max-w-md',
-            toastStyles[type]
-          )}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+          className={cn("flex items-start gap-3 px-4 py-3 rounded-lg border shadow-lg min-w-[300px] max-w-md", toastStyles[type])}
           role="alert"
-          aria-live={type === 'error' ? 'assertive' : 'polite'}
+          aria-live={type === "error" ? "assertive" : "polite"}
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           onFocus={() => setIsPaused(true)}
@@ -85,9 +82,10 @@ export default function Toast({id, type = 'info', title, message, duration = 500
           </div>
           {onClose && (
             <button
+              type="button"
               onClick={() => setIsVisible(false)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+              onKeyDown={e => {
+                if (e.key === "Enter" || e.key === " " || e.key === "Escape") {
                   e.preventDefault();
                   setIsVisible(false);
                 }
@@ -114,12 +112,9 @@ export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col-reverse gap-2 pointer-events-none">
       <AnimatePresence mode="popLayout">
-        {toasts.map((toast) => (
+        {toasts.map(toast => (
           <div key={toast.id} className="pointer-events-auto">
-            <Toast
-              {...toast}
-              onClose={() => toast.id && onRemove(toast.id)}
-            />
+            <Toast {...toast} onClose={() => toast.id && onRemove(toast.id)} />
           </div>
         ))}
       </AnimatePresence>
@@ -155,15 +150,15 @@ class NotificationManager {
     return () => this.toastListeners.delete(listener);
   }
 
-  add(toast: Omit<ToastItem, 'id'>): string {
+  add(toast: Omit<ToastItem, "id">): string {
     const id = Math.random().toString(36).slice(2, 11);
-    const notification: NotificationItem = {...toast, id, timestamp: Date.now(), read: false};
+    const notification: NotificationItem = { ...toast, id, timestamp: Date.now(), read: false };
 
     this.notifications.unshift(notification);
     if (this.notifications.length > 50) this.notifications.pop();
     this.notifyNotifications();
 
-    this.activeToasts.push({...toast, id});
+    this.activeToasts.push({ ...toast, id });
     this.notifyToasts();
 
     return id;
@@ -183,7 +178,9 @@ class NotificationManager {
   }
 
   markAllAsRead() {
-    this.notifications.forEach(n => { n.read = true; });
+    this.notifications.forEach(n => {
+      n.read = true;
+    });
     this.notifyNotifications();
   }
 
@@ -193,27 +190,31 @@ class NotificationManager {
   }
 
   private notifyNotifications() {
-    this.listeners.forEach(listener => { listener([...this.notifications]); });
+    this.listeners.forEach(listener => {
+      listener([...this.notifications]);
+    });
   }
 
   private notifyToasts() {
-    this.toastListeners.forEach(listener => { listener([...this.activeToasts]); });
+    this.toastListeners.forEach(listener => {
+      listener([...this.activeToasts]);
+    });
   }
 
   success(message: string, options?: Partial<ToastProps>) {
-    return this.add({ type: 'success', message, ...options });
+    return this.add({ type: "success", message, ...options });
   }
 
   error(message: string, options?: Partial<ToastProps>) {
-    return this.add({ type: 'error', message, ...options });
+    return this.add({ type: "error", message, ...options });
   }
 
   info(message: string, options?: Partial<ToastProps>) {
-    return this.add({ type: 'info', message, ...options });
+    return this.add({ type: "info", message, ...options });
   }
 
   warning(message: string, options?: Partial<ToastProps>) {
-    return this.add({ type: 'warning', message, ...options });
+    return this.add({ type: "warning", message, ...options });
   }
 }
 
@@ -226,4 +227,4 @@ export const toastManager = {
   remove: (id: string) => notificationManager.removeToast(id),
 };
 
-export type {NotificationItem};
+export type { NotificationItem };

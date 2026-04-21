@@ -1,12 +1,12 @@
-import {formatDate} from "@tokenring-ai/utility/date/formatDate";
-import {formatTime} from "@tokenring-ai/utility/date/formatTime";
-import {formatTimeAgo} from "@tokenring-ai/utility/date/formatTimeAgo";
-import {AnimatePresence, motion} from 'framer-motion';
-import {ChevronDown, ChevronRight, History, Loader2, RotateCcw, Search, X} from 'lucide-react';
-import {useEffect, useMemo, useRef, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {checkpointRPCClient, type useAgentList, useCheckpointList} from '../rpc.ts';
-import {toastManager} from './ui/toast.tsx';
+import { formatDate } from "@tokenring-ai/utility/date/formatDate";
+import { formatTime } from "@tokenring-ai/utility/date/formatTime";
+import { formatTimeAgo } from "@tokenring-ai/utility/date/formatTimeAgo";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronDown, ChevronRight, History, Loader2, RotateCcw, Search, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { checkpointRPCClient, type useAgentList, useCheckpointList } from "../rpc.ts";
+import { toastManager } from "./ui/toast.tsx";
 
 type CheckpointItem = { id: string; name: string; agentId: string; createdAt: number };
 
@@ -20,7 +20,7 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
   const [launchingId, setLaunchingId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -31,12 +31,9 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
       searchRef.current.focus();
       setHighlightedIndex(-1);
     }
-  }, [isOpen, searchQuery]);
+  }, [isOpen]);
 
-  const sorted: CheckpointItem[] = useMemo(
-    () => [...(checkpoints.data || [])].sort((a, b) => b.createdAt - a.createdAt),
-    [checkpoints.data]
-  );
+  const sorted: CheckpointItem[] = useMemo(() => [...(checkpoints.data || [])].sort((a, b) => b.createdAt - a.createdAt), [checkpoints.data]);
 
   const filtered = useMemo(() => {
     if (!searchQuery.trim()) return sorted;
@@ -61,27 +58,25 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
       const allCheckpoints = Object.values(grouped).flat();
 
       switch (e.key) {
-        case 'ArrowDown':
+        case "ArrowDown":
           e.preventDefault();
-          setHighlightedIndex(prev =>
-            prev < allCheckpoints.length - 1 ? prev + 1 : prev
-          );
+          setHighlightedIndex(prev => (prev < allCheckpoints.length - 1 ? prev + 1 : prev));
           break;
-        case 'ArrowUp':
+        case "ArrowUp":
           e.preventDefault();
-          setHighlightedIndex(prev => prev > 0 ? prev - 1 : prev);
+          setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
           break;
-        case 'Enter':
+        case "Enter":
           e.preventDefault();
           if (highlightedIndex >= 0 && allCheckpoints[highlightedIndex]) {
             const cp = allCheckpoints[highlightedIndex];
             setSelectedId(cp.id);
             setIsOpen(false);
-            setSearchQuery('');
+            setSearchQuery("");
             setHighlightedIndex(-1);
           }
           break;
-        case 'Escape':
+        case "Escape":
           e.preventDefault();
           setIsOpen(false);
           setHighlightedIndex(-1);
@@ -89,16 +84,16 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, grouped, highlightedIndex]);
 
   // Scroll highlighted item into view
   useEffect(() => {
     if (highlightedIndex >= 0 && isOpen) {
-      const highlightedItem = containerRef.current?.querySelectorAll('[data-checkpoint-item]')[highlightedIndex] as HTMLElement;
+      const highlightedItem = containerRef.current?.querySelectorAll("[data-checkpoint-item]")[highlightedIndex] as HTMLElement;
       if (highlightedItem) {
-        highlightedItem.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+        highlightedItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
     }
   }, [highlightedIndex, isOpen]);
@@ -110,7 +105,7 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
       await agents.mutate();
       void navigate(`/agent/${agentId}`);
     } catch (error: any) {
-      toastManager.error(error.message || 'Failed to launch from checkpoint', { duration: 5000 });
+      toastManager.error(error.message || "Failed to launch from checkpoint", { duration: 5000 });
     } finally {
       setLaunchingId(null);
     }
@@ -125,7 +120,7 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
     });
   };
 
-  const selected = selectedId ? sorted.find(cp => cp.id === selectedId) ?? null : null;
+  const selected = selectedId ? (sorted.find(cp => cp.id === selectedId) ?? null) : null;
 
   if (!checkpoints.data?.length) return null;
 
@@ -141,9 +136,10 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
       <div className="bg-secondary border border-primary rounded-lg shadow-md overflow-hidden">
         {/* Selector trigger */}
         <button
+          type="button"
           onClick={() => setIsOpen(!isOpen)}
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowDown' || e.key === 'Enter') {
+          onKeyDown={e => {
+            if (e.key === "ArrowDown" || e.key === "Enter") {
               e.preventDefault();
               setIsOpen(true);
             }
@@ -164,19 +160,13 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
               <span className="text-sm text-muted">Select a checkpoint...</span>
             )}
           </div>
-          <ChevronDown className={`w-3.5 h-3.5 text-muted transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`w-3.5 h-3.5 text-muted transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
         </button>
 
         {/* Expandable dropdown list */}
         <AnimatePresence>
           {isOpen && (
-            <motion.div
-              initial={{ height: 0 }}
-              animate={{ height: 'auto' }}
-              exit={{ height: 0 }}
-              transition={{ duration: 0.15 }}
-              className="overflow-hidden"
-            >
+            <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} transition={{ duration: 0.15 }} className="overflow-hidden">
               <div className="border-t border-primary">
                 {/* Search */}
                 <div className="px-3 py-2 border-b border-primary">
@@ -187,12 +177,13 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
                       type="text"
                       placeholder="Filter checkpoints..."
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={e => setSearchQuery(e.target.value)}
                       className="w-full bg-input border border-primary rounded-md py-1.5 pl-8 pr-8 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
                     />
                     {searchQuery && (
                       <button
-                        onClick={() => setSearchQuery('')}
+                        type="button"
+                        onClick={() => setSearchQuery("")}
                         className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-muted hover:bg-hover hover:text-primary cursor-pointer focus-ring"
                         aria-label="Clear search"
                       >
@@ -214,9 +205,7 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
                 {/* Checkpoint list */}
                 <div className="max-h-64 overflow-y-auto custom-scrollbar" role="listbox" aria-label="Available checkpoints">
                   {Object.keys(grouped).length === 0 ? (
-                    <div className="px-3 py-4 text-center text-sm text-muted">
-                      No checkpoints matching "{searchQuery}"
-                    </div>
+                    <div className="px-3 py-4 text-center text-sm text-muted">No checkpoints matching "{searchQuery}"</div>
                   ) : (
                     Object.entries(grouped).map(([date, items]) => {
                       const isCollapsed = collapsedGroups.has(date);
@@ -224,14 +213,12 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
                         <div key={date}>
                           {/* Date group header */}
                           <button
+                            type="button"
                             onClick={() => toggleGroup(date)}
                             className="w-full flex items-center gap-1.5 px-3 py-2 text-2xs font-semibold text-muted uppercase tracking-wider hover:bg-hover transition-colors cursor-pointer"
                             aria-expanded={!isCollapsed}
                           >
-                            {isCollapsed
-                              ? <ChevronRight className="w-3 h-3" />
-                              : <ChevronDown className="w-3 h-3" />
-                            }
+                            {isCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                             <span>{date}</span>
                             <span className="text-2xs font-mono text-muted ml-auto">{items.length}</span>
                           </button>
@@ -240,43 +227,46 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
                             {!isCollapsed && (
                               <motion.div
                                 initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
+                                animate={{ height: "auto", opacity: 1 }}
                                 exit={{ height: 0, opacity: 0 }}
                                 transition={{ duration: 0.12 }}
                                 className="overflow-hidden"
                               >
                                 {items.map((cp, cpIndex) => {
-                                  const flatIndex = Object.values(grouped)
-                                    .slice(0, Object.keys(grouped).indexOf(date))
-                                    .flat().length + cpIndex;
+                                  const flatIndex = Object.values(grouped).slice(0, Object.keys(grouped).indexOf(date)).flat().length + cpIndex;
 
                                   return (
                                     <button
+                                      type="button"
                                       key={cp.id}
                                       onClick={() => {
                                         setSelectedId(cp.id === selectedId ? null : cp.id);
                                         setIsOpen(false);
-                                        setSearchQuery('');
+                                        setSearchQuery("");
                                       }}
                                       onMouseEnter={() => setHighlightedIndex(flatIndex)}
                                       onFocus={() => setHighlightedIndex(flatIndex)}
                                       data-checkpoint-item
                                       className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors cursor-pointer ${
                                         cp.id === selectedId
-                                          ? 'bg-indigo-500/10 border-l-4 border-indigo-500'
+                                          ? "bg-indigo-500/10 border-l-4 border-indigo-500"
                                           : highlightedIndex === flatIndex
-                                            ? 'bg-hover border-l-4 border-indigo-500/50'
-                                            : 'border-l-4 border-transparent'
+                                            ? "bg-hover border-l-4 border-indigo-500/50"
+                                            : "border-l-4 border-transparent"
                                       }`}
                                       role="option"
                                       aria-selected={cp.id === selectedId}
                                     >
-                                      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                                        cp.id === selectedId ? 'bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.6)]' : 'bg-tertiary'
-                                      }`}/>
-                                      <span className={`flex-1 text-sm truncate ${
-                                        cp.id === selectedId ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-primary'
-                                      }`}>
+                                      <div
+                                        className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                          cp.id === selectedId ? "bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.6)]" : "bg-tertiary"
+                                        }`}
+                                      />
+                                      <span
+                                        className={`flex-1 text-sm truncate ${
+                                          cp.id === selectedId ? "text-indigo-600 dark:text-indigo-400 font-medium" : "text-primary"
+                                        }`}
+                                      >
                                         {cp.name}
                                       </span>
                                       <span className="text-2xs text-muted font-mono shrink-0">{formatTime(cp.createdAt)}</span>
@@ -302,10 +292,13 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
             <div className="flex items-center gap-2 text-2xs min-w-0">
               <span className="truncate font-medium text-primary">{selected.name}</span>
               <span className="text-muted">•</span>
-              <span className="truncate text-muted">{formatDate(selected.createdAt)} at {formatTime(selected.createdAt)}</span>
+              <span className="truncate text-muted">
+                {formatDate(selected.createdAt)} at {formatTime(selected.createdAt)}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={() => {
                   setSelectedId(null);
                 }}
@@ -313,19 +306,17 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
                 aria-label={`Clear selection`}
                 title="Clear selection"
               >
-                <X className="w-3 h-3"/>
+                <X className="w-3 h-3" />
                 Clear
               </button>
               <button
+                type="button"
                 onClick={() => launchFromCheckpoint(selected.id)}
                 disabled={launchingId === selected.id}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-md transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring shadow-lg shadow-indigo-600/20"
                 aria-label={`Launch agent from checkpoint: ${selected.name}`}
               >
-                {launchingId === selected.id
-                  ? <Loader2 className="w-3.5 h-3.5 animate-spin"/>
-                  : <RotateCcw className="w-3.5 h-3.5"/>
-                }
+                {launchingId === selected.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
                 Launch
               </button>
             </div>

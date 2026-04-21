@@ -1,6 +1,6 @@
-import {Moon, Settings, Sun} from 'lucide-react';
-import {useTheme} from '../../hooks/useTheme.ts';
-import {useSidebar} from '../../components/SidebarContext.tsx';
+import { Moon, Settings, Sun } from "lucide-react";
+import { useSidebar } from "../../components/SidebarContext.tsx";
+import { useTheme } from "../../hooks/useTheme.ts";
 
 export default function SettingsApp() {
   const [theme, setTheme] = useTheme();
@@ -21,7 +21,6 @@ export default function SettingsApp() {
 
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
         <div className="max-w-2xl mx-auto space-y-6">
-
           {/* Appearance */}
           <section className="space-y-3">
             <h2 className="text-xs font-bold text-muted uppercase tracking-widest px-1">Appearance</h2>
@@ -33,24 +32,22 @@ export default function SettingsApp() {
                 </div>
                 <div className="flex items-center gap-1 bg-tertiary rounded-lg p-1">
                   <button
-                    onClick={() => setTheme('light')}
+                    type="button"
+                    onClick={() => setTheme("light")}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
-                      theme === 'light'
-                        ? 'bg-secondary text-primary shadow-sm'
-                        : 'text-muted hover:text-primary'
+                      theme === "light" ? "bg-secondary text-primary shadow-sm" : "text-muted hover:text-primary"
                     }`}
-                    aria-pressed={theme === 'light'}
+                    aria-pressed={theme === "light"}
                   >
                     <Sun className="w-3.5 h-3.5" /> Light
                   </button>
                   <button
-                    onClick={() => setTheme('dark')}
+                    type="button"
+                    onClick={() => setTheme("dark")}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
-                      theme === 'dark'
-                        ? 'bg-secondary text-primary shadow-sm'
-                        : 'text-muted hover:text-primary'
+                      theme === "dark" ? "bg-secondary text-primary shadow-sm" : "text-muted hover:text-primary"
                     }`}
-                    aria-pressed={theme === 'dark'}
+                    aria-pressed={theme === "dark"}
                   >
                     <Moon className="w-3.5 h-3.5" /> Dark
                   </button>
@@ -69,15 +66,18 @@ export default function SettingsApp() {
                   <p className="text-2xs text-muted mt-0.5">Show or hide the navigation sidebar</p>
                 </div>
                 <button
+                  type="button"
                   onClick={toggleSidebar}
                   className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus-ring ${
-                    isSidebarExpanded ? 'bg-indigo-600' : 'bg-tertiary'
+                    isSidebarExpanded ? "bg-indigo-600" : "bg-tertiary"
                   }`}
                   role="switch"
                   aria-checked={isSidebarExpanded}
                   aria-label="Toggle sidebar"
                 >
-                  <span className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isSidebarExpanded ? 'translate-x-4' : 'translate-x-0'}`} />
+                  <span
+                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isSidebarExpanded ? "translate-x-4" : "translate-x-0"}`}
+                  />
                 </button>
               </div>
             </div>
@@ -103,26 +103,31 @@ export default function SettingsApp() {
             <h2 className="text-xs font-bold text-muted uppercase tracking-widest px-1">Resources</h2>
             <div className="bg-secondary border border-primary rounded-xl overflow-hidden">
               {[
-                { label: 'GitHub', href: 'https://github.com/tokenring-ai' },
-                { label: 'Website', href: 'https://tokenring.ai' },
-                { label: 'X / Twitter', href: 'https://x.com/TokenRingAI' },
+                { label: "GitHub", href: "https://github.com/tokenring-ai" },
+                { label: "Website", href: "https://tokenring.ai" },
+                { label: "X / Twitter", href: "https://x.com/TokenRingAI" },
               ].map((link, i, arr) => (
                 <a
                   key={link.href}
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`flex items-center justify-between px-4 py-3.5 hover:bg-hover transition-colors focus-ring text-sm font-medium text-primary ${i < arr.length - 1 ? 'border-b border-primary' : ''}`}
+                  className={`flex items-center justify-between px-4 py-3.5 hover:bg-hover transition-colors focus-ring text-sm font-medium text-primary ${i < arr.length - 1 ? "border-b border-primary" : ""}`}
                 >
                   {link.label}
                   <svg className="w-3.5 h-3.5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    <title>{link.label}</title>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
                   </svg>
                 </a>
               ))}
             </div>
           </section>
-
         </div>
       </div>
     </div>

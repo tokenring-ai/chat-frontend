@@ -1,5 +1,5 @@
-import {MessageSquare} from 'lucide-react';
-import AgentLauncherApp from '../../components/AgentLauncherApp.tsx';
+import { MessageSquare } from "lucide-react";
+import AgentLauncherApp from "../../components/AgentLauncherApp.tsx";
 
 export default function MessagingApp() {
   return (

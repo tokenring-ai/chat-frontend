@@ -1,9 +1,9 @@
-import {useEffect, useMemo, useRef} from 'react';
-import {Virtuoso, type VirtuosoHandle} from 'react-virtuoso';
-import type {RemoteAgentStatus} from "../../hooks/useAgentEventState.ts";
-import type {ChatMessage, InteractionResponseMessage, QuestionPromptMessage} from '../../types/agent-events.ts';
-import {isQuestionPromptMessage} from '../../types/agent-events.ts';
-import MessageComponent from './MessageComponent.tsx';
+import { useEffect, useMemo, useRef } from "react";
+import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
+import type { RemoteAgentStatus } from "../../hooks/useAgentEventState.ts";
+import type { ChatMessage, InteractionResponseMessage, QuestionPromptMessage } from "../../types/agent-events.ts";
+import { isQuestionPromptMessage } from "../../types/agent-events.ts";
+import MessageComponent from "./MessageComponent.tsx";
 
 interface MessageListProps {
   messages: ChatMessage[];
@@ -12,17 +12,17 @@ interface MessageListProps {
 }
 
 type DisplayItem =
-  | { type: 'header' }
-  | { type: 'message'; data: ChatMessage }
-  | { type: 'question-pair'; data: { question: QuestionPromptMessage; response: InteractionResponseMessage } }
-  | { type: 'busy'; data?: string };
+  | { type: "header" }
+  | { type: "message"; data: ChatMessage }
+  | { type: "question-pair"; data: { question: QuestionPromptMessage; response: InteractionResponseMessage } }
+  | { type: "busy"; data?: string };
 
 export default function MessageList({ messages, agentId, agentStatus }: MessageListProps) {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const hasInitializedRef = useRef(false);
 
   const displayItems = useMemo(() => {
-    const items: DisplayItem[] = [{ type: 'header' }];
+    const items: DisplayItem[] = [{ type: "header" }];
     const questionMap = new Map<string, QuestionPromptMessage>();
 
     // Build question map using composite key (requestId:interactionId) for consistency
@@ -40,24 +40,24 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
         continue;
       }
 
-      if (msg.type === 'input.interaction') {
+      if (msg.type === "input.interaction") {
         // Use the same composite key for lookup
         const key = `${msg.requestId}:${msg.interactionId}`;
         const question = questionMap.get(key);
         if (question) {
           items.push({
-            type: 'question-pair',
-            data: { question, response: msg }
+            type: "question-pair",
+            data: { question, response: msg },
           });
           continue;
         }
       }
 
-      items.push({ type: 'message', data: msg });
+      items.push({ type: "message", data: msg });
     }
 
     if (agentStatus.inputExecutionQueue.length > 0) {
-      items.push({ type: 'busy', data: agentStatus.currentActivity });
+      items.push({ type: "busy", data: agentStatus.currentActivity });
     }
 
     return items;
@@ -70,7 +70,7 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
         if (virtuosoRef.current) {
           virtuosoRef.current.scrollToIndex({
             index: displayItems.length - 1,
-            align: 'end'
+            align: "end",
           });
           hasInitializedRef.current = true;
         }
@@ -86,9 +86,9 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
       followOutput="smooth"
       initialTopMostItemIndex={displayItems.length > 1 ? displayItems.length - 1 : 0}
       itemContent={(_index, item) => {
-        if (item.type === 'header') {
-          const firstMessage = messages.find(m => !isQuestionPromptMessage(m) && m.type !== 'input.interaction');
-          const hasMessages = displayItems.some(i => i.type === 'message' || i.type === 'question-pair');
+        if (item.type === "header") {
+          const firstMessage = messages.find(m => !isQuestionPromptMessage(m) && m.type !== "input.interaction");
+          const hasMessages = displayItems.some(i => i.type === "message" || i.type === "question-pair");
 
           return (
             <>
@@ -96,7 +96,7 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
               <div className="px-3 py-3 flex items-center gap-3 text-primary select-none">
                 <div className="h-px bg-primary/50 flex-1" />
                 <span className="text-xs uppercase tracking-widest text-muted">
-                  Session Start • {firstMessage?.timestamp ? new Date(firstMessage.timestamp).toLocaleDateString() : 'New Session'}
+                  Session Start • {firstMessage?.timestamp ? new Date(firstMessage.timestamp).toLocaleDateString() : "New Session"}
                 </span>
                 <div className="h-px bg-primary/50 flex-1" />
               </div>
@@ -105,50 +105,35 @@ export default function MessageList({ messages, agentId, agentStatus }: MessageL
                   <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-secondary mb-3">
                     <span className="text-2xl">👋</span>
                   </div>
-                  <h3 className="text-base font-semibold text-primary mb-2">
-                    Welcome to TokenRing
-                  </h3>
+                  <h3 className="text-base font-semibold text-primary mb-2">Welcome to TokenRing</h3>
                   <p className="text-sm text-muted mb-4 max-w-md mx-auto">
-                    Start a conversation by typing a message below. Try <code
-                    className="px-1.5 py-0.5 rounded bg-tertiary border border-primary text-primary text-xs">/help</code> to see available
-                    commands.
+                    Start a conversation by typing a message below. Try{" "}
+                    <code className="px-1.5 py-0.5 rounded bg-tertiary border border-primary text-primary text-xs">/help</code> to see available commands.
                   </p>
                 </div>
               )}
             </>
           );
         }
-        if (item.type === 'busy') {
+        if (item.type === "busy") {
           return (
             <div className="flex items-center gap-3 px-5 py-3 animate-pulse">
               <div className="shrink-0 w-10 flex justify-center">
                 <div className="flex gap-1.5">
-                  <span className="w-1.5 h-1.5 bg-warning rounded-full animate-bounce" style={{animationDelay: '0ms'}}/>
-                  <span className="w-1.5 h-1.5 bg-warning rounded-full animate-bounce" style={{animationDelay: '150ms'}}/>
-                  <span className="w-1.5 h-1.5 bg-warning rounded-full animate-bounce" style={{animationDelay: '300ms'}}/>
+                  <span className="w-1.5 h-1.5 bg-warning rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-1.5 h-1.5 bg-warning rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-1.5 h-1.5 bg-warning rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
               </div>
               <div className="text-muted text-sm leading-relaxed">{item.data}...</div>
             </div>
           );
         }
-        if (item.type === 'question-pair') {
-          return (
-            <MessageComponent
-              msg={item.data.response}
-              agentId={agentId}
-              question={item.data.question}
-              response={item.data.response}
-            />
-          );
+        if (item.type === "question-pair") {
+          return <MessageComponent msg={item.data.response} agentId={agentId} question={item.data.question} response={item.data.response} />;
         }
 
-        return (
-          <MessageComponent
-            msg={item.data}
-            agentId={agentId}
-          />
-        );
+        return <MessageComponent msg={item.data} agentId={agentId} />;
       }}
     />
   );

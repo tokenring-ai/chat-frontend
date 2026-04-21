@@ -1,9 +1,9 @@
-import {getDefaultQuestionValue, type ParsedFormQuestion} from '@tokenring-ai/agent/question';
-import {ChevronLeft, ChevronRight, X} from 'lucide-react';
-import {useEffect, useRef, useState} from 'react';
-import {sendInteractionResponse} from "../sendInteractionResponse.ts";
-import FileInlineQuestion from './file-inline.tsx';
-import TreeInlineQuestion from './tree-inline.tsx';
+import { getDefaultQuestionValue, type ParsedFormQuestion } from "@tokenring-ai/agent/question";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { sendInteractionResponse } from "../sendInteractionResponse.ts";
+import FileInlineQuestion from "./file-inline.tsx";
+import TreeInlineQuestion from "./tree-inline.tsx";
 
 interface FormInlineProps {
   agentId: string;
@@ -14,14 +14,7 @@ interface FormInlineProps {
   autoFocus?: boolean;
 }
 
-export default function FormInlineQuestion({
-  agentId,
-  question,
-  requestId,
-  interactionId,
-  onClose,
-  autoFocus = true
-}: FormInlineProps) {
+export default function FormInlineQuestion({ agentId, question, requestId, interactionId, onClose, autoFocus = true }: FormInlineProps) {
   const [values, setValues] = useState<Record<string, any>>({});
   const [currentSection, setCurrentSection] = useState(0);
   const [currentField, setCurrentField] = useState(0);
@@ -41,17 +34,17 @@ export default function FormInlineQuestion({
   // Auto-focus on mount and field changes
   useEffect(() => {
     if (containerRef.current) {
-      containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      containerRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
     // Focus on input field when it's a text field
-    if (field.type === 'text' && inputRef.current) {
+    if (field.type === "text" && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [currentSection, currentField, field.type]);
+  }, [field.type]);
 
   const handleFieldSubmit = async (value: any) => {
     // Validate required fields
-    if (field.type === 'text' && field.required && !value) {
+    if (field.type === "text" && field.required && !value) {
       setIsInvalid(true);
       setShowErrorAnimation(true);
       inputRef.current?.focus();
@@ -61,8 +54,8 @@ export default function FormInlineQuestion({
     }
 
     setIsInvalid(false);
-    setValues((prev) => ({ ...prev, [`${section.name}.${fieldKey}`]: value }));
-    
+    setValues(prev => ({ ...prev, [`${section.name}.${fieldKey}`]: value }));
+
     if (isLastField && isLastSection) {
       // Build final result
       const result: Record<string, Record<string, any>> = {};
@@ -73,7 +66,7 @@ export default function FormInlineQuestion({
         }
       }
       result[section.name][fieldKey] = value;
-      
+
       setIsSubmitting(true);
       await sendInteractionResponse({
         agentId,
@@ -113,7 +106,7 @@ export default function FormInlineQuestion({
   useEffect(() => {
     setIsInvalid(false);
     setShowErrorAnimation(false);
-  }, [currentSection, currentField]);
+  }, []);
 
   const canGoPrevious = currentSection > 0 || currentField > 0;
   const currentFieldValue = values[`${section.name}.${fieldKey}`];
@@ -135,13 +128,11 @@ export default function FormInlineQuestion({
       </div>
 
       {/* Description */}
-      {section.description && (
-        <p className="text-2xs text-muted italic">{section.description}</p>
-      )}
+      {section.description && <p className="text-2xs text-muted italic">{section.description}</p>}
 
       {/* Field content */}
       <div className="min-h-[150px] flex flex-col">
-        {field.type === 'text' && (
+        {field.type === "text" && (
           <div className="flex-1 flex flex-col gap-2">
             <label className="block text-sm text-primary" htmlFor={`form-field-${fieldKey}`}>
               {field.label}
@@ -156,26 +147,26 @@ export default function FormInlineQuestion({
             <input
               ref={inputRef}
               id={`form-field-${fieldKey}`}
-              type={field.masked ? 'password' : 'text'}
+              type={field.masked ? "password" : "text"}
               defaultValue={currentFieldValue || field.defaultValue}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+              onKeyDown={e => {
+                if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   void handleFieldSubmit(e.currentTarget.value);
-                } else if (e.key === 'Escape') {
+                } else if (e.key === "Escape") {
                   void handleCancel();
                 }
               }}
               className={`w-full bg-primary border border-primary rounded-md text-primary text-sm p-2 outline-none transition-colors focus:border-accent focus:ring-1 focus:ring-accent/20 ${
-                isInvalid ? 'border-error' : ''
-              } ${showErrorAnimation ? 'animate-shake' : ''}`}
+                isInvalid ? "border-error" : ""
+              } ${showErrorAnimation ? "animate-shake" : ""}`}
               aria-required={field.required}
               aria-invalid={isInvalid}
             />
           </div>
         )}
 
-        {field.type === 'treeSelect' && (
+        {field.type === "treeSelect" && (
           <div className="flex-1 flex flex-col gap-2 min-h-[150px]">
             <label className="block text-sm text-primary">{field.label}</label>
             <div className="border border-primary/30 rounded-lg flex-1 flex flex-col overflow-hidden">
@@ -191,7 +182,7 @@ export default function FormInlineQuestion({
           </div>
         )}
 
-        {field.type === 'fileSelect' && (
+        {field.type === "fileSelect" && (
           <div className="flex-1 flex flex-col gap-2 min-h-[150px]">
             <label className="block text-sm text-primary">{field.label}</label>
             {field.description && <p className="text-2xs text-muted">{field.description}</p>}
@@ -213,6 +204,7 @@ export default function FormInlineQuestion({
       <div className="flex items-center justify-between pt-2">
         <div className="flex gap-2">
           <button
+            type="button"
             onClick={handleCancel}
             disabled={isSubmitting}
             className="flex items-center gap-1.5 p-1.5 rounded-md text-xs text-muted hover:text-primary transition-colors disabled:opacity-50 focus-ring"
@@ -222,6 +214,7 @@ export default function FormInlineQuestion({
           </button>
           {canGoPrevious && (
             <button
+              type="button"
               onClick={handlePrevious}
               disabled={isSubmitting}
               className="flex items-center gap-1.5 text-xs text-primary hover:text-accent transition-colors disabled:opacity-50 bg-tertiary px-3 py-1.5 rounded-md focus-ring"
@@ -231,10 +224,11 @@ export default function FormInlineQuestion({
             </button>
           )}
         </div>
-        {field.type === 'text' && (
+        {field.type === "text" && (
           <button
-            onClick={(e) => {
-              const input = e.currentTarget.parentElement?.parentElement?.querySelector('input') as HTMLInputElement;
+            type="button"
+            onClick={e => {
+              const input = e.currentTarget.parentElement?.parentElement?.querySelector("input") as HTMLInputElement;
               if (input?.value) void handleFieldSubmit(input.value);
             }}
             disabled={isSubmitting}
@@ -242,13 +236,13 @@ export default function FormInlineQuestion({
           >
             {isSubmitting ? (
               <>
-                <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
-                <span>{isLastField && isLastSection ? 'Submitting...' : 'Processing...'}</span>
+                <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>{isLastField && isLastSection ? "Submitting..." : "Processing..."}</span>
               </>
             ) : (
               <>
-                {isLastField && isLastSection ? 'Submit' : 'Next'}
-                <ChevronRight className="w-3.5 h-3.5"/>
+                {isLastField && isLastSection ? "Submit" : "Next"}
+                <ChevronRight className="w-3.5 h-3.5" />
               </>
             )}
           </button>

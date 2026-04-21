@@ -1,7 +1,7 @@
-import {Loader2} from 'lucide-react';
-import {useEffect, useState} from 'react';
-import {agentRPCClient, useAgentTypes} from '../rpc.ts';
-import {toastManager} from './ui/toast.tsx';
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { agentRPCClient, useAgentTypes } from "../rpc.ts";
+import { toastManager } from "./ui/toast.tsx";
 
 interface AgentLauncherBarProps {
   /** Pre-selected agent type. Defaults to first available type. */
@@ -18,14 +18,9 @@ interface AgentLauncherBarProps {
  * Compact agent-type selector + launch button, designed to sit inside a
  * toolbar or header bar. Calls `onLaunch` with the created agent id.
  */
-export default function AgentLauncherBar({
-  defaultAgentType,
-  buttonLabel,
-  buttonClassName,
-  onLaunch,
-}: AgentLauncherBarProps) {
+export default function AgentLauncherBar({ defaultAgentType, buttonLabel, buttonClassName, onLaunch }: AgentLauncherBarProps) {
   const agentTypes = useAgentTypes();
-  const [selectedType, setSelectedType] = useState<string>(defaultAgentType ?? '');
+  const [selectedType, setSelectedType] = useState<string>(defaultAgentType ?? "");
   const [launching, setLaunching] = useState(false);
 
   // Once types load, pre-select only if a defaultAgentType was provided
@@ -42,10 +37,10 @@ export default function AgentLauncherBar({
     if (!selectedType) return;
     setLaunching(true);
     try {
-      const {id} = await agentRPCClient.createAgent({agentType: selectedType, headless: false});
+      const { id } = await agentRPCClient.createAgent({ agentType: selectedType, headless: false });
       onLaunch(id);
     } catch (error: any) {
-      toastManager.error(error.message || 'Failed to launch agent', {duration: 5000});
+      toastManager.error(error.message || "Failed to launch agent", { duration: 5000 });
     } finally {
       setLaunching(false);
     }
@@ -61,26 +56,39 @@ export default function AgentLauncherBar({
         onChange={e => setSelectedType(e.target.value)}
         disabled={launching || types.length === 0}
         className="bg-input border border-primary rounded-lg py-1.5 pl-2.5 pr-6 text-xs text-primary focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all disabled:opacity-50 cursor-pointer appearance-none"
-        style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'6\' viewBox=\'0 0 10 6\'%3E%3Cpath fill=\'%236b7280\' d=\'M0 0l5 6 5-6z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center'}}
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%236b7280' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E\")",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "right 6px center",
+        }}
         aria-label="Select agent type"
       >
-        {types.length === 0
-          ? <option value="">Loading…</option>
-          : <option value="" disabled>Select agent…</option>
-        }
+        {types.length === 0 ? (
+          <option value="">Loading…</option>
+        ) : (
+          <option value="" disabled>
+            Select agent…
+          </option>
+        )}
         {types.map(t => (
-          <option key={t.type} value={t.type}>{t.displayName}</option>
+          <option key={t.type} value={t.type}>
+            {t.displayName}
+          </option>
         ))}
       </select>
 
       {/* Launch button */}
       <button
+        type="button"
         onClick={() => void handleLaunch()}
         disabled={launching || !selectedType}
         className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors focus-ring cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${buttonClassName}`}
       >
         {launching ? (
-          <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Launching…</>
+          <>
+            <Loader2 className="w-3.5 h-3.5 animate-spin" /> Launching…
+          </>
         ) : (
           buttonLabel
         )}

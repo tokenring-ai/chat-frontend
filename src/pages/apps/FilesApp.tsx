@@ -17,36 +17,28 @@ import {
   Search,
   User,
   X,
-} from 'lucide-react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import CodeEditor from '../../components/editor/CodeEditor.tsx';
-import MarkdownEditor from '../../components/editor/MarkdownEditor.tsx';
-import ResizableSplit from '../../components/ui/ResizableSplit.tsx';
-import {toastManager} from '../../components/ui/toast.tsx';
-import {cn} from '../../lib/utils.ts';
-import {
-  agentRPCClient,
-  filesystemRPCClient,
-  useAgentTypes,
-  useDirectoryListing,
-  useFileContents,
-  useFilesystemProviders,
-
-} from '../../rpc.ts';
+} from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import CodeEditor from "../../components/editor/CodeEditor.tsx";
+import MarkdownEditor from "../../components/editor/MarkdownEditor.tsx";
+import ResizableSplit from "../../components/ui/ResizableSplit.tsx";
+import { toastManager } from "../../components/ui/toast.tsx";
+import { cn } from "../../lib/utils.ts";
+import { agentRPCClient, filesystemRPCClient, useAgentTypes, useDirectoryListing, useFileContents, useFilesystemProviders } from "../../rpc.ts";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 const getBasename = (p: string) => {
-  const clean = p.endsWith('/') ? p.slice(0, -1) : p;
-  return clean.split('/').pop() || p;
+  const clean = p.endsWith("/") ? p.slice(0, -1) : p;
+  return clean.split("/").pop() || p;
 };
 
 function getFileIcon(file: string, isDir: boolean, size = 16) {
   if (isDir) return <Folder className="text-indigo-400 shrink-0" size={size} />;
   if (/\.(tsx?|jsx?)$/.test(file)) return <FileText className="text-cyan-500 shrink-0" size={size} />;
-  if (file.endsWith('.json')) return <Code className="text-amber-500 shrink-0" size={size} />;
-  if (file.endsWith('.md')) return <FileText className="text-purple-400 shrink-0" size={size} />;
+  if (file.endsWith(".json")) return <Code className="text-amber-500 shrink-0" size={size} />;
+  if (file.endsWith(".md")) return <FileText className="text-purple-400 shrink-0" size={size} />;
   if (/\.(png|jpe?g|gif|svg|webp)$/i.test(file)) return <ImageIcon className="text-pink-400 shrink-0" size={size} />;
   return <FileText className="text-muted shrink-0" size={size} />;
 }
@@ -65,14 +57,21 @@ function useInitAgent() {
       try {
         const types = await agentRPCClient.getAgentTypes({});
         if (cancelled) return;
-        const preferred = types.find(t => t.type === 'coder') ?? types[0];
-        if (!preferred) { setError('No agent types available'); setInitialising(false); return; }
+        const preferred = types.find(t => t.type === "coder") ?? types[0];
+        if (!preferred) {
+          setError("No agent types available");
+          setInitialising(false);
+          return;
+        }
         const { id } = await agentRPCClient.createAgent({ agentType: preferred.type, headless: true });
-        if (cancelled) { agentRPCClient.deleteAgent({ agentId: id, reason: 'Files app cancelled during init' }).catch(() => {}); return; }
+        if (cancelled) {
+          agentRPCClient.deleteAgent({ agentId: id, reason: "Files app cancelled during init" }).catch(() => {});
+          return;
+        }
         agentRef.current = id;
         setAgentId(id);
       } catch (e: any) {
-        if (!cancelled) setError(e.message || 'Failed to initialise file browser');
+        if (!cancelled) setError(e.message || "Failed to initialise file browser");
       } finally {
         if (!cancelled) setInitialising(false);
       }
@@ -80,7 +79,7 @@ function useInitAgent() {
     return () => {
       cancelled = true;
       if (agentRef.current) {
-        agentRPCClient.deleteAgent({ agentId: agentRef.current, reason: 'Files app unmounted' }).catch(() => {});
+        agentRPCClient.deleteAgent({ agentId: agentRef.current, reason: "Files app unmounted" }).catch(() => {});
         agentRef.current = null;
       }
     };
@@ -99,7 +98,7 @@ interface AgentLaunchPanelProps {
 function AgentLaunchPanel({ selectedPaths, onClear }: AgentLaunchPanelProps) {
   const navigate = useNavigate();
   const agentTypes = useAgentTypes();
-  const [chosenType, setChosenType] = useState('');
+  const [chosenType, setChosenType] = useState("");
   const [launching, setLaunching] = useState(false);
 
   // Default to first available type
@@ -115,14 +114,10 @@ function AgentLaunchPanel({ selectedPaths, onClear }: AgentLaunchPanelProps) {
     try {
       const { id: newAgentId } = await agentRPCClient.createAgent({ agentType: chosenType, headless: false });
       // Add each selected file to the new agent
-      await Promise.all(
-        Array.from(selectedPaths).map(file =>
-          filesystemRPCClient.addFileToChat({ agentId: newAgentId, file })
-        )
-      );
+      await Promise.all(Array.from(selectedPaths).map(file => filesystemRPCClient.addFileToChat({ agentId: newAgentId, file })));
       void navigate(`/agent/${newAgentId}`);
     } catch (e: any) {
-      toastManager.error(e.message || 'Failed to launch agent', { duration: 5000 });
+      toastManager.error(e.message || "Failed to launch agent", { duration: 5000 });
     } finally {
       setLaunching(false);
     }
@@ -137,13 +132,14 @@ function AgentLaunchPanel({ selectedPaths, onClear }: AgentLaunchPanelProps) {
         <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center">
           <span className="text-white text-2xs font-bold">{count}</span>
         </div>
-        <span className="text-sm font-medium text-primary">{count === 1 ? '1 file selected' : `${count} files selected`}</span>
+        <span className="text-sm font-medium text-primary">{count === 1 ? "1 file selected" : `${count} files selected`}</span>
       </div>
 
       <div className="flex-1" />
 
       {/* Clear */}
       <button
+        type="button"
         onClick={onClear}
         className="flex items-center gap-1.5 px-2.5 py-1.5 text-muted hover:text-primary text-xs transition-colors focus-ring rounded-md hover:bg-hover cursor-pointer"
         aria-label="Clear selection"
@@ -159,12 +155,15 @@ function AgentLaunchPanel({ selectedPaths, onClear }: AgentLaunchPanelProps) {
         aria-label="Agent type to launch"
       >
         {(agentTypes.data ?? []).map(t => (
-          <option key={t.type} value={t.type}>{t.displayName}</option>
+          <option key={t.type} value={t.type}>
+            {t.displayName}
+          </option>
         ))}
       </select>
 
       {/* Launch */}
       <button
+        type="button"
         onClick={launch}
         disabled={launching || !chosenType}
         className="flex items-center gap-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors focus-ring shadow-button-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
@@ -189,36 +188,49 @@ interface BreadcrumbBarProps {
 }
 
 function BreadcrumbBar({ path, onNavigate, showHidden, onToggleHidden, onUpload, onRefresh }: BreadcrumbBarProps) {
-  const parts = path === '.' ? [] : path.split('/');
+  const parts = path === "." ? [] : path.split("/");
   return (
     <div className="h-10 border-b border-primary bg-secondary flex items-center gap-2 px-3 shrink-0">
       {/* Breadcrumbs */}
       <div className="flex items-center gap-0.5 text-xs text-muted flex-1 min-w-0 overflow-hidden">
-        <button onClick={() => onNavigate('.')} className="hover:text-primary shrink-0 focus-ring rounded px-1 cursor-pointer">root</button>
+        <button type="button" onClick={() => onNavigate(".")} className="hover:text-primary shrink-0 focus-ring rounded px-1 cursor-pointer">
+          root
+        </button>
         {parts.map((part, i) => (
           <React.Fragment key={part}>
             <ChevronRight className="w-3 h-3 shrink-0 text-dim" />
             <button
-              onClick={() => onNavigate(parts.slice(0, i + 1).join('/'))}
-              className={cn('hover:text-primary truncate focus-ring rounded px-1 cursor-pointer', i === parts.length - 1 && 'text-primary font-medium')}
-            >{part}</button>
+              type="button"
+              onClick={() => onNavigate(parts.slice(0, i + 1).join("/"))}
+              className={cn("hover:text-primary truncate focus-ring rounded px-1 cursor-pointer", i === parts.length - 1 && "text-primary font-medium")}
+            >
+              {part}
+            </button>
           </React.Fragment>
         ))}
       </div>
 
       {/* Controls */}
-      <button onClick={onRefresh} className="p-1.5 text-muted hover:text-primary transition-colors focus-ring rounded-md cursor-pointer" aria-label="Refresh" title="Refresh">
+      <button
+        type="button"
+        onClick={onRefresh}
+        className="p-1.5 text-muted hover:text-primary transition-colors focus-ring rounded-md cursor-pointer"
+        aria-label="Refresh"
+        title="Refresh"
+      >
         <RefreshCw className="w-3.5 h-3.5" />
       </button>
       <button
+        type="button"
         onClick={onToggleHidden}
         className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-hover text-muted text-2xs transition-colors focus-ring cursor-pointer"
-        title={showHidden ? 'Hide hidden files' : 'Show hidden files'}
+        title={showHidden ? "Hide hidden files" : "Show hidden files"}
       >
         {showHidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-        <span className="hidden sm:inline">{showHidden ? 'Hide' : 'Show'} hidden</span>
+        <span className="hidden sm:inline">{showHidden ? "Hide" : "Show"} hidden</span>
       </button>
       <button
+        type="button"
         onClick={onUpload}
         className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-hover text-muted text-2xs transition-colors focus-ring cursor-pointer"
         title="Upload files"
@@ -247,13 +259,23 @@ interface FileListPaneProps {
 }
 
 function FileListPane({
-  provider, path, onNavigate, onSelectFile, selectedFile,
-  selectedPaths, onToggleSelected, onToggleSelectAll, uploadingFiles, searchQuery,
+  provider,
+  path,
+  onNavigate,
+  onSelectFile,
+  selectedFile,
+  selectedPaths,
+  onToggleSelected,
+  onToggleSelectAll,
+  uploadingFiles,
+  searchQuery,
 }: FileListPaneProps) {
   const listing = useDirectoryListing(provider ? { path, showHidden: false, provider } : undefined);
 
   // Expose mutate upward via onRefresh
-  useEffect(() => { /* no-op: refresh is triggered externally */ }, []);
+  useEffect(() => {
+    /* no-op: refresh is triggered externally */
+  }, []);
 
   const sortedFiles = useMemo(() => {
     if (!listing.data?.files) return [];
@@ -263,7 +285,8 @@ function FileListPane({
       files = files.filter(f => getBasename(f).toLowerCase().includes(q));
     }
     return files.sort((a, b) => {
-      const dA = a.endsWith('/'), dB = b.endsWith('/');
+      const dA = a.endsWith("/"),
+        dB = b.endsWith("/");
       if (dA && !dB) return -1;
       if (!dA && dB) return 1;
       return a.localeCompare(b);
@@ -271,13 +294,13 @@ function FileListPane({
   }, [listing.data?.files, searchQuery]);
 
   // allSelected = all non-dir files are selected
-  const fileOnly = sortedFiles.filter(f => !f.endsWith('/'));
+  const fileOnly = sortedFiles.filter(f => !f.endsWith("/"));
   const allSelected = fileOnly.length > 0 && fileOnly.every(f => selectedPaths.has(f));
 
   const handleRowClick = (file: string) => {
-    const isDir = file.endsWith('/');
+    const isDir = file.endsWith("/");
     if (isDir) {
-      const dirPath = file.endsWith('/') ? file.slice(0, -1) : file;
+      const dirPath = file.endsWith("/") ? file.slice(0, -1) : file;
       onNavigate(dirPath);
       return;
     }
@@ -285,7 +308,11 @@ function FileListPane({
   };
 
   if (listing.isLoading) {
-    return <div className="h-full flex items-center justify-center"><Loader2 className="w-5 h-5 text-muted animate-spin" /></div>;
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Loader2 className="w-5 h-5 text-muted animate-spin" />
+      </div>
+    );
   }
 
   return (
@@ -295,13 +322,14 @@ function FileListPane({
           <tr className="text-2xs text-muted font-semibold border-b border-primary">
             <th className="pl-3 pr-2 py-2 w-8">
               <button
+                type="button"
                 onClick={() => onToggleSelectAll(fileOnly)}
                 className={cn(
-                  'w-3.5 h-3.5 border rounded-sm flex items-center justify-center transition-all focus-ring cursor-pointer',
-                  allSelected ? 'border-indigo-500 bg-indigo-500' : 'border-primary hover:border-muted'
+                  "w-3.5 h-3.5 border rounded-sm flex items-center justify-center transition-all focus-ring cursor-pointer",
+                  allSelected ? "border-indigo-500 bg-indigo-500" : "border-primary hover:border-muted",
                 )}
-                aria-label={allSelected ? 'Deselect all' : 'Select all files'}
-                title={allSelected ? 'Deselect all' : 'Select all files'}
+                aria-label={allSelected ? "Deselect all" : "Select all files"}
+                title={allSelected ? "Deselect all" : "Select all files"}
               >
                 {allSelected && <Check className="w-2.5 h-2.5 text-white" />}
               </button>
@@ -312,8 +340,8 @@ function FileListPane({
           </tr>
         </thead>
         <tbody className="text-xs">
-          {sortedFiles.map((file) => {
-            const isDir = file.endsWith('/');
+          {sortedFiles.map(file => {
+            const isDir = file.endsWith("/");
             const name = getBasename(file);
             const isSelectedFile = selectedFile === file;
             const isChecked = selectedPaths.has(file);
@@ -323,26 +351,27 @@ function FileListPane({
               <tr
                 key={file}
                 onClick={() => handleRowClick(file)}
-                className={cn(
-                  'group border-b border-primary cursor-pointer transition-colors outline-none',
-                  isSelectedFile ? 'bg-active' : 'hover:bg-hover',
-                )}
+                className={cn("group border-b border-primary cursor-pointer transition-colors outline-none", isSelectedFile ? "bg-active" : "hover:bg-hover")}
                 tabIndex={0}
-                role="row"
-                aria-label={`${isDir ? 'Directory' : 'File'}: ${name}`}
-                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleRowClick(file); } }}
+                aria-label={`${isDir ? "Directory" : "File"}: ${name}`}
+                onKeyDown={e => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleRowClick(file);
+                  }
+                }}
               >
                 {/* Checkbox */}
                 <td className="pl-3 pr-2 py-2.5" onClick={e => e.stopPropagation()}>
                   {!isDir && (
                     <button
+                      type="button"
                       onClick={() => onToggleSelected(file)}
                       className={cn(
-                        'w-3.5 h-3.5 border rounded-sm flex items-center justify-center transition-all focus-ring cursor-pointer',
-                        isChecked ? 'border-indigo-500 bg-indigo-500' : 'border-primary hover:border-indigo-400'
+                        "w-3.5 h-3.5 border rounded-sm flex items-center justify-center transition-all focus-ring cursor-pointer",
+                        isChecked ? "border-indigo-500 bg-indigo-500" : "border-primary hover:border-indigo-400",
                       )}
                       aria-label={isChecked ? `Deselect ${name}` : `Select ${name}`}
-                      aria-checked={isChecked}
                     >
                       {isChecked && <Check className="w-2.5 h-2.5 text-white" />}
                     </button>
@@ -353,7 +382,7 @@ function FileListPane({
                 <td className="px-2 py-2.5">
                   <div className="flex items-center gap-2">
                     {getFileIcon(file, isDir)}
-                    <span className={cn('font-medium truncate', isSelectedFile ? 'text-indigo-400' : 'text-primary', isUploading && 'text-indigo-400')}>
+                    <span className={cn("font-medium truncate", isSelectedFile ? "text-indigo-400" : "text-primary", isUploading && "text-indigo-400")}>
                       {name}
                     </span>
                     {isUploading && <div className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin shrink-0" />}
@@ -361,24 +390,27 @@ function FileListPane({
                 </td>
 
                 {/* Type */}
-                <td className="px-2 py-2.5 text-muted hidden md:table-cell">
-                  {isDir ? 'folder' : (name.includes('.') ? name.split('.').pop() : '—')}
-                </td>
+                <td className="px-2 py-2.5 text-muted hidden md:table-cell">{isDir ? "folder" : name.includes(".") ? name.split(".").pop() : "—"}</td>
 
                 {/* Actions */}
                 <td className="px-2 py-2.5 hidden sm:table-cell" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity pr-2">
                     {!isDir && (
                       <button
+                        type="button"
                         onClick={async () => {
                           try {
                             const result = await filesystemRPCClient.readTextFile({ path: file, provider: provider! });
-                            const blob = new Blob([result.content ?? ''], { type: 'text/plain' });
+                            const blob = new Blob([result.content ?? ""], { type: "text/plain" });
                             const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url; a.download = name; a.click();
+                            const a = document.createElement("a");
+                            a.href = url;
+                            a.download = name;
+                            a.click();
                             URL.revokeObjectURL(url);
-                          } catch { toastManager.error('Download failed', { duration: 3000 }); }
+                          } catch {
+                            toastManager.error("Download failed", { duration: 3000 });
+                          }
                         }}
                         className="p-1 hover:text-primary text-muted focus-ring rounded cursor-pointer"
                         aria-label={`Download ${name}`}
@@ -396,7 +428,7 @@ function FileListPane({
           {sortedFiles.length === 0 && (
             <tr>
               <td colSpan={4} className="py-16 text-center text-muted text-sm">
-                {searchQuery ? `No files matching "${searchQuery}"` : 'This directory is empty.'}
+                {searchQuery ? `No files matching "${searchQuery}"` : "This directory is empty."}
               </td>
             </tr>
           )}
@@ -418,16 +450,7 @@ interface PreviewMetadataPaneProps {
   onSave: () => Promise<void>;
 }
 
-function PreviewMetadataPane({
-  file,
-  provider,
-  selectedPaths,
-  onToggleSelected,
-  onClose,
-  isDirty,
-  saving,
-  onSave,
-}: PreviewMetadataPaneProps) {
+function PreviewMetadataPane({ file, provider, selectedPaths, onToggleSelected, onClose, isDirty, saving, onSave }: PreviewMetadataPaneProps) {
   const navigate = useNavigate();
   if (!file) {
     return (
@@ -446,14 +469,14 @@ function PreviewMetadataPane({
     <div className="h-full bg-secondary flex flex-col">
       {/* File header */}
       <div className="px-4 py-3 border-b border-primary flex items-start gap-3 shrink-0">
-        <div className="w-9 h-9 rounded-lg bg-tertiary flex items-center justify-center shrink-0">
-          {getFileIcon(file, false, 20)}
-        </div>
+        <div className="w-9 h-9 rounded-lg bg-tertiary flex items-center justify-center shrink-0">{getFileIcon(file, false, 20)}</div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-primary truncate" title={file}>{name}</p>
-          <p className="text-2xs text-muted mt-0.5">{file.split('.').pop()?.toUpperCase() || 'File'}</p>
+          <p className="text-sm font-medium text-primary truncate" title={file}>
+            {name}
+          </p>
+          <p className="text-2xs text-muted mt-0.5">{file.split(".").pop()?.toUpperCase() || "File"}</p>
         </div>
-        <button onClick={onClose} className="p-1 text-muted hover:text-primary focus-ring rounded cursor-pointer" aria-label="Close preview">
+        <button type="button" onClick={onClose} className="p-1 text-muted hover:text-primary focus-ring rounded cursor-pointer" aria-label="Close preview">
           <X className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -461,24 +484,36 @@ function PreviewMetadataPane({
       {/* Actions */}
       <div className="px-4 py-3 border-b border-primary space-y-2 shrink-0">
         <button
+          type="button"
           onClick={() => onToggleSelected(file)}
           className={cn(
-            'w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-all focus-ring cursor-pointer',
+            "w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-all focus-ring cursor-pointer",
             isChecked
-              ? 'bg-indigo-600/20 border border-indigo-500/50 text-indigo-400 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-400'
-              : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-button-primary'
+              ? "bg-indigo-600/20 border border-indigo-500/50 text-indigo-400 hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-400"
+              : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-button-primary",
           )}
         >
-          {isChecked ? <><Check className="w-3.5 h-3.5" /> Selected for launch</> : <><Plus className="w-3.5 h-3.5" /> Select for launch</>}
+          {isChecked ? (
+            <>
+              <Check className="w-3.5 h-3.5" /> Selected for launch
+            </>
+          ) : (
+            <>
+              <Plus className="w-3.5 h-3.5" /> Select for launch
+            </>
+          )}
         </button>
         {/\.md$/i.test(file) && provider && (
           <button
+            type="button"
             onClick={async () => {
               try {
-                const result = await filesystemRPCClient.readTextFile({path: file, provider});
-                const title = getBasename(file).replace(/\.md$/i, '');
-                void navigate('/documents', {state: {filePath: file, fileContent: result.content ?? '', title, provider}});
-              } catch { toastManager.error('Could not read file', {duration: 3000}); }
+                const result = await filesystemRPCClient.readTextFile({ path: file, provider });
+                const title = getBasename(file).replace(/\.md$/i, "");
+                void navigate("/documents", { state: { filePath: file, fileContent: result.content ?? "", title, provider } });
+              } catch {
+                toastManager.error("Could not read file", { duration: 3000 });
+              }
             }}
             className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-primary text-xs font-medium text-muted hover:text-primary hover:bg-hover transition-all focus-ring cursor-pointer"
           >
@@ -487,11 +522,14 @@ function PreviewMetadataPane({
         )}
         {/\.html?$/i.test(file) && provider && (
           <button
+            type="button"
             onClick={async () => {
               try {
-                const result = await filesystemRPCClient.readTextFile({path: file, provider});
-                void navigate('/canvas', {state: {filePath: file, fileContent: result.content ?? '', provider}});
-              } catch { toastManager.error('Could not read file', {duration: 3000}); }
+                const result = await filesystemRPCClient.readTextFile({ path: file, provider });
+                void navigate("/canvas", { state: { filePath: file, fileContent: result.content ?? "", provider } });
+              } catch {
+                toastManager.error("Could not read file", { duration: 3000 });
+              }
             }}
             className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-primary text-xs font-medium text-muted hover:text-primary hover:bg-hover transition-all focus-ring cursor-pointer"
           >
@@ -500,12 +538,13 @@ function PreviewMetadataPane({
         )}
         {isDirty && (
           <button
+            type="button"
             onClick={onSave}
             disabled={saving}
             className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-primary text-xs font-medium text-muted hover:text-primary hover:bg-hover transition-all focus-ring cursor-pointer disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            {saving ? 'Saving…' : 'Save changes'}
+            {saving ? "Saving…" : "Save changes"}
           </button>
         )}
       </div>
@@ -514,7 +553,9 @@ function PreviewMetadataPane({
       <div className="px-4 py-2 border-b border-primary space-y-1 shrink-0">
         <div className="flex justify-between text-2xs">
           <span className="text-muted">Path</span>
-          <span className="text-primary truncate ml-4 max-w-40" title={file}>{file}</span>
+          <span className="text-primary truncate ml-4 max-w-40" title={file}>
+            {file}
+          </span>
         </div>
       </div>
     </div>
@@ -545,10 +586,12 @@ function FileEditorPane({ file, content, onContentChange, isLoading, hasData }: 
     <div className="h-full bg-secondary flex flex-col">
       <div className="flex-1 overflow-hidden min-h-0">
         {isLoading ? (
-          <div className="h-full flex items-center justify-center"><Loader2 className="w-4 h-4 text-muted animate-spin" /></div>
+          <div className="h-full flex items-center justify-center">
+            <Loader2 className="w-4 h-4 text-muted animate-spin" />
+          </div>
         ) : hasData ? (
           <div className="h-full overflow-auto">
-            {file.endsWith('.md') ? (
+            {file.endsWith(".md") ? (
               <MarkdownEditor key={file} content={content} onContentChange={onContentChange} />
             ) : (
               <CodeEditor key={file} file={file} content={content} onContentChange={onContentChange} />
@@ -575,44 +618,45 @@ export default function FilesApp() {
     }
   }, [fsProviders.data, provider]);
 
-  const [path, setPath] = useState('.');
+  const [path, setPath] = useState(".");
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
   const [showHidden, setShowHidden] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [uploadingFiles, setUploadingFiles] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const listing = useDirectoryListing(agentId && provider ? { path, showHidden, provider } : undefined);
 
   const [saving, setSaving] = useState(false);
-  const fileContent = useFileContents(selectedFile, provider);
+  const fileContent = useFileContents(selectedFile ?? undefined, provider ?? undefined);
 
-  const [updatedContent, setUpdatedContent] = useState<string|null>(null);
+  const [updatedContent, setUpdatedContent] = useState<string | null>(null);
 
-  const editorContent = updatedContent ?? fileContent.data?.content ?? '';
+  const editorContent = updatedContent ?? fileContent.data?.content ?? "";
 
   const handleSave = async () => {
     if (!selectedFile || !agentId || !provider) return;
     setSaving(true);
     try {
       await filesystemRPCClient.writeFile({ path: selectedFile, content: editorContent, provider });
-      await fileContent.mutate(() => ({ content: editorContent}));
+      await fileContent.mutate(() => ({ content: editorContent }));
       setUpdatedContent(null);
 
-      toastManager.success('Saved', { duration: 2000 });
+      toastManager.success("Saved", { duration: 2000 });
     } catch {
-      toastManager.error('Save failed', { duration: 3000 });
+      toastManager.error("Save failed", { duration: 3000 });
     } finally {
       setSaving(false);
     }
   };
 
-  const isDirty = editorContent !== (fileContent.data?.content ?? '');
+  const isDirty = editorContent !== (fileContent.data?.content ?? "");
 
   const toggleSelected = useCallback((file: string) => {
     setSelectedPaths(prev => {
       const next = new Set(prev);
-      if (next.has(file)) next.delete(file); else next.add(file);
+      if (next.has(file)) next.delete(file);
+      else next.add(file);
       return next;
     });
   }, []);
@@ -621,8 +665,15 @@ export default function FilesApp() {
     setSelectedPaths(prev => {
       const allIn = files.every(f => prev.has(f));
       const next = new Set(prev);
-      if (allIn) { files.forEach(f => { next.delete(f); }); }
-      else { files.forEach(f => { next.add(f); }); }
+      if (allIn) {
+        files.forEach(f => {
+          next.delete(f);
+        });
+      } else {
+        files.forEach(f => {
+          next.add(f);
+        });
+      }
       return next;
     });
   }, []);
@@ -635,15 +686,20 @@ export default function FilesApp() {
     const names = Array.from(files).map(f => f.name);
     setUploadingFiles(names);
     for (const file of Array.from(files)) {
-      if (file.size > MAX) { toastManager.error(`"${file.name}" exceeds 5 MB limit`, { duration: 3000 }); continue; }
+      if (file.size > MAX) {
+        toastManager.error(`"${file.name}" exceeds 5 MB limit`, { duration: 3000 });
+        continue;
+      }
       try {
         const content = await file.text();
-        const dest = path === '.' ? file.name : `${path}/${file.name}`;
+        const dest = path === "." ? file.name : `${path}/${file.name}`;
         await filesystemRPCClient.writeFile({ path: dest, content, provider });
-      } catch { toastManager.error(`Failed to upload "${file.name}"`, { duration: 3000 }); }
+      } catch {
+        toastManager.error(`Failed to upload "${file.name}"`, { duration: 3000 });
+      }
     }
     setUploadingFiles([]);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (fileInputRef.current) fileInputRef.current.value = "";
     await listing.mutate();
   };
 
@@ -668,9 +724,13 @@ export default function FilesApp() {
         </div>
         <div>
           <h2 className="text-sm font-semibold text-primary mb-1">File Browser Unavailable</h2>
-          <p className="text-xs text-muted max-w-sm">{error ?? 'Unknown error'}</p>
+          <p className="text-xs text-muted max-w-sm">{error ?? "Unknown error"}</p>
         </div>
-        <button onClick={() => window.location.reload()} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors focus-ring cursor-pointer">
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors focus-ring cursor-pointer"
+        >
           Retry
         </button>
       </div>
@@ -681,7 +741,6 @@ export default function FilesApp() {
 
   return (
     <div className="w-full h-full flex flex-col bg-primary overflow-hidden">
-
       {/* App header */}
       <div className="shrink-0 border-b border-primary bg-secondary px-4 py-3 flex items-center gap-3">
         <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-sm">
@@ -694,13 +753,19 @@ export default function FilesApp() {
         {/* Provider selector */}
         {(fsProviders.data?.providers.length ?? 0) > 1 && (
           <select
-            value={provider ?? ''}
-            onChange={e => { setProvider(e.target.value); setPath('.'); setSelectedFile(null); }}
+            value={provider ?? ""}
+            onChange={e => {
+              setProvider(e.target.value);
+              setPath(".");
+              setSelectedFile(null);
+            }}
             className="bg-input border border-primary rounded-lg px-2 py-1.5 text-xs text-primary focus-ring cursor-pointer"
             aria-label="Filesystem provider"
           >
             {fsProviders.data!.providers.map(p => (
-              <option key={p} value={p}>{p}</option>
+              <option key={p} value={p}>
+                {p}
+              </option>
             ))}
           </select>
         )}
@@ -715,7 +780,11 @@ export default function FilesApp() {
             className="bg-input border border-primary rounded-lg py-1.5 pl-8 pr-7 text-xs text-primary placeholder-muted focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 w-44 transition-all"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-primary focus-ring rounded p-0.5 cursor-pointer">
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-primary focus-ring rounded p-0.5 cursor-pointer"
+            >
               <X className="w-3 h-3" />
             </button>
           )}
@@ -725,7 +794,10 @@ export default function FilesApp() {
       {/* Breadcrumbs + toolbar */}
       <BreadcrumbBar
         path={path}
-        onNavigate={p => { setPath(p); setSelectedFile(null); }}
+        onNavigate={p => {
+          setPath(p);
+          setSelectedFile(null);
+        }}
         showHidden={showHidden}
         onToggleHidden={() => setShowHidden(v => !v)}
         onUpload={() => fileInputRef.current?.click()}
@@ -734,24 +806,15 @@ export default function FilesApp() {
       <input ref={fileInputRef} type="file" multiple onChange={handleUpload} className="hidden" />
 
       {/* Body: file list above editor */}
-      <ResizableSplit
-        direction="vertical"
-        initialRatio={0.5}
-        minFirst={180}
-        minSecond={150}
-        className="flex-1 min-h-0"
-      >
-        <ResizableSplit
-          direction="horizontal"
-          initialRatio={0.66}
-          minFirst={220}
-          minSecond={180}
-          className="h-full"
-        >
+      <ResizableSplit direction="vertical" initialRatio={0.5} minFirst={180} minSecond={150} className="flex-1 min-h-0">
+        <ResizableSplit direction="horizontal" initialRatio={0.66} minFirst={220} minSecond={180} className="h-full">
           <FileListPane
             provider={provider}
             path={path}
-            onNavigate={p => { setPath(p); setSelectedFile(null); }}
+            onNavigate={p => {
+              setPath(p);
+              setSelectedFile(null);
+            }}
             onSelectFile={setSelectedFile}
             selectedFile={selectedFile}
             selectedPaths={selectedPaths}
@@ -783,12 +846,7 @@ export default function FilesApp() {
       </ResizableSplit>
 
       {/* Selection action bar */}
-      {selectedPaths.size > 0 && (
-        <AgentLaunchPanel
-          selectedPaths={selectedPaths}
-          onClear={() => setSelectedPaths(new Set())}
-        />
-      )}
+      {selectedPaths.size > 0 && <AgentLaunchPanel selectedPaths={selectedPaths} onClear={() => setSelectedPaths(new Set())} />}
     </div>
   );
 }

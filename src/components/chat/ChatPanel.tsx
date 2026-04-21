@@ -1,17 +1,17 @@
-import type {InputAttachment} from '@tokenring-ai/agent/AgentEvents';
-import {Loader2} from 'lucide-react';
-import {useMemo, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {useChatInput} from '../ChatInputContext.tsx';
-import FileBrowserOverlay from '../overlay/file-browser.tsx';
-import {toastManager} from '../ui/toast.tsx';
-import {useAgentEventState} from '../../hooks/useAgentEventState.ts';
-import {agentRPCClient, useAvailableCommands, useCommandHistory} from '../../rpc.ts';
-import AutoScrollContainer from './AutoScrollContainer.tsx';
-import ChatFooter from './ChatFooter.tsx';
-import ConnectionStatusBanner from './ConnectionStatusBanner.tsx';
-import MessageList from './MessageList.tsx';
-import PendingQuestions from './PendingQuestions.tsx';
+import type { InputAttachment } from "@tokenring-ai/agent/AgentEvents";
+import { Loader2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAgentEventState } from "../../hooks/useAgentEventState.ts";
+import { agentRPCClient, useAvailableCommands, useCommandHistory } from "../../rpc.ts";
+import { useChatInput } from "../ChatInputContext.tsx";
+import FileBrowserOverlay from "../overlay/file-browser.tsx";
+import { toastManager } from "../ui/toast.tsx";
+import AutoScrollContainer from "./AutoScrollContainer.tsx";
+import ChatFooter from "./ChatFooter.tsx";
+import ConnectionStatusBanner from "./ConnectionStatusBanner.tsx";
+import MessageList from "./MessageList.tsx";
+import PendingQuestions from "./PendingQuestions.tsx";
 
 interface ChatPanelProps {
   agentId: string;
@@ -23,14 +23,15 @@ export default function ChatPanel({ agentId }: ChatPanelProps) {
   const [showHistory, setShowHistory] = useState(false);
   const [showFileBrowser, setShowFileBrowser] = useState(false);
   const [inputError, setInputError] = useState(false);
-  const [submitFeedback, setSubmitFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [submitFeedback, setSubmitFeedback] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const setInput = (value: string) => {
     setInputState(value);
     setPersistedInput(agentId, value);
   };
 
-  const {messages, agentStatus, currentExecutionState, isConnecting, connectionError, reconnectAttempts, agentNotFound, manualReconnect} = useAgentEventState(agentId);
+  const { messages, agentStatus, currentExecutionState, isConnecting, connectionError, reconnectAttempts, agentNotFound, manualReconnect } =
+    useAgentEventState(agentId);
   const navigate = useNavigate();
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -41,10 +42,10 @@ export default function ChatPanel({ agentId }: ChatPanelProps) {
 
   const filteredAvailableCommands = useMemo(() => {
     let ret: string[] = [];
-    if (input.startsWith('/') && availableCommands.data) {
+    if (input.startsWith("/") && availableCommands.data) {
       ret = availableCommands.data.filter(cmd => cmd.toLowerCase().startsWith(input.slice(1).toLowerCase())).sort();
       if (ret.length === 0) {
-        ret = ['help'];
+        ret = ["help"];
       } else if (ret.length < 4) {
         ret.push(...ret.map(cmd => `help ${cmd}`));
       }
@@ -60,7 +61,7 @@ export default function ChatPanel({ agentId }: ChatPanelProps) {
     }
     if (!idle) return;
     const message = input;
-    setInput('');
+    setInput("");
     clearInput(agentId);
     setInputError(false);
     try {
@@ -69,18 +70,18 @@ export default function ChatPanel({ agentId }: ChatPanelProps) {
         input: {
           from: "Chat webapp user",
           message,
-          attachments,
+          ...(attachments !== undefined && { attachments }),
         },
       });
       const newHistory = [...(commandHistory.data || []), message].slice(-50);
       await commandHistory.mutate(newHistory);
       if (attachments && attachments.length > 0) {
-        setSubmitFeedback({message: `Sent ${attachments.length} attachment(s)`, type: 'success'});
+        setSubmitFeedback({ message: `Sent ${attachments.length} attachment(s)`, type: "success" });
         setTimeout(() => setSubmitFeedback(null), 2000);
       }
     } catch (error: any) {
-      toastManager.error(error.message || 'Failed to send message', { duration: 5000 });
-      setSubmitFeedback({message: 'Failed to send', type: 'error'});
+      toastManager.error(error.message || "Failed to send message", { duration: 5000 });
+      setSubmitFeedback({ message: "Failed to send", type: "error" });
       setTimeout(() => setSubmitFeedback(null), 2000);
     }
   };
@@ -91,23 +92,40 @@ export default function ChatPanel({ agentId }: ChatPanelProps) {
         <div className="mb-6 max-w-md">
           <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center mx-auto mb-4 shadow-card">
             <svg className="w-6 h-6 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+              <title>Agent not found</title>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
           </div>
           <h1 className="text-lg font-semibold text-primary mb-2">Agent Not Found</h1>
           <p className="text-sm text-muted">
-            The agent <code className="px-1.5 py-0.5 bg-tertiary border border-primary rounded-md text-primary font-mono text-xs">{agentId}</code>
-            {' '}could not be found.<br/> It may have been stopped or removed.
+            The agent <code className="px-1.5 py-0.5 bg-tertiary border border-primary rounded-md text-primary font-mono text-xs">{agentId}</code> could not be
+            found.
+            <br /> It may have been stopped or removed.
           </p>
         </div>
         <button
-          onClick={() => { setIsNavigating(true); void navigate('/agents'); }}
+          type="button"
+          onClick={() => {
+            setIsNavigating(true);
+            void navigate("/agents");
+          }}
           disabled={isNavigating}
           className="px-5 py-2.5 bg-accent hover:bg-accent/90 disabled:bg-accent/50 text-primary rounded-button transition-colors focus-ring font-medium flex items-center gap-2 shadow-button-primary"
           aria-busy={isNavigating}
         >
-          {isNavigating ? (<><Loader2 className="w-4 h-4 animate-spin"/><span>Navigating...</span></>) : <span>Browse Available Agents</span>}
+          {isNavigating ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Navigating...</span>
+            </>
+          ) : (
+            <span>Browse Available Agents</span>
+          )}
         </button>
       </div>
     );
@@ -122,28 +140,22 @@ export default function ChatPanel({ agentId }: ChatPanelProps) {
         onReconnect={manualReconnect}
       />
 
-      <FileBrowserOverlay
-        agentId={agentId}
-        isOpen={showFileBrowser}
-        onClose={() => setShowFileBrowser(false)}
-      />
+      <FileBrowserOverlay agentId={agentId} isOpen={showFileBrowser} onClose={() => setShowFileBrowser(false)} />
 
       <div className="flex flex-col flex-1 min-h-0">
         <AutoScrollContainer>
-          <MessageList
-            messages={messages}
-            agentId={agentId}
-            agentStatus={agentStatus}
-          />
+          <MessageList messages={messages} agentId={agentId} agentStatus={agentStatus} />
         </AutoScrollContainer>
 
         <PendingQuestions
-          questions={currentExecutionState?.availableInteractions
-            ?.filter((interaction) => interaction.type === 'question')
-            .map((question) => ({
-              ...question,
-              requestId: currentExecutionState.requestId
-            })) || []}
+          questions={
+            currentExecutionState?.availableInteractions
+              ?.filter(interaction => interaction.type === "question")
+              .map(question => ({
+                ...question,
+                requestId: currentExecutionState.requestId,
+              })) || []
+          }
           agentId={agentId}
         />
 

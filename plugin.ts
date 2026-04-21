@@ -1,15 +1,15 @@
-import type {TokenRingPlugin} from "@tokenring-ai/app";
-import {WebHostService} from "@tokenring-ai/web-host";
-import SPAResource from "@tokenring-ai/web-host/SPAResource";
 import fs from "node:fs";
 import path from "node:path";
-import {z} from "zod";
-import packageJSON from "./package.json" with {type: "json"};
+import type { TokenRingPlugin } from "@tokenring-ai/app";
+import { WebHostService } from "@tokenring-ai/web-host";
+import SPAResource from "@tokenring-ai/web-host/SPAResource";
+import { z } from "zod";
+import packageJSON from "./package.json" with { type: "json" };
 
 const packageConfigSchema = z.object({
   chatFrontend: z.object({
     spaDirectory: z.string(),
-  })
+  }),
 });
 
 export default {
@@ -18,19 +18,22 @@ export default {
   version: packageJSON.version,
   description: packageJSON.description,
   install(app, config) {
-    const indexFile = path.resolve(config.chatFrontend.spaDirectory,"index.html");
-    if (! fs.existsSync(indexFile)) {
+    const indexFile = path.resolve(config.chatFrontend.spaDirectory, "index.html");
+    if (!fs.existsSync(indexFile)) {
       throw new Error(`Chat frontend not found at ${indexFile}`);
     }
 
     app.waitForService(WebHostService, webHostService => {
-      webHostService.registerResource("Agent Web Interface", new SPAResource({
-          type: 'spa',
+      webHostService.registerResource(
+        "Agent Web Interface",
+        new SPAResource({
+          type: "spa",
           description: packageJSON.description,
           file: indexFile,
-          prefix: "/chat"
-      }));
+          prefix: "/chat",
+        }),
+      );
     });
   },
-  config: packageConfigSchema
+  config: packageConfigSchema,
 } satisfies TokenRingPlugin<typeof packageConfigSchema>;

@@ -1,8 +1,8 @@
-import {GitBranch, Loader2, Pause} from 'lucide-react';
-import {useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {toastManager} from '../../components/ui/toast.tsx';
-import {useAgentList, useWorkflows, workflowRPCClient} from '../../rpc.ts';
+import { GitBranch, Loader2, Pause } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toastManager } from "../../components/ui/toast.tsx";
+import { useAgentList, useWorkflows, workflowRPCClient } from "../../rpc.ts";
 
 export default function WorkflowsApp() {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ export default function WorkflowsApp() {
       await agents.mutate();
       void navigate(`/agent/${id}`);
     } catch (error: any) {
-      toastManager.error(error.message || 'Failed to spawn workflow', { duration: 5000 });
+      toastManager.error(error.message || "Failed to spawn workflow", { duration: 5000 });
     } finally {
       setSpawning(null);
     }
@@ -30,7 +30,6 @@ export default function WorkflowsApp() {
     <div className="w-full h-full flex flex-col bg-primary">
       <div className="flex-1 overflow-y-auto py-6 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto space-y-8">
-
           {/* Header */}
           <div>
             <h1 className="text-primary text-xl font-bold tracking-tight mb-1 flex items-center gap-2">
@@ -42,12 +41,11 @@ export default function WorkflowsApp() {
           {/* Running agents */}
           {runningAgents.length > 0 && (
             <div className="space-y-2">
-              <span className="text-2xs font-bold text-amber-600 dark:text-amber-500/90 uppercase tracking-widest px-1 block">
-                Running
-              </span>
+              <span className="text-2xs font-bold text-amber-600 dark:text-amber-500/90 uppercase tracking-widest px-1 block">Running</span>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {runningAgents.map(agent => (
                   <button
+                    type="button"
                     key={agent.id}
                     onClick={() => navigate(`/agent/${agent.id}`)}
                     className="flex items-center gap-3 bg-secondary border border-amber-500/30 px-3 py-2.5 rounded-lg text-left hover:bg-hover hover:border-amber-500/60 transition-all cursor-pointer focus-ring shadow-sm"
@@ -66,9 +64,7 @@ export default function WorkflowsApp() {
 
           {/* Available workflows */}
           <div className="space-y-2">
-            <span className="text-2xs font-bold text-cyan-600 dark:text-cyan-500/90 uppercase tracking-widest px-1 block">
-              Available Workflows
-            </span>
+            <span className="text-2xs font-bold text-cyan-600 dark:text-cyan-500/90 uppercase tracking-widest px-1 block">Available Workflows</span>
 
             {workflows.isLoading ? (
               <div className="flex justify-center py-12">
@@ -95,28 +91,31 @@ export default function WorkflowsApp() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-semibold text-primary truncate">{workflow.displayName}</div>
-                        {workflow.description && (
-                          <div className="text-2xs text-muted mt-1 line-clamp-2 leading-relaxed">{workflow.description}</div>
-                        )}
+                        {workflow.description && <div className="text-2xs text-muted mt-1 line-clamp-2 leading-relaxed">{workflow.description}</div>}
                       </div>
                     </div>
                     <button
+                      type="button"
                       onClick={() => spawnWorkflow(workflow.name)}
                       disabled={spawning === workflow.name}
                       className="flex items-center justify-center gap-2 px-3 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring shadow-sm w-full"
                       aria-label={`Launch workflow: ${workflow.displayName}`}
                     >
-                      {spawning === workflow.name
-                        ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Launching...</>
-                        : <><Pause className="w-3.5 h-3.5 rotate-180 fill-current" /> Launch</>
-                      }
+                      {spawning === workflow.name ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" /> Launching...
+                        </>
+                      ) : (
+                        <>
+                          <Pause className="w-3.5 h-3.5 rotate-180 fill-current" /> Launch
+                        </>
+                      )}
                     </button>
                   </div>
                 ))}
               </div>
             )}
           </div>
-
         </div>
       </div>
     </div>

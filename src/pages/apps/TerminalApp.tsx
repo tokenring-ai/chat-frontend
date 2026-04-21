@@ -1,8 +1,8 @@
-import {Loader2, Plus, Terminal, Trash2, Unplug} from 'lucide-react';
-import {useCallback, useEffect, useRef, useState} from 'react';
-import ConfirmDialog from '../../components/overlay/confirm-dialog.tsx';
-import {toastManager} from '../../components/ui/toast.tsx';
-import {terminalRPCClient, useTerminalList} from '../../rpc.ts';
+import { Loader2, Plus, Terminal, Trash2, Unplug } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import ConfirmDialog from "../../components/overlay/confirm-dialog.tsx";
+import { toastManager } from "../../components/ui/toast.tsx";
+import { terminalRPCClient, useTerminalList } from "../../rpc.ts";
 
 type TerminalSession = {
   name: string;
@@ -15,7 +15,7 @@ export default function TerminalApp() {
   const terminals = useTerminalList();
   const [activeTerminal, setActiveTerminal] = useState<string | null>(null);
   const [sessions, setSessions] = useState<Record<string, TerminalSession>>({});
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [spawning, setSpawning] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
@@ -54,7 +54,7 @@ export default function TerminalApp() {
               ...prev,
               [terminalName]: {
                 name: terminalName,
-                output: (existing?.output ?? '') + result.output,
+                output: (existing?.output ?? "") + result.output,
                 position: result.position,
                 complete: result.complete,
               },
@@ -68,7 +68,9 @@ export default function TerminalApp() {
 
     void poll();
     pollRef.current = setInterval(poll, 800);
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
   }, [activeTerminal]);
 
   // Auto-scroll to bottom when output changes
@@ -76,7 +78,7 @@ export default function TerminalApp() {
     if (outputRef.current) {
       outputRef.current.scrollTop = outputRef.current.scrollHeight;
     }
-  }, [sessions[activeTerminal ?? '']?.output]);
+  }, []);
 
   // Focus input when switching terminals
   useEffect(() => {
@@ -92,11 +94,11 @@ export default function TerminalApp() {
   const spawnTerminal = async () => {
     setSpawning(true);
     try {
-      const {terminalName} = await terminalRPCClient.spawnTerminal({});
+      const { terminalName } = await terminalRPCClient.spawnTerminal({});
       await terminals.mutate();
       connectToTerminal(terminalName);
     } catch (error: any) {
-      toastManager.error(error.message || 'Failed to spawn terminal', { duration: 5000 });
+      toastManager.error(error.message || "Failed to spawn terminal", { duration: 5000 });
     } finally {
       setSpawning(false);
     }
@@ -116,7 +118,7 @@ export default function TerminalApp() {
       });
       await terminals.mutate();
     } catch (error: any) {
-      toastManager.error(error.message || 'Failed to terminate terminal', { duration: 5000 });
+      toastManager.error(error.message || "Failed to terminate terminal", { duration: 5000 });
     }
   };
 
@@ -125,11 +127,11 @@ export default function TerminalApp() {
     try {
       await terminalRPCClient.sendInput({
         terminalName: activeTerminal,
-        input: inputValue + '\n',
+        input: inputValue + "\n",
       });
-      setInputValue('');
+      setInputValue("");
     } catch (error: any) {
-      toastManager.error(error.message || 'Failed to send input', { duration: 5000 });
+      toastManager.error(error.message || "Failed to send input", { duration: 5000 });
     }
   };
 
@@ -156,6 +158,7 @@ export default function TerminalApp() {
           <p className="text-2xs text-muted">Create, manage, and interact with terminals</p>
         </div>
         <button
+          type="button"
           onClick={spawnTerminal}
           disabled={spawning}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg transition-colors focus-ring cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
@@ -168,9 +171,7 @@ export default function TerminalApp() {
         {/* Sidebar — terminal list */}
         <div className="shrink-0 w-56 border-r border-primary bg-secondary overflow-y-auto">
           <div className="px-3 pt-3 pb-1">
-            <span className="text-2xs font-bold text-emerald-600 dark:text-emerald-500/90 uppercase tracking-widest">
-              Terminals
-            </span>
+            <span className="text-2xs font-bold text-emerald-600 dark:text-emerald-500/90 uppercase tracking-widest">Terminals</span>
             <span className="text-2xs text-muted ml-2">{terminals.data?.terminals.length ?? 0}</span>
           </div>
           <div className="p-2 space-y-1">
@@ -179,34 +180,32 @@ export default function TerminalApp() {
                 <Terminal className="w-6 h-6 text-muted mx-auto mb-2 opacity-50" />
                 <p className="text-2xs text-muted">No terminals</p>
               </div>
-            ) : terminals.data!.terminals.map(t => (
-              <div
-                key={t.name}
-                className={`group flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-all ${
-                  activeTerminal === t.name
-                    ? 'bg-hover border border-emerald-500/50'
-                    : 'hover:bg-hover border border-transparent'
-                }`}
-              >
-                <button
-                  onClick={() => connectToTerminal(t.name)}
-                  className="flex-1 flex items-center gap-2 text-left min-w-0 cursor-pointer"
+            ) : (
+              terminals.data!.terminals.map(t => (
+                <div
+                  key={t.name}
+                  className={`group flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer transition-all ${
+                    activeTerminal === t.name ? "bg-hover border border-emerald-500/50" : "hover:bg-hover border border-transparent"
+                  }`}
                 >
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${t.running ? 'bg-emerald-500' : 'bg-muted/50'}`} />
-                  <div className="min-w-0">
-                    <div className="text-xs font-medium text-primary truncate">{t.lastInput}</div>
-                    <div className="text-2xs text-muted truncate">{t.name}</div>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setConfirmDelete(t.name)}
-                  className="p-1 text-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 focus-ring cursor-pointer rounded-md shrink-0"
-                  aria-label={`Terminate terminal ${t.name}`}
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
+                  <button type="button" onClick={() => connectToTerminal(t.name)} className="flex-1 flex items-center gap-2 text-left min-w-0 cursor-pointer">
+                    <div className={`w-2 h-2 rounded-full shrink-0 ${t.running ? "bg-emerald-500" : "bg-muted/50"}`} />
+                    <div className="min-w-0">
+                      <div className="text-xs font-medium text-primary truncate">{t.lastInput}</div>
+                      <div className="text-2xs text-muted truncate">{t.name}</div>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDelete(t.name)}
+                    className="p-1 text-muted hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 focus-ring cursor-pointer rounded-md shrink-0"
+                    aria-label={`Terminate terminal ${t.name}`}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -216,16 +215,15 @@ export default function TerminalApp() {
             <>
               {/* Terminal toolbar */}
               <div className="shrink-0 border-b border-primary bg-secondary/50 px-4 py-2 flex items-center gap-3">
-                <div className={`w-2 h-2 rounded-full shrink-0 ${activeInfo?.running ? 'bg-emerald-500' : 'bg-muted/50'}`} />
+                <div className={`w-2 h-2 rounded-full shrink-0 ${activeInfo?.running ? "bg-emerald-500" : "bg-muted/50"}`} />
                 <span className="text-xs font-mono text-primary truncate">{activeInfo?.lastInput ?? activeTerminal}</span>
                 <span className="text-2xs text-muted truncate">{activeInfo?.workingDirectory}</span>
                 {activeInfo && !activeInfo.running && activeInfo.exitCode !== null && (
-                  <span className={`text-2xs font-mono ${activeInfo.exitCode === 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                    exit: {activeInfo.exitCode}
-                  </span>
+                  <span className={`text-2xs font-mono ${activeInfo.exitCode === 0 ? "text-emerald-500" : "text-red-500"}`}>exit: {activeInfo.exitCode}</span>
                 )}
                 <div className="flex-1" />
                 <button
+                  type="button"
                   onClick={() => setActiveTerminal(null)}
                   className="p-1 text-muted hover:text-primary transition-colors focus-ring cursor-pointer rounded-md"
                   aria-label="Disconnect from terminal"
@@ -240,12 +238,8 @@ export default function TerminalApp() {
                 className="flex-1 overflow-y-auto bg-[#1a1a2e] p-4 font-mono text-xs text-green-400 whitespace-pre-wrap break-all select-text"
                 onClick={() => inputRef.current?.focus()}
               >
-                {activeSession?.output || (
-                  <span className="text-muted">Connecting...</span>
-                )}
-                {activeSession?.complete && (
-                  <div className="text-muted mt-2">[Process exited]</div>
-                )}
+                {activeSession?.output || <span className="text-muted">Connecting...</span>}
+                {activeSession?.complete && <div className="text-muted mt-2">[Process exited]</div>}
               </div>
 
               {/* Input line */}
@@ -257,14 +251,14 @@ export default function TerminalApp() {
                   value={inputValue}
                   onChange={e => setInputValue(e.target.value)}
                   onKeyDown={e => {
-                    if (e.key === 'Enter') {
+                    if (e.key === "Enter") {
                       e.preventDefault();
                       void sendInput();
                     }
                   }}
                   disabled={activeSession?.complete}
                   className="flex-1 bg-transparent text-xs font-mono text-green-400 outline-none placeholder:text-muted/50 disabled:opacity-50"
-                  placeholder={activeSession?.complete ? 'Process has exited' : 'Type a command...'}
+                  placeholder={activeSession?.complete ? "Process has exited" : "Type a command..."}
                   autoComplete="off"
                   spellCheck={false}
                 />
@@ -275,10 +269,9 @@ export default function TerminalApp() {
               <div className="text-center">
                 <Terminal className="w-12 h-12 text-muted mx-auto mb-4 opacity-30" />
                 <p className="text-sm font-medium text-primary mb-1">No terminal selected</p>
-                <p className="text-2xs text-muted max-w-xs mx-auto mb-4">
-                  Select an existing terminal from the sidebar or create a new one
-                </p>
+                <p className="text-2xs text-muted max-w-xs mx-auto mb-4">Select an existing terminal from the sidebar or create a new one</p>
                 <button
+                  type="button"
                   onClick={spawnTerminal}
                   disabled={spawning}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors focus-ring cursor-pointer shadow-lg shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -290,7 +283,6 @@ export default function TerminalApp() {
           )}
         </div>
       </div>
-
 
       {confirmDelete && (
         <ConfirmDialog

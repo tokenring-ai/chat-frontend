@@ -1,12 +1,12 @@
-import type {AgentEventEnvelope, ParsedInteractionRequest} from "@tokenring-ai/agent/AgentEvents";
+import type { AgentEventEnvelope, ParsedInteractionRequest } from "@tokenring-ai/agent/AgentEvents";
 
-export type QuestionInteraction = Extract<ParsedInteractionRequest, {type: "question"}>;
+export type QuestionInteraction = Extract<ParsedInteractionRequest, { type: "question" }>;
 
 export type QuestionPromptMessage = QuestionInteraction & {
   requestId: string;
 };
 
-export type InteractionResponseMessage = Extract<AgentEventEnvelope, {type: "input.interaction"}>;
+export type InteractionResponseMessage = Extract<AgentEventEnvelope, { type: "input.interaction" }>;
 
 export type ChatMessage = AgentEventEnvelope | QuestionPromptMessage;
 

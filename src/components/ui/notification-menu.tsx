@@ -1,22 +1,22 @@
-import {formatTimeAgo} from "@tokenring-ai/utility/date/formatTimeAgo";
-import {AnimatePresence, motion} from 'framer-motion';
-import {Bell, Trash2, X} from 'lucide-react';
-import {useEffect, useState} from 'react';
-import {cn} from '../../lib/utils.ts';
-import {type NotificationItem, notificationManager} from './toast.tsx';
+import { formatTimeAgo } from "@tokenring-ai/utility/date/formatTimeAgo";
+import { AnimatePresence, motion } from "framer-motion";
+import { Bell, Trash2, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { cn } from "../../lib/utils.ts";
+import { type NotificationItem, notificationManager } from "./toast.tsx";
 
 const toastIcons = {
-  success: '✓',
-  error: '✕',
-  info: 'ℹ',
-  warning: '⚠',
+  success: "✓",
+  error: "✕",
+  info: "ℹ",
+  warning: "⚠",
 };
 
 const toastColors = {
-  success: 'text-emerald-400',
-  error: 'text-red-400',
-  info: 'text-blue-400',
-  warning: 'text-amber-400',
+  success: "text-emerald-400",
+  error: "text-red-400",
+  info: "text-blue-400",
+  warning: "text-amber-400",
 };
 
 export default function NotificationMenu() {
@@ -42,6 +42,7 @@ export default function NotificationMenu() {
   return (
     <div className="relative">
       <button
+        type="button"
         onClick={handleOpen}
         className="relative p-2 rounded-lg hover:bg-hover transition-colors text-muted focus-ring"
         aria-label="Notifications"
@@ -49,7 +50,7 @@ export default function NotificationMenu() {
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-            {unreadCount > 9 ? '9+' : unreadCount}
+            {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
@@ -70,9 +71,9 @@ export default function NotificationMenu() {
                   <h3 className="text-sm font-medium text-primary">Notifications</h3>
                   {justOpened && (
                     <motion.span
-                      initial={{opacity: 0, scale: 0.8}}
-                      animate={{opacity: 1, scale: 1}}
-                      exit={{opacity: 0, scale: 0.8}}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
                       className="text-xs text-emerald-600 dark:text-emerald-400 font-medium"
                     >
                       All marked as read
@@ -82,6 +83,7 @@ export default function NotificationMenu() {
                 <div className="flex items-center gap-2">
                   {unreadCount > 0 && (
                     <button
+                      type="button"
                       onClick={() => notificationManager.markAllAsRead()}
                       className="text-xs text-muted hover:text-primary transition-colors"
                       aria-label="Mark all as read"
@@ -91,6 +93,7 @@ export default function NotificationMenu() {
                   )}
                   {notifications.length > 0 && (
                     <button
+                      type="button"
                       onClick={() => notificationManager.clearNotifications()}
                       className="p-1.5 rounded-md hover:bg-hover text-muted hover:text-primary transition-colors focus-ring"
                       aria-label="Clear all"
@@ -99,6 +102,7 @@ export default function NotificationMenu() {
                     </button>
                   )}
                   <button
+                    type="button"
                     onClick={() => setIsOpen(false)}
                     className="p-1.5 rounded-md hover:bg-hover text-muted hover:text-primary transition-colors focus-ring"
                     aria-label="Close"
@@ -110,36 +114,32 @@ export default function NotificationMenu() {
 
               <div className="overflow-y-auto max-h-80">
                 {notifications.length === 0 ? (
-                  <div className="px-4 py-8 text-center text-sm text-muted">
-                    No notifications
-                  </div>
+                  <div className="px-4 py-8 text-center text-sm text-muted">No notifications</div>
                 ) : (
-                  notifications.map((notification) => (
+                  notifications.map(notification => (
                     <motion.div
                       key={notification.id}
                       className="px-4 py-3 border-b border-primary hover:bg-hover transition-colors cursor-pointer"
                       role="button"
                       tabIndex={0}
                       onClick={() => notificationManager.markAsRead(notification.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
+                      onKeyDown={e => {
+                        if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
                           notificationManager.markAsRead(notification.id);
                         }
                       }}
-                      whileTap={{scale: 0.98}}
-                      initial={{opacity: 1}}
-                      animate={{opacity: notification.read ? 0.6 : 1}}
-                      transition={{duration: 0.2}}
+                      whileTap={{ scale: 0.98 }}
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: notification.read ? 0.6 : 1 }}
+                      transition={{ duration: 0.2 }}
                     >
                       <div className="flex items-start gap-2">
-                        <span className={cn('text-sm font-bold mt-0.5', toastColors[notification.type || 'info'])}>
-                          {toastIcons[notification.type || 'info']}
+                        <span className={cn("text-sm font-bold mt-0.5", toastColors[notification.type || "info"])}>
+                          {toastIcons[notification.type || "info"]}
                         </span>
                         <div className="flex-1 min-w-0">
-                          {notification.title && (
-                            <h4 className="text-sm font-medium text-primary mb-1">{notification.title}</h4>
-                          )}
+                          {notification.title && <h4 className="text-sm font-medium text-primary mb-1">{notification.title}</h4>}
                           <p className="text-sm text-muted break-words">{notification.message}</p>
                           <span className="text-xs text-dim mt-1 block">{formatTimeAgo(notification.timestamp)}</span>
                         </div>

@@ -1,20 +1,20 @@
-import {Loader2, Plug, Wrench, Zap, Cpu} from 'lucide-react';
-import type React from 'react';
-import {useState} from 'react';
-import {useChatModelsByProvider, useAvailableTools, useAvailableHooks} from '../../rpc.ts';
+import { Cpu, Loader2, Plug, Wrench, Zap } from "lucide-react";
+import type React from "react";
+import { useState } from "react";
+import { useAvailableHooks, useAvailableTools, useChatModelsByProvider } from "../../rpc.ts";
 
-type Tab = 'tools' | 'models' | 'hooks';
+type Tab = "tools" | "models" | "hooks";
 
 export default function ServicesApp() {
-  const [activeTab, setActiveTab] = useState<Tab>('tools');
+  const [activeTab, setActiveTab] = useState<Tab>("tools");
   const availableTools = useAvailableTools();
   const modelsByProvider = useChatModelsByProvider();
   const availableHooks = useAvailableHooks();
 
   const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'tools',  label: 'Tools',  icon: <Wrench className="w-3.5 h-3.5" /> },
-    { id: 'models', label: 'Models', icon: <Cpu className="w-3.5 h-3.5" /> },
-    { id: 'hooks',  label: 'Hooks',  icon: <Zap className="w-3.5 h-3.5" /> },
+    { id: "tools", label: "Tools", icon: <Wrench className="w-3.5 h-3.5" /> },
+    { id: "models", label: "Models", icon: <Cpu className="w-3.5 h-3.5" /> },
+    { id: "hooks", label: "Hooks", icon: <Zap className="w-3.5 h-3.5" /> },
   ];
 
   return (
@@ -34,26 +34,24 @@ export default function ServicesApp() {
       <div className="shrink-0 border-b border-primary bg-secondary flex">
         {TABS.map(tab => (
           <button
+            type="button"
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium border-b-2 transition-colors focus-ring cursor-pointer -mb-px ${
-              activeTab === tab.id
-                ? 'border-indigo-500 text-primary'
-                : 'border-transparent text-muted hover:text-primary'
+              activeTab === tab.id ? "border-indigo-500 text-primary" : "border-transparent text-muted hover:text-primary"
             }`}
           >
-            {tab.icon}{tab.label}
+            {tab.icon}
+            {tab.label}
           </button>
         ))}
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
         <div className="max-w-4xl mx-auto">
-
-          {activeTab === 'tools' && <ToolsTab tools={availableTools} />}
-          {activeTab === 'models' && <ModelsTab models={modelsByProvider} />}
-          {activeTab === 'hooks' && <HooksTab hooks={availableHooks} />}
-
+          {activeTab === "tools" && <ToolsTab tools={availableTools} />}
+          {activeTab === "models" && <ModelsTab models={modelsByProvider} />}
+          {activeTab === "hooks" && <HooksTab hooks={availableHooks} />}
         </div>
       </div>
     </div>
@@ -68,13 +66,13 @@ export default function ServicesApp() {
  * which avoids the TS7022 circular-inference issue that occurs when
  * indexing `availableTools.data.tools[key]` inside an IIFE / ternary.
  */
-function ToolsTab({tools}: {
-  tools: ReturnType<typeof useAvailableTools>;
-}) {
+function ToolsTab({ tools }: { tools: ReturnType<typeof useAvailableTools> }) {
   if (tools.isLoading) {
     return (
       <div className="space-y-4">
-        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 text-muted animate-spin" /></div>
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-6 h-6 text-muted animate-spin" />
+        </div>
       </div>
     );
   }
@@ -92,7 +90,7 @@ function ToolsTab({tools}: {
   const grouped: Record<string, string[]> = {};
   for (const [toolName, tool] of Object.entries(toolRecord)) {
     const match = tool.displayName.match(/^(.*)\//);
-    const category = match?.[1] ?? 'Other';
+    const category = match?.[1] ?? "Other";
     (grouped[category] ??= []).push(toolName);
   }
 
@@ -100,27 +98,35 @@ function ToolsTab({tools}: {
 
   return (
     <div className="space-y-4">
-      <p className="text-2xs text-muted px-1">{total} tools available across {Object.keys(grouped).length} packages</p>
+      <p className="text-2xs text-muted px-1">
+        {total} tools available across {Object.keys(grouped).length} packages
+      </p>
       <div className="space-y-3">
-        {Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b)).map(([category, toolNames]) => (
-          <div key={category} className="bg-secondary border border-primary rounded-xl overflow-hidden">
-            <div className="px-4 py-2.5 bg-tertiary/50 border-b border-primary flex items-center justify-between">
-              <span className="text-xs font-semibold text-primary font-mono">{category}</span>
-              <span className="text-2xs text-muted">{toolNames.length} tools</span>
+        {Object.entries(grouped)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([category, toolNames]) => (
+            <div key={category} className="bg-secondary border border-primary rounded-xl overflow-hidden">
+              <div className="px-4 py-2.5 bg-tertiary/50 border-b border-primary flex items-center justify-between">
+                <span className="text-xs font-semibold text-primary font-mono">{category}</span>
+                <span className="text-2xs text-muted">{toolNames.length} tools</span>
+              </div>
+              <div className="p-3 flex flex-wrap gap-1.5">
+                {toolNames.sort().map(toolName => {
+                  const tool = toolRecord[toolName];
+                  const displayName = tool.displayName.replace(/^.*\//, "");
+                  return (
+                    <span
+                      key={toolName}
+                      className="px-2 py-1 bg-tertiary border border-primary rounded-md text-2xs font-mono text-muted hover:text-primary transition-colors"
+                      title={toolName}
+                    >
+                      {displayName}
+                    </span>
+                  );
+                })}
+              </div>
             </div>
-            <div className="p-3 flex flex-wrap gap-1.5">
-              {toolNames.sort().map(toolName => {
-                const tool = toolRecord[toolName];
-                const displayName = tool.displayName.replace(/^.*\//, '');
-                return (
-                  <span key={toolName} className="px-2 py-1 bg-tertiary border border-primary rounded-md text-2xs font-mono text-muted hover:text-primary transition-colors" title={toolName}>
-                    {displayName}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );
@@ -133,13 +139,13 @@ function ToolsTab({tools}: {
  * from SWR's optional `data` into a concrete local variable, giving
  * TypeScript a definite type for the nested record entries.
  */
-function ModelsTab({models}: {
-  models: ReturnType<typeof useChatModelsByProvider>;
-}) {
+function ModelsTab({ models }: { models: ReturnType<typeof useChatModelsByProvider> }) {
   if (models.isLoading) {
     return (
       <div className="space-y-4">
-        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 text-muted animate-spin" /></div>
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-6 h-6 text-muted animate-spin" />
+        </div>
       </div>
     );
   }
@@ -164,8 +170,8 @@ function ModelsTab({models}: {
           <div className="p-3 space-y-1">
             {Object.entries(modelRecord).map(([modelId, modelInfo]) => (
               <div key={modelId} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-hover transition-colors">
-                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${modelInfo.available ? 'bg-emerald-500/60' : 'bg-muted/50'}`} />
-                <span className="text-xs font-mono text-primary">{modelId.split('/').pop()}</span>
+                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${modelInfo.available ? "bg-emerald-500/60" : "bg-muted/50"}`} />
+                <span className="text-xs font-mono text-primary">{modelId.split("/").pop()}</span>
                 <span className="text-2xs text-muted ml-auto">{modelInfo.status}</span>
               </div>
             ))}
@@ -183,13 +189,13 @@ function ModelsTab({models}: {
  * optional `data` into a concrete local variable, giving TypeScript
  * a definite type for the record entries.
  */
-function HooksTab({hooks}: {
-  hooks: ReturnType<typeof useAvailableHooks>;
-}) {
+function HooksTab({ hooks }: { hooks: ReturnType<typeof useAvailableHooks> }) {
   if (hooks.isLoading) {
     return (
       <div className="space-y-4">
-        <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 text-muted animate-spin" /></div>
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-6 h-6 text-muted animate-spin" />
+        </div>
       </div>
     );
   }
@@ -207,13 +213,14 @@ function HooksTab({hooks}: {
     <div className="space-y-2">
       <p className="text-2xs text-muted px-1">{Object.keys(hookRecord).length} lifecycle hooks available</p>
       {Object.entries(hookRecord).map(([hookName, hookInfo]) => (
-        <div key={hookName} className="flex items-start gap-3 px-4 py-3 bg-secondary border border-primary rounded-xl hover:border-violet-500/30 transition-colors">
+        <div
+          key={hookName}
+          className="flex items-start gap-3 px-4 py-3 bg-secondary border border-primary rounded-xl hover:border-violet-500/30 transition-colors"
+        >
           <div className="w-2 h-2 rounded-full bg-violet-500/60 shrink-0 mt-1.5" />
           <div className="min-w-0">
             <div className="text-sm font-mono font-medium text-primary">{hookInfo.displayName || hookName}</div>
-            {hookInfo.description && (
-              <div className="text-2xs text-muted mt-0.5">{hookInfo.description}</div>
-            )}
+            {hookInfo.description && <div className="text-2xs text-muted mt-0.5">{hookInfo.description}</div>}
           </div>
         </div>
       ))}

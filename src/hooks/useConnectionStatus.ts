@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
 export function useConnectionStatus(staleThresholdMs = 30000) {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -9,8 +9,8 @@ export function useConnectionStatus(staleThresholdMs = 30000) {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     // Update stale status periodically
     const interval = setInterval(() => {
@@ -18,8 +18,8 @@ export function useConnectionStatus(staleThresholdMs = 30000) {
     }, 1000);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
       clearInterval(interval);
     };
   }, [lastActivity, staleThresholdMs]);
@@ -33,6 +33,6 @@ export function useConnectionStatus(staleThresholdMs = 30000) {
     isOnline,
     isStale,
     lastActivity,
-    recordActivity
+    recordActivity,
   };
 }

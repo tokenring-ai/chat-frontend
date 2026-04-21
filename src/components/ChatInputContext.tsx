@@ -1,4 +1,4 @@
-import {createContext, type ReactNode, useContext, useEffect, useState} from 'react';
+import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
 
 interface ChatInputState {
   [agentId: string]: string;
@@ -15,7 +15,7 @@ interface ChatInputContextType {
 
 const ChatInputContext = createContext<ChatInputContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'tokenring-chat-inputs';
+const STORAGE_KEY = "tokenring-chat-inputs";
 
 export function ChatInputProvider({ children }: { children: ReactNode }) {
   const [inputs, setInputs] = useState<ChatInputState>(() => {
@@ -37,12 +37,12 @@ export function ChatInputProvider({ children }: { children: ReactNode }) {
       setErrorDismissed(false);
     } catch (e) {
       // User-friendly error message with actionable guidance
-      setStorageError('Chat input history disabled (localStorage unavailable). Your typed messages won\'t be saved between sessions.');
-      console.error('Failed to persist chat inputs:', e);
+      setStorageError("Chat input history disabled (localStorage unavailable). Your typed messages won't be saved between sessions.");
+      console.error("Failed to persist chat inputs:", e);
     }
   }, [inputs]);
 
-  const getInput = (agentId: string) => inputs[agentId] || '';
+  const getInput = (agentId: string) => inputs[agentId] || "";
 
   const setInput = (agentId: string, value: string) => {
     setInputs(prev => ({ ...prev, [agentId]: value }));
@@ -65,7 +65,7 @@ export function ChatInputProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ChatInputContext.Provider value={{getInput, setInput, clearInput, getStorageError, hasStorageError, dismissStorageError}}>
+    <ChatInputContext.Provider value={{ getInput, setInput, clearInput, getStorageError, hasStorageError, dismissStorageError }}>
       {children}
     </ChatInputContext.Provider>
   );
@@ -74,7 +74,7 @@ export function ChatInputProvider({ children }: { children: ReactNode }) {
 export function useChatInput() {
   const context = useContext(ChatInputContext);
   if (!context) {
-    throw new Error('useChatInput must be used within ChatInputProvider');
+    throw new Error("useChatInput must be used within ChatInputProvider");
   }
   return context;
 }

@@ -1,10 +1,10 @@
-import {agentRPCClient} from "../../rpc.ts";
+import { agentRPCClient } from "../../rpc.ts";
 
 export async function sendInteractionResponse({
   agentId,
   requestId,
   interactionId,
-  result
+  result,
 }: {
   agentId: string;
   requestId: string;
@@ -18,7 +18,7 @@ export async function sendInteractionResponse({
       requestId,
       interactionId,
       result,
-      timestamp: Date.now()
-    }
+      timestamp: Date.now(),
+    },
   });
 }

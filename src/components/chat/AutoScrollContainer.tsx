@@ -1,14 +1,14 @@
-import {AnimatePresence, motion} from 'framer-motion';
-import {ChevronDown} from 'lucide-react';
-import type React from 'react';
-import {type ReactNode, useEffect, useRef, useState} from 'react'
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronDown } from "lucide-react";
+import type React from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 interface AutoScrollContainerProps {
   children: ReactNode;
   className?: string;
 }
 
-export default function AutoScrollContainer({ children, className = '' }: AutoScrollContainerProps) {
+export default function AutoScrollContainer({ children, className = "" }: AutoScrollContainerProps) {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -46,14 +46,14 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'End') {
+    if (event.key === "End") {
       event.preventDefault();
       scrollToBottom();
-    } else if (event.key === 'Home') {
+    } else if (event.key === "Home") {
       event.preventDefault();
       scrollRef.current?.scrollTo({
         top: 0,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   };
@@ -68,7 +68,7 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
           isAtBottomRef.current = true;
           scrollRef.current.scrollTo({
             top: scrollHeight,
-            behavior: 'instant'
+            behavior: "instant",
           });
           setShowScrollButton(false);
           hasInitializedRef.current = true;
@@ -96,7 +96,7 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
       if (isAtBottomRef.current && !isUserScrollingRef.current && scrollRef.current) {
         scrollRef.current.scrollTo({
           top: scrollRef.current.scrollHeight,
-          behavior: 'instant'
+          behavior: "instant",
         });
       }
     });
@@ -113,7 +113,7 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
     isUserScrollingRef.current = false; // Reset user scroll state
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,
-      behavior: 'smooth'
+      behavior: "smooth",
     });
     setShowScrollButton(false);
   };
@@ -129,7 +129,6 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
         ref={scrollRef}
         onScroll={handleScroll}
         onKeyDown={handleKeyDown}
-        tabIndex={0}
         className={`flex-1 overflow-y-auto p-0 flex flex-col font-mono text-sm relative scroll-smooth h-full ${className}`}
         role="region"
         aria-label="Chat messages"
@@ -142,7 +141,7 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
       <AnimatePresence>
         {showScrollButton && (
           <motion.button
-            initial={{opacity: 0, y: 10, scale: 0.8}}
+            initial={{ opacity: 0, y: 10, scale: 0.8 }}
             animate={{
               opacity: 1,
               y: 0,
@@ -150,10 +149,10 @@ export default function AutoScrollContainer({ children, className = '' }: AutoSc
               transition: {
                 type: "spring",
                 damping: 20,
-                stiffness: 300
-              }
+                stiffness: 300,
+              },
             }}
-            exit={{opacity: 0, y: 10, scale: 0.8}}
+            exit={{ opacity: 0, y: 10, scale: 0.8 }}
             onClick={scrollToBottom}
             className="absolute right-4 bottom-4 p-1.5 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white transition-colors z-20 shadow-button focus-ring"
             title="Scroll to bottom"
