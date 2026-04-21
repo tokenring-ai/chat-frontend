@@ -59,7 +59,7 @@ export default function AgentLauncherApp({
       {/* App header */}
       <div className="shrink-0 border-b border-primary bg-secondary px-4 sm:px-6 py-3 flex items-center gap-3">
         <div
-          className={`w-7 h-7 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm [&>svg]:w-4 [&>svg]:h-4 [&>svg]:text-white`}
+          className={`w-7 h-7 rounded-lg bg-linear-to-br ${gradient} flex items-center justify-center shadow-sm [&>svg]:w-4 [&>svg]:h-4 [&>svg]:text-white`}
         >
           {icon}
         </div>
@@ -102,7 +102,7 @@ export default function AgentLauncherApp({
           {/* Launch card */}
           <div className="bg-secondary border border-primary rounded-xl p-6 flex flex-col items-center text-center gap-4">
             <div
-              className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg [&>svg]:w-8 [&>svg]:h-8 [&>svg]:text-white`}
+              className={`w-16 h-16 rounded-2xl bg-linear-to-br ${gradient} flex items-center justify-center shadow-lg [&>svg]:w-8 [&>svg]:h-8 [&>svg]:text-white`}
             >
               {icon}
             </div>

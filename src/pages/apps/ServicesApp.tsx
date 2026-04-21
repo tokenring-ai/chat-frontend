@@ -21,7 +21,7 @@ export default function ServicesApp() {
     <div className="w-full h-full flex flex-col bg-primary">
       {/* App header */}
       <div className="shrink-0 border-b border-primary bg-secondary px-4 sm:px-6 py-3 flex items-center gap-3">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
+        <div className="w-7 h-7 rounded-lg bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
           <Plug className="w-4 h-4 text-white" />
         </div>
         <div>

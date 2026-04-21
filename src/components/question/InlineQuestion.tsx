@@ -106,7 +106,7 @@ export default function InlineQuestion({ request, agentId, requestId, response, 
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {isUrgent && <span className="inline-block w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shrink-0" title="Urgent - auto-submit pending" />}
           <span className="text-sm font-medium text-primary truncate leading-none flex-1">{request.message}</span>
-          <span className="text-2xs font-mono text-muted opacity-0 group-hover/header:opacity-100 transition-opacity leading-none pt-0.5 flex-shrink-0">
+          <span className="text-2xs font-mono text-muted opacity-0 group-hover/header:opacity-100 transition-opacity leading-none pt-0.5 shrink-0">
             {question.type}
           </span>
           {countdown !== null && countdown > 0 && (
@@ -125,7 +125,7 @@ export default function InlineQuestion({ request, agentId, requestId, response, 
               {/* Visual progress indicator for urgency */}
               {totalTime !== null && totalTime > 0 && (
                 <div
-                  className="w-8 h-0.5 bg-primary/30 dark:bg-primary/20 rounded-full overflow-hidden flex-shrink-0"
+                  className="w-8 h-0.5 bg-primary/30 dark:bg-primary/20 rounded-full overflow-hidden shrink-0"
                   title={`Time remaining: ${countdown}s of ${totalTime}s`}
                 >
                   <div
@@ -139,10 +139,10 @@ export default function InlineQuestion({ request, agentId, requestId, response, 
             </>
           )}
           {countdown !== null && countdown === 0 && !autoSubmitted && (
-            <span className="text-2xs text-amber-600 dark:text-amber-400 font-medium leading-none pt-0.5 animate-pulse flex-shrink-0">Submitting...</span>
+            <span className="text-2xs text-amber-600 dark:text-amber-400 font-medium leading-none pt-0.5 animate-pulse shrink-0">Submitting...</span>
           )}
           {autoSubmitted && (
-            <span className="text-2xs text-emerald-600 dark:text-emerald-400 font-medium leading-none pt-0.5 flex-shrink-0 flex items-center gap-0.5">
+            <span className="text-2xs text-emerald-600 dark:text-emerald-400 font-medium leading-none pt-0.5 shrink-0 flex items-center gap-0.5">
               <Check className="w-3 h-3 inline" />
               Auto-submitted
             </span>

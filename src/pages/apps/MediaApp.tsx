@@ -208,7 +208,7 @@ function GeneratePanel({ agentId, onGenerated }: { agentId: string | null; onGen
       <div className="w-full max-w-md space-y-5">
         {/* Header */}
         <div className="text-center space-y-1">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg mx-auto">
             <WandSparkles className="w-7 h-7 text-white" />
           </div>
           <h2 className="text-base font-semibold text-primary mt-3">Generate Image</h2>
@@ -280,7 +280,7 @@ function GeneratePanel({ agentId, onGenerated }: { agentId: string | null; onGen
           type="button"
           onClick={() => void handleGenerate()}
           disabled={generating || !agentId || !prompt.trim()}
-          className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed focus-ring shadow-button-primary"
+          className="w-full flex items-center justify-center gap-2 py-3 bg-linear-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed focus-ring shadow-button-primary"
         >
           {generating ? (
             <>
@@ -512,7 +512,7 @@ export default function MediaApp() {
     <div className="w-full h-full flex flex-col bg-primary">
       {/* Header */}
       <div className="shrink-0 h-11 border-b border-primary bg-secondary flex items-center gap-2 px-3">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-sm shrink-0">
+        <div className="w-7 h-7 rounded-lg bg-linear-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-sm shrink-0">
           <ImageIcon className="w-4 h-4 text-white" />
         </div>
         <span className="text-sm font-semibold text-primary">Media</span>

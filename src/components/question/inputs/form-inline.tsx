@@ -131,7 +131,7 @@ export default function FormInlineQuestion({ agentId, question, requestId, inter
       {section.description && <p className="text-2xs text-muted italic">{section.description}</p>}
 
       {/* Field content */}
-      <div className="min-h-[150px] flex flex-col">
+      <div className="min-h-37.5 flex flex-col">
         {field.type === "text" && (
           <div className="flex-1 flex flex-col gap-2">
             <label className="block text-sm text-primary" htmlFor={`form-field-${fieldKey}`}>
@@ -167,7 +167,7 @@ export default function FormInlineQuestion({ agentId, question, requestId, inter
         )}
 
         {field.type === "treeSelect" && (
-          <div className="flex-1 flex flex-col gap-2 min-h-[150px]">
+          <div className="flex-1 flex flex-col gap-2 min-h-37.5">
             <label className="block text-sm text-primary">{field.label}</label>
             <div className="border border-primary/30 rounded-lg flex-1 flex flex-col overflow-hidden">
               <TreeInlineQuestion
@@ -183,7 +183,7 @@ export default function FormInlineQuestion({ agentId, question, requestId, inter
         )}
 
         {field.type === "fileSelect" && (
-          <div className="flex-1 flex flex-col gap-2 min-h-[150px]">
+          <div className="flex-1 flex flex-col gap-2 min-h-37.5">
             <label className="block text-sm text-primary">{field.label}</label>
             {field.description && <p className="text-2xs text-muted">{field.description}</p>}
             <div className="border border-primary/30 rounded-lg flex-1 flex flex-col overflow-hidden">

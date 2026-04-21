@@ -242,7 +242,7 @@ function AIEditPanel({
             <div className="space-y-1.5">
               <label className="text-2xs font-semibold text-muted uppercase tracking-wide">Selected text ({selection.end - selection.start} chars)</label>
               <div className="bg-tertiary border border-primary rounded-lg p-3 max-h-32 overflow-y-auto">
-                <pre className="text-2xs text-primary font-mono whitespace-pre-wrap break-words leading-relaxed">{selection.text}</pre>
+                <pre className="text-2xs text-primary font-mono whitespace-pre-wrap wrap-break-word leading-relaxed">{selection.text}</pre>
               </div>
             </div>
 
@@ -291,7 +291,7 @@ function AIEditPanel({
                     response.length > 400 ? "max-h-52" : "",
                   )}
                 >
-                  <pre className="text-2xs text-primary font-mono whitespace-pre-wrap break-words leading-relaxed">
+                  <pre className="text-2xs text-primary font-mono whitespace-pre-wrap wrap-break-word leading-relaxed">
                     {response}
                     {loading && <span className="inline-block w-1.5 h-3 bg-indigo-400 animate-pulse ml-0.5 align-text-bottom" />}
                   </pre>
@@ -587,7 +587,7 @@ export default function DocumentsApp() {
 
       {/* App header */}
       <div className="shrink-0 border-b border-primary bg-secondary px-4 py-2.5 flex items-center gap-3">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-lime-500 to-green-600 flex items-center justify-center shadow-sm shrink-0">
+        <div className="w-7 h-7 rounded-lg bg-linear-to-br from-lime-500 to-green-600 flex items-center justify-center shadow-sm shrink-0">
           <FileText className="w-4 h-4 text-white" />
         </div>
 
@@ -693,7 +693,7 @@ export default function DocumentsApp() {
         </div>
 
         {/* ── Right panel ── */}
-        <div className="w-80 xl:w-96 shrink-0 flex flex-col min-h-0 hidden lg:flex">
+        <div className="w-80 xl:w-96 shrink-0 flex-col min-h-0 hidden lg:flex">
           {rightPanel === "preview" ? (
             <MarkdownPreview content={content} />
           ) : (

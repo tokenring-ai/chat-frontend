@@ -16,7 +16,7 @@ function PlatformGrid() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {PLATFORM_CARDS.map(platform => (
           <div key={platform.name} className="flex items-center gap-3 px-4 py-3 bg-secondary border border-primary rounded-xl opacity-60">
-            <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${platform.color} shrink-0`} />
+            <div className={`w-8 h-8 rounded-lg bg-linear-to-br ${platform.color} shrink-0`} />
             <div>
               <p className="text-sm font-medium text-primary">{platform.name}</p>
               <p className="text-2xs text-muted">{platform.description}</p>

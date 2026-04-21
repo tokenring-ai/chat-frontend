@@ -10,7 +10,7 @@ export default function SettingsApp() {
     <div className="w-full h-full flex flex-col bg-primary">
       {/* App header */}
       <div className="shrink-0 border-b border-primary bg-secondary px-4 sm:px-6 py-3 flex items-center gap-3">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-stone-500 to-gray-600 flex items-center justify-center shadow-sm">
+        <div className="w-7 h-7 rounded-lg bg-linear-to-br from-stone-500 to-gray-600 flex items-center justify-center shadow-sm">
           <Settings className="w-4 h-4 text-white" />
         </div>
         <div>

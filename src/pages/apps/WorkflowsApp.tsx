@@ -86,7 +86,7 @@ export default function WorkflowsApp() {
                     className="flex flex-col gap-3 bg-secondary border border-primary px-4 py-4 rounded-xl hover:border-cyan-500/40 hover:shadow-card transition-all shadow-sm"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center shrink-0 shadow-sm">
+                      <div className="w-8 h-8 rounded-lg bg-linear-to-br from-cyan-500 to-teal-600 flex items-center justify-center shrink-0 shadow-sm">
                         <GitBranch className="w-4 h-4 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">

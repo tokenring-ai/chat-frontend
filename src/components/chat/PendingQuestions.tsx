@@ -67,7 +67,7 @@ export default function PendingQuestions({ questions, agentId }: PendingQuestion
           <span>Active Questions ({questions.length})</span>
           {hasAutoSubmit && (
             <span className="ml-auto flex items-center gap-1.5 text-xs font-medium text-warning bg-warning/10 border border-warning/20 px-2 py-1 rounded-md">
-              <span className="inline-block w-1.5 h-1.5 bg-warning rounded-full animate-pulse flex-shrink-0" />
+              <span className="inline-block w-1.5 h-1.5 bg-warning rounded-full animate-pulse shrink-0" />
               <span>
                 {urgentCount} urgent{urgentCount > 1 ? "s" : ""}
               </span>

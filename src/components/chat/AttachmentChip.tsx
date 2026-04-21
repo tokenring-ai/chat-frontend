@@ -84,37 +84,37 @@ function getAttachmentAccentClasses(mimeType: string) {
   switch (family) {
     case "image":
       return {
-        panel: "bg-gradient-to-br from-sky-100 via-cyan-50 to-indigo-100 dark:from-sky-500/20 dark:via-cyan-500/10 dark:to-indigo-500/20",
+        panel: "bg-linear-to-br from-sky-100 via-cyan-50 to-indigo-100 dark:from-sky-500/20 dark:via-cyan-500/10 dark:to-indigo-500/20",
         badge: "bg-secondary text-sky-700 dark:text-sky-200 border-primary",
         icon: "text-sky-600 dark:text-sky-300",
       };
     case "json":
       return {
-        panel: "bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100 dark:from-amber-500/20 dark:via-orange-500/10 dark:to-yellow-500/20",
+        panel: "bg-linear-to-br from-amber-100 via-orange-50 to-yellow-100 dark:from-amber-500/20 dark:via-orange-500/10 dark:to-yellow-500/20",
         badge: "bg-secondary text-amber-700 dark:text-amber-200 border-primary",
         icon: "text-amber-600 dark:text-amber-300",
       };
     case "code":
       return {
-        panel: "bg-gradient-to-br from-emerald-100 via-teal-50 to-cyan-100 dark:from-emerald-500/20 dark:via-teal-500/10 dark:to-cyan-500/20",
+        panel: "bg-linear-to-br from-emerald-100 via-teal-50 to-cyan-100 dark:from-emerald-500/20 dark:via-teal-500/10 dark:to-cyan-500/20",
         badge: "bg-secondary text-emerald-700 dark:text-emerald-200 border-primary",
         icon: "text-emerald-600 dark:text-emerald-300",
       };
     case "text":
       return {
-        panel: "bg-gradient-to-br from-violet-100 via-fuchsia-50 to-pink-100 dark:from-violet-500/20 dark:via-fuchsia-500/10 dark:to-pink-500/20",
+        panel: "bg-linear-to-br from-violet-100 via-fuchsia-50 to-pink-100 dark:from-violet-500/20 dark:via-fuchsia-500/10 dark:to-pink-500/20",
         badge: "bg-secondary text-violet-700 dark:text-violet-200 border-primary",
         icon: "text-violet-600 dark:text-violet-300",
       };
     case "document":
       return {
-        panel: "bg-gradient-to-br from-rose-100 via-orange-50 to-amber-100 dark:from-rose-500/20 dark:via-orange-500/10 dark:to-amber-500/20",
+        panel: "bg-linear-to-br from-rose-100 via-orange-50 to-amber-100 dark:from-rose-500/20 dark:via-orange-500/10 dark:to-amber-500/20",
         badge: "bg-secondary text-rose-700 dark:text-rose-200 border-primary",
         icon: "text-rose-600 dark:text-rose-300",
       };
     default:
       return {
-        panel: "bg-gradient-to-br from-slate-100 via-zinc-50 to-stone-100 dark:from-slate-500/20 dark:via-zinc-500/10 dark:to-stone-500/20",
+        panel: "bg-linear-to-br from-slate-100 via-zinc-50 to-stone-100 dark:from-slate-500/20 dark:via-zinc-500/10 dark:to-stone-500/20",
         badge: "bg-secondary text-muted border-primary",
         icon: "text-muted",
       };

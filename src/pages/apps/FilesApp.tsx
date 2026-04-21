@@ -743,7 +743,7 @@ export default function FilesApp() {
     <div className="w-full h-full flex flex-col bg-primary overflow-hidden">
       {/* App header */}
       <div className="shrink-0 border-b border-primary bg-secondary px-4 py-3 flex items-center gap-3">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-sm">
+        <div className="w-7 h-7 rounded-lg bg-linear-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-sm">
           <FolderOpen className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1">

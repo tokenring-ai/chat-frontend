@@ -397,7 +397,7 @@ export default function MergedDesign() {
         {/* Footer / Input */}
         <footer className="shrink-0 bg-[#050505] border-t border-zinc-900">
           <div className="relative">
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent opacity-0 transition-opacity" />
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-linear-to-r from-transparent via-indigo-500/50 to-transparent opacity-0 transition-opacity" />
 
             <div className="flex items-start gap-4 px-6 py-4">
               <div className="mt-1 shrink-0 w-4 flex justify-center select-none">

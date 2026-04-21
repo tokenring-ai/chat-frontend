@@ -4,7 +4,7 @@ import { usePlugins } from "../../rpc.ts";
 function PluginCard({ plugin }: { plugin: { name: string; displayName: string; version: string; description: string; hasConfig: boolean } }) {
   return (
     <div className="flex items-start gap-3 px-4 py-3 bg-secondary border border-primary rounded-xl hover:border-indigo-500/30 transition-colors group">
-      <div className="shrink-0 w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-sm">
+      <div className="shrink-0 w-9 h-9 rounded-lg bg-linear-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-sm">
         <Package className="w-4 h-4 text-white" />
       </div>
       <div className="flex-1 min-w-0">

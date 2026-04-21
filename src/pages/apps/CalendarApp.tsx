@@ -262,7 +262,7 @@ function MonthView({
               key={i}
               onClick={() => onDayClick(cell)}
               className={cn(
-                "border-b border-r border-primary min-h-[80px] p-1 cursor-pointer hover:bg-hover transition-colors",
+                "border-b border-r border-primary min-h-20 p-1 cursor-pointer hover:bg-hover transition-colors",
                 i % 7 === 0 && "border-l-0",
                 !isCurrentMonth && "bg-secondary/40",
               )}
@@ -374,7 +374,7 @@ function WeekView({
                 {day.getDate()}
               </div>
               {/* All-day events */}
-              <div className="mt-1 px-1 space-y-0.5 min-h-[4px]">
+              <div className="mt-1 px-1 space-y-0.5 min-h-1">
                 {(allDayByDate[key] ?? []).map(ev => (
                   <EventChip key={ev.id} event={ev} onClick={() => onEventClick(ev)} compact />
                 ))}

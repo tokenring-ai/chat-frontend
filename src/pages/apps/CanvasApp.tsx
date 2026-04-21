@@ -10,7 +10,7 @@ import { useTheme } from "../../hooks/useTheme.ts";
 import { agentRPCClient, filesystemRPCClient, useFilesystemProviders } from "../../rpc.ts";
 
 const DEFAULT_HTML = `<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -257,7 +257,7 @@ function CanvasWorkspace({ fileState }: { fileState?: FileState | null }) {
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="shrink-0 border-b border-primary bg-secondary px-4 py-2 flex items-center gap-2.5">
-        <div className="w-6 h-6 rounded-md bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center shadow-sm shrink-0">
+        <div className="w-6 h-6 rounded-md bg-linear-to-br from-purple-500 to-violet-600 flex items-center justify-center shadow-sm shrink-0">
           <PenTool className="w-3.5 h-3.5 text-white" />
         </div>
         <h1 className="text-sm font-semibold text-primary shrink-0">Canvas</h1>

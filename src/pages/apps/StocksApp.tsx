@@ -427,7 +427,7 @@ function LeadersSection({ onSymbolSelect }: { onSymbolSelect: (s: string) => voi
                     className="border-b border-primary/50 hover:bg-hover transition-colors cursor-pointer"
                   >
                     <td className="px-3 py-2 font-bold text-indigo-400">{sym}</td>
-                    <td className="px-3 py-2 text-secondary truncate max-w-[160px]">{name}</td>
+                    <td className="px-3 py-2 text-secondary truncate max-w-40">{name}</td>
                     <td className="px-3 py-2 text-right font-medium text-primary">${fmt(price)}</td>
                     <td className={`px-3 py-2 text-right font-medium ${isUp ? "text-emerald-500" : "text-red-500"}`}>
                       <span className="flex items-center justify-end gap-0.5">

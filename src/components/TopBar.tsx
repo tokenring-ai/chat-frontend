@@ -42,7 +42,7 @@ export default function TopBar({ currentAgentId, agents, agentControls }: TopBar
         className="flex items-center gap-2 focus-ring rounded-md shrink-0 cursor-pointer"
         aria-label="TokenRing Home"
       >
-        <div className="w-7 h-7 rounded-md bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+        <div className="w-7 h-7 rounded-md bg-linear-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
           <Zap className="w-4 h-4 text-white" />
         </div>
         <span className="text-primary font-bold tracking-tight text-sm hidden md:block">TokenRing</span>

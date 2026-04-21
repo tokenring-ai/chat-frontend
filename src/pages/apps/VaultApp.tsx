@@ -441,7 +441,7 @@ export default function VaultApp() {
     <div className="w-full h-full flex flex-col bg-primary">
       {/* Header */}
       <div className="shrink-0 border-b border-primary bg-secondary px-4 sm:px-6 py-3 flex items-center gap-3">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center shadow-sm">
+        <div className="w-7 h-7 rounded-lg bg-linear-to-br from-yellow-500 to-amber-600 flex items-center justify-center shadow-sm">
           <Lock className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1 min-w-0">
@@ -491,7 +491,7 @@ export default function VaultApp() {
           </div>
         ) : locked ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-yellow-500 to-amber-600 flex items-center justify-center shadow-lg">
               <Lock className="w-8 h-8 text-white" />
             </div>
             <div>

@@ -137,7 +137,7 @@ function ErrorDetails({ error, errorInfo }: { error?: Error | undefined; errorIn
           <div className="space-y-3">
             <div>
               <div className="text-xs font-mono text-muted mb-1">Message:</div>
-              <code className="text-sm text-red-500 font-mono break-words whitespace-pre-wrap">{error.message}</code>
+              <code className="text-sm text-red-500 font-mono wrap-break-word whitespace-pre-wrap">{error.message}</code>
             </div>
 
             {error.stack && (

@@ -67,7 +67,7 @@ export default function Toast({ type = "info", title, message, duration = 5000, 
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: 100, scale: 0.95 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
-          className={cn("flex items-start gap-3 px-4 py-3 rounded-lg border shadow-lg min-w-[300px] max-w-md", toastStyles[type])}
+          className={cn("flex items-start gap-3 px-4 py-3 rounded-lg border shadow-lg min-w-75 max-w-md", toastStyles[type])}
           role="alert"
           aria-live={type === "error" ? "assertive" : "polite"}
           onMouseEnter={() => setIsPaused(true)}
@@ -75,10 +75,10 @@ export default function Toast({ type = "info", title, message, duration = 5000, 
           onFocus={() => setIsPaused(true)}
           onBlur={() => setIsPaused(false)}
         >
-          <Icon className="w-5 h-5 shrink-0 mt-0.5" />
+          <Icon className="w-5 h-5 shrink-0 mt-0.5"/>
           <div className="flex-1 min-w-0">
             {title && <h4 className="font-medium text-sm mb-1">{title}</h4>}
-            <p className="text-sm leading-relaxed break-words">{message}</p>
+            <p className="text-sm leading-relaxed wrap-break-word">{message}</p>
           </div>
           {onClose && (
             <button
@@ -93,7 +93,7 @@ export default function Toast({ type = "info", title, message, duration = 5000, 
               className="shrink-0 p-1.5 rounded-md hover:bg-black/10 dark:hover:bg-white/10 transition-colors focus-ring"
               aria-label="Close toast"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4"/>
             </button>
           )}
         </motion.div>
@@ -114,7 +114,7 @@ export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
       <AnimatePresence mode="popLayout">
         {toasts.map(toast => (
           <div key={toast.id} className="pointer-events-auto">
-            <Toast {...toast} onClose={() => toast.id && onRemove(toast.id)} />
+            <Toast {...toast} onClose={() => toast.id && onRemove(toast.id)}/>
           </div>
         ))}
       </AnimatePresence>

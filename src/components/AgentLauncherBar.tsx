@@ -15,7 +15,7 @@ interface AgentLauncherBarProps {
 }
 
 /**
- * Compact agent-type selector + launch button, designed to sit inside a
+ * Compact agent-type selector and launch button, designed to sit inside a
  * toolbar or header bar. Calls `onLaunch` with the created agent id.
  */
 export default function AgentLauncherBar({ defaultAgentType, buttonLabel, buttonClassName, onLaunch }: AgentLauncherBarProps) {

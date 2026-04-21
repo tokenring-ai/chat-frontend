@@ -140,7 +140,7 @@ export default function NotificationMenu() {
                         </span>
                         <div className="flex-1 min-w-0">
                           {notification.title && <h4 className="text-sm font-medium text-primary mb-1">{notification.title}</h4>}
-                          <p className="text-sm text-muted break-words">{notification.message}</p>
+                          <p className="text-sm text-muted wrap-break-word">{notification.message}</p>
                           <span className="text-xs text-dim mt-1 block">{formatTimeAgo(notification.timestamp)}</span>
                         </div>
                       </div>

@@ -31,7 +31,7 @@ export default function TerminalApp() {
     if (pollRef.current) clearInterval(pollRef.current);
     if (!activeTerminal) return;
 
-    // Initialise position from any existing session when switching terminals
+    // Initialize position from any existing session when switching terminals
     setSessions(prev => {
       positionRef.current = prev[activeTerminal]?.position ?? 0;
       return prev;
@@ -150,7 +150,7 @@ export default function TerminalApp() {
     <div className="w-full h-full flex flex-col bg-primary">
       {/* Header */}
       <div className="shrink-0 border-b border-primary bg-secondary px-4 sm:px-6 py-3 flex items-center gap-3">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-sm">
+        <div className="w-7 h-7 rounded-lg bg-linear-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-sm">
           <Terminal className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1 min-w-0">

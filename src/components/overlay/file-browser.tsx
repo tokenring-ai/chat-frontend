@@ -580,7 +580,7 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
             </div>
 
             {/* Right Sidebar - File Info */}
-            <div className="w-80 bg-tertiary border-l border-primary flex flex-col shrink-0 hidden md:flex">
+            <div className="w-80 bg-tertiary border-l border-primary flex-col shrink-0 hidden md:flex">
               {selectedFile ? (
                 <>
                   <div className="p-4 border-b border-primary flex items-start gap-3">

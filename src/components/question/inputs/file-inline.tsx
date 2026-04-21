@@ -237,7 +237,7 @@ export default function FileInlineQuestion({
       <div
         role="tree"
         aria-label="File browser"
-        className="max-h-[300px] overflow-y-auto custom-scrollbar border border-primary/30 rounded-lg bg-secondary shadow-md p-2"
+        className="max-h-75 overflow-y-auto custom-scrollbar border border-primary/30 rounded-lg bg-secondary shadow-md p-2"
       >
         {files.has(".") ? (
           renderTree(".", 0)

@@ -443,7 +443,7 @@ function PostViewerArea({
   }
   return (
     <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-6">
-      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg">
+      <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-lg">
         <BookOpen className="w-8 h-8 text-white" />
       </div>
       <div>
@@ -608,7 +608,7 @@ export default function BlogApp() {
     <div className="w-full h-full flex flex-col bg-primary">
       {/* App header */}
       <div className="shrink-0 h-11 border-b border-primary bg-secondary flex items-center gap-2 px-3">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-sm shrink-0">
+        <div className="w-7 h-7 rounded-lg bg-linear-to-br from-rose-500 to-pink-600 flex items-center justify-center shadow-sm shrink-0">
           <BookOpen className="w-4 h-4 text-white" />
         </div>
 

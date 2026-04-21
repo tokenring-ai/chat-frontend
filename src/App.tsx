@@ -71,7 +71,7 @@ export default function App() {
         <ErrorBoundary>
           <ToastContainer toasts={toasts || []} onRemove={id => notificationManager.removeToast(id)} />
           {/* Route transition loading bar */}
-          {showLoadingBar && <div className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-accent to-accent z-[100]" />}
+          {showLoadingBar && <div className="fixed top-0 left-0 right-0 h-1 bg-linear-to-r from-accent via-accent to-accent z-[100]" />}
           <div className="flex flex-col h-dvh bg-primary/50 text-secondary antialiased font-sans selection:bg-active overflow-hidden">
             {/* Skip to main content link for accessibility */}
             <a

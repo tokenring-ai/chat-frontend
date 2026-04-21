@@ -116,7 +116,7 @@ export default function CodeEditor({ file, content, onContentChange, onMarkSaved
       </div>
       <div className={`flex items-center justify-between px-4 py-3 text-xs border-t border-primary bg-tertiary`}>
         <div className="flex items-center gap-4">
-          <span className="font-medium truncate max-w-[200px] text-primary" title={file}>
+          <span className="font-medium truncate max-w-50 text-primary" title={file}>
             {file}
           </span>
           {isModified && <span className="px-2 py-0.5 rounded-md text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400">Modified</span>}
