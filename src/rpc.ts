@@ -2,18 +2,19 @@ import AgentRpcSchema from '@tokenring-ai/agent/rpc/schema';
 import AIClientRpcSchema from "@tokenring-ai/ai-client/rpc/schema";
 import AppRpcSchema from '@tokenring-ai/app/rpc/schema';
 import BlogRpcSchema from '@tokenring-ai/blog/rpc/schema';
-import ImageGenerationRpcSchema from '@tokenring-ai/image-generation/rpc/schema';
 import CalendarRpcSchema from '@tokenring-ai/calendar/rpc/schema';
 import ChatRpcSchema from "@tokenring-ai/chat/rpc/schema";
 import CheckpointRpcSchema from "@tokenring-ai/checkpoint/rpc/schema";
 import CloudQuoteRpcSchema from '@tokenring-ai/cloudquote/rpc/schema';
 import EmailRpcSchema from '@tokenring-ai/email/rpc/schema';
 import FileSystemRpcSchema from '@tokenring-ai/filesystem/rpc/schema';
+import ImageGenerationRpcSchema from '@tokenring-ai/image-generation/rpc/schema';
 import LifecycleRpcSchema from '@tokenring-ai/lifecycle/rpc/schema';
 import NewsRPMRpcSchema from '@tokenring-ai/newsrpm/rpc/schema';
 import type {IndexedDataSearch} from "@tokenring-ai/newsrpm/schema";
 import TasksRpcSchema from '@tokenring-ai/tasks/rpc/schema';
 import TerminalRpcSchema from '@tokenring-ai/terminal/rpc/schema';
+import {arrayableToArray} from "@tokenring-ai/utility/array/arrayable";
 import VaultRpcSchema from '@tokenring-ai/vault/rpc/schema';
 import createWsRPCClient from "@tokenring-ai/web-host/createWsRPCClient";
 import WorkflowRpcSchema from '@tokenring-ai/workflow/rpc/schema';
@@ -40,11 +41,19 @@ export const vaultRPCClient = createWsRPCClient(baseURL, VaultRpcSchema);
 export const tasksRPCClient = createWsRPCClient(baseURL, TasksRpcSchema);
 
 export function useAvailableCommands(agentId: string) {
-  return useSWR(`/agent/getAvailableCommands/${agentId}`, () => agentId ? agentRPCClient.getAvailableCommands({ agentId }) : null);
+  return useSWR(`/agent/getAvailableCommands/${agentId}`, async () => {
+    if (!agentId) return null;
+    const result = await agentRPCClient.getAvailableCommands({ agentId });
+    return result.status === 'success' ? result.commands : null;
+  });
 }
 
 export function useCommandHistory(agentId: string) {
-  return useSWR(`/agent/getCommandHistory/${agentId}`, () => agentId ? agentRPCClient.getCommandHistory({ agentId }) : null);
+  return useSWR(`/agent/getCommandHistory/${agentId}`, async () => {
+    if (!agentId) return null;
+    const result = await agentRPCClient.getCommandHistory({ agentId });
+    return result.status === 'success' ? result.history : null;
+  });
 }
 
 export function useAgentList() {
@@ -159,7 +168,7 @@ export function useStockLeaders(list: "MOSTACTIVE" | "PERCENTGAINERS" | "PERCENT
 export function useNewsRPMIndexedDataSearchResults(search: IndexedDataSearch | null) {
   const cacheKey = search ? [
     search.key,
-    ...(Array.isArray(search.value) ? search.value : [search.value]),
+    ...arrayableToArray(search.value),
     search.minDate,
     search.maxDate,
     search.offset,

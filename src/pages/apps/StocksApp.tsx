@@ -452,6 +452,7 @@ function AskAIModal({
       };
       const contextPath = `/tmp/tokenring-stock-${symbol}-${Date.now()}.json`;
       const fsState = await filesystemRPCClient.getFilesystemState({agentId});
+      if (fsState.status !== 'success') throw new Error('Failed to get filesystem state');
       await filesystemRPCClient.writeFile({path: contextPath, content: JSON.stringify(contextData, null, 2), provider: fsState.provider});
       await filesystemRPCClient.addFileToChat({agentId, file: contextPath});
 

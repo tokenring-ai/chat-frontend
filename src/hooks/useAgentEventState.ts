@@ -31,6 +31,7 @@ export function useAgentEventState(agentId: string) {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [reconnectAttempts, setReconnectAttempts] = useState(0);
   const [triggerReconnect, setTriggerReconnect] = useState(0);
+  const [agentNotFound, setAgentNotFound] = useState(false);
 
   const stateRef = useRef({
     messages: [] as ChatMessage[],
@@ -107,6 +108,14 @@ export function useAgentEventState(agentId: string) {
               agentId,
               fromPosition,
             }, abortController.signal)) {
+              if (eventsData.status === 'agentNotFound') {
+                setAgentNotFound(true);
+                setIsConnecting(false);
+                return;
+              }
+
+              if (eventsData.status !== 'success') continue;
+
               // Reset reconnect delay on successful connection
               reconnectDelay = INITIAL_RECONNECT_DELAY;
               setReconnectAttempts(0);
@@ -206,6 +215,7 @@ export function useAgentEventState(agentId: string) {
     isConnecting,
     connectionError,
     reconnectAttempts,
+    agentNotFound,
     manualReconnect: () => {
       // Reset reconnect attempts and trigger a reconnection
       setReconnectAttempts(0);

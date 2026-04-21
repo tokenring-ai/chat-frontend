@@ -472,6 +472,7 @@ export default function BlogApp() {
   const [launchingNew, setLaunchingNew] = useState(false);
 
   const blogState = useBlogState(agentId);
+  const blogStateData = blogState.data?.status === 'success' ? blogState.data : null;
   const posts = useBlogPosts(provider, statusFilter, 100);
   const selectedPost = useBlogPost(provider, selectedPostId);
 
@@ -512,13 +513,13 @@ export default function BlogApp() {
 
   // Sync provider and available providers from blog state
   useEffect(() => {
-    if (!blogState.data) return;
-    const {selectedProvider, availableProviders: ap} = blogState.data;
+    if (!blogStateData) return;
+    const {selectedProvider, availableProviders: ap} = blogStateData;
     setAvailableProviders(ap);
     if (!provider && (selectedProvider ?? ap[0])) {
       setProvider(selectedProvider ?? ap[0]);
     }
-  }, [blogState.data]);
+  }, [blogStateData]);
 
   // Fetch blog state once agentId is ready
   useEffect(() => {

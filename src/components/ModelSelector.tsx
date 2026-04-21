@@ -67,6 +67,7 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
   const [isOpen, setIsOpen] = useState(false);
   const [focusedModelIndex, setFocusedModelIndex] = useState<number>(-1);
   const isIconTrigger = triggerVariant === 'icon';
+  const currentModelData = currentModel.data?.status === 'success' ? currentModel.data : null;
 
   const handleSelectModel = useCallback(async (modelId: string) => {
     if (isSelecting) return; // Prevent double-clicks
@@ -74,7 +75,7 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
     setIsSelecting(true);
     try {
       await chatRPCClient.setModel({ agentId, model: modelId });
-      void currentModel.mutate({ model: modelId });
+      void currentModel.mutate({ status: 'success', model: modelId });
       setIsSelecting(false);
       setSelectingModelId(null);
       setIsOpen(false);
@@ -142,13 +143,13 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
 
   // Auto-expand provider with currently selected model
   useEffect(() => {
-    if (currentModel.data?.model) {
-      const provider = allModels.find(m => m.modelId === currentModel.data?.model)?.provider;
+    if (currentModelData?.model) {
+      const provider = allModels.find(m => m.modelId === currentModelData?.model)?.provider;
       if (provider) {
         setExpandedProviders(new Set([provider]));
       }
     }
-  }, [currentModel.data?.model, allModels]);
+  }, [currentModelData?.model, allModels]);
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -160,8 +161,8 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
               ? 'flex items-center justify-center p-1.5 rounded-md hover:bg-hover transition-colors cursor-pointer group focus-ring text-muted hover:text-primary'
               : 'flex items-center gap-2 px-2 py-1 rounded-md hover:bg-hover transition-colors cursor-pointer group focus-ring'
           }
-          aria-label={currentModel.data?.model ? `Select model. Current model ${currentModel.data.model}` : 'Select model'}
-          title={currentModel.data?.model ?? 'Select model'}
+          aria-label={currentModelData?.model ? `Select model. Current model ${currentModelData.model}` : 'Select model'}
+          title={currentModelData?.model ?? 'Select model'}
         >
           {isSelecting || currentModel.isLoading ? (
             <>
@@ -175,7 +176,7 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
               <Cpu className={isIconTrigger ? 'w-5 h-5' : 'w-3.5 h-3.5 text-muted group-hover:text-primary'} />
               {!isIconTrigger && (
                 <span className="text-xs font-mono text-muted group-hover:text-primary truncate max-w-64">
-                  {currentModel.data?.model ?? 'Select model...'}
+                  {currentModelData?.model ?? 'Select model...'}
                 </span>
               )}
             </>
@@ -289,7 +290,7 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
                               onClick={() => handleSelectModel(model.modelId)}
                               className={`flex items-center cursor-pointer py-1.5 rounded-md px-3 transition-colors group hover:bg-hover focus-ring ${
                                 isSelecting && selectingModelId === model.modelId ? 'opacity-75' : ''
-                              } ${isFocused ? 'bg-hover' : 'hover:bg-hover'}`}
+                              } ${isFocused ? 'bg-hover' : ''}`}
                               tabIndex={0}
                               role="button"
                               onKeyDown={(e) => {
@@ -302,7 +303,7 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
                             >
                               <div
                                 className={`w-1.5 h-1.5 rounded-full mr-2.5 shrink-0 ${
-                                  currentModel.data?.model === model.modelId
+                                  currentModelData?.model === model.modelId
                                     ? 'bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.5)]'
                                     : model.available
                                       ? 'bg-emerald-500'
@@ -310,7 +311,7 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
                                 }`}
                               />
                               <span className={`flex-1 text-xs font-mono leading-tight truncate ${
-                                currentModel.data?.model === model.modelId
+                                currentModelData?.model === model.modelId
                                   ? 'text-indigo-600 dark:text-indigo-400 font-medium'
                                   : isFocused
                                     ? 'text-primary font-medium'
@@ -320,7 +321,7 @@ export default function ModelSelector({ agentId, triggerVariant = 'default' }: M
                               </span>
                               {isSelecting && selectingModelId === model.modelId ? (
                                 <Cpu className="w-3 h-3 text-indigo-400 ml-2 shrink-0 animate-spin" aria-label="Selecting..."/>
-                              ) : currentModel.data?.model === model.modelId ? (
+                              ) : currentModelData?.model === model.modelId ? (
                                 <Check className="w-3 h-3 text-indigo-400 ml-2 shrink-0" aria-label="Currently selected"/>
                               ) : null}
                             </div>

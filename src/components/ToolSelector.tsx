@@ -121,9 +121,11 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
 
   const tools = availableTools.data?.tools;
 
+  const enabledToolsData = enabledTools.data?.status === 'success' ? enabledTools.data : null;
+
   const handleToggleTool = useCallback(async (toolName: string) => {
     try {
-      const isEnabled = enabledTools.data?.tools?.includes(toolName);
+      const isEnabled = enabledToolsData?.tools?.includes(toolName);
       if (isEnabled) {
         await chatRPCClient.disableTools({ agentId, tools: [toolName] });
       } else {
@@ -138,7 +140,7 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
   const handleToggleCategory = useCallback(async (_category: string, categoryTools: Record<string, string>) => {
     try {
       const allToolNames = Object.values(categoryTools);
-      const enabledSet = new Set(enabledTools.data?.tools || []);
+      const enabledSet = new Set(enabledToolsData?.tools || []);
 
       const allEnabled = allToolNames.every(toolName => enabledSet.has(toolName));
 
@@ -184,18 +186,18 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
     }
   }, [searchQuery, filteredToolsByCategory.categories]);
 
-  const enabledSet = useMemo(() => new Set(enabledTools.data?.tools || []), [enabledTools.data?.tools]);
+  const enabledSet = useMemo(() => new Set(enabledToolsData?.tools || []), [enabledToolsData?.tools]);
 
   useEffect(() => {
     const categoriesWithEnabledTools = new Set<string>();
-    enabledTools.data?.tools?.forEach(tool => {
+    enabledToolsData?.tools?.forEach(tool => {
       const match = tool.match(/^(.*)\//);
       if (match) {
         categoriesWithEnabledTools.add(match[1]);
       }
     });
     setExpandedCategories(categoriesWithEnabledTools);
-  }, [enabledTools.data?.tools]);
+  }, [enabledToolsData?.tools]);
 
   return (
     <DropdownMenu>
@@ -207,13 +209,13 @@ export default function ToolSelector({ agentId, triggerVariant = 'default' }: To
               ? 'flex items-center justify-center p-1.5 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring text-muted hover:text-primary'
               : 'hidden md:flex items-center gap-2 px-2 py-1 rounded hover:bg-hover transition-colors cursor-pointer group focus-ring'
           }
-          aria-label={`Select tools. ${enabledTools.data?.tools?.length ?? 0} enabled`}
-          title={`${enabledTools.data?.tools?.length ?? 0} tools enabled`}
+          aria-label={`Select tools. ${enabledToolsData?.tools?.length ?? 0} enabled`}
+          title={`${enabledToolsData?.tools?.length ?? 0} tools enabled`}
         >
           <RiStackFill className={isIconTrigger ? 'w-5 h-5' : 'w-3.5 h-3.5 text-muted group-hover:text-primary'} />
           {!isIconTrigger && (
             <span className="text-xs font-mono text-muted group-hover:text-primary truncate max-w-48">
-              {enabledTools.data?.tools?.length ?? 0} enabled
+              {enabledToolsData?.tools?.length ?? 0} enabled
             </span>
           )}
         </button>

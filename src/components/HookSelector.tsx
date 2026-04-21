@@ -20,7 +20,7 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
 
   const handleToggleHook = useCallback(async (hookName: string) => {
     try {
-      const isEnabled = enabledHooks.data?.hooks?.includes(hookName);
+      const isEnabled = enabledHooksData?.hooks?.includes(hookName);
       if (isEnabled) {
         await lifecycleRPCClient.disableHooks({ agentId, hooks: [hookName] });
       } else {
@@ -68,10 +68,11 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
     setFocusedIndex(index);
   }, []);
 
-  const enabledSet = useMemo(() => new Set(enabledHooks.data?.hooks || []), [enabledHooks.data?.hooks]);
+  const enabledHooksData = enabledHooks.data?.status === 'success' ? enabledHooks.data : null;
+  const enabledSet = useMemo(() => new Set(enabledHooksData?.hooks || []), [enabledHooksData?.hooks]);
 
   const hookCount = Object.keys(hooks ?? {}).length;
-  const enabledCount = enabledHooks.data?.hooks?.length ?? 0;
+  const enabledCount = enabledHooksData?.hooks?.length ?? 0;
   const allEnabled = hookCount > 0 && enabledCount === hookCount;
 
 
@@ -154,7 +155,7 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
               className="w-full flex items-center justify-between p-2 rounded-md hover:bg-hover transition-colors text-xs font-mono focus-ring"
             >
               <span className="text-muted">
-                {allEnabled ? 'Disable all hooks' : 'Enable all hooks'}
+                  {allEnabled ? 'Disable all hooks' : 'Enable all hooks'}
               </span>
               <span className="text-muted">
                 {enabledCount}/{hookCount}
@@ -217,7 +218,7 @@ export default function HookSelector({ agentId, triggerVariant = 'default' }: Ho
             );
           })}
 
-          {Object.keys(filteredHooks ?? {}).length === 0 && (
+          {Object.keys(filteredHooks ?? {}).length === 0 && searchQuery && (
             <div className="px-3 py-4 text-center text-xs text-muted" role="status">
               No hooks found matching "{searchQuery}"
             </div>

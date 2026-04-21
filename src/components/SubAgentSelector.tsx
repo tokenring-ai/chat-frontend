@@ -22,7 +22,7 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
   const handleToggleAgent = useCallback(async (agentType: string) => {
     setLoadingAgent(agentType);
     try {
-      const isEnabled = enabledSubAgents.data?.agents?.includes(agentType);
+      const isEnabled = enabledSubAgentsData?.agents?.includes(agentType);
       if (isEnabled) {
         await tasksRPCClient.disableSubAgents({agentId, agents: [agentType]});
       } else {
@@ -46,10 +46,11 @@ export default function SubAgentSelector({agentId, triggerVariant = 'default'}: 
     );
   }, [agents, searchQuery]);
 
-  const enabledSet = useMemo(() => new Set(enabledSubAgents.data?.agents || []), [enabledSubAgents.data?.agents]);
+  const enabledSubAgentsData = enabledSubAgents.data?.status === 'success' ? enabledSubAgents.data : null;
+  const enabledSet = useMemo(() => new Set(enabledSubAgentsData?.agents || []), [enabledSubAgentsData?.agents]);
 
   const agentCount = agents?.length ?? 0;
-  const enabledCount = enabledSubAgents.data?.agents?.length ?? 0;
+  const enabledCount = enabledSubAgentsData?.agents?.length ?? 0;
   const allEnabled = agentCount > 0 && enabledCount === agentCount;
 
 

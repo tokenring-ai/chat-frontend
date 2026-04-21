@@ -97,13 +97,15 @@ Respond with ONLY the rewritten text. No explanation, no preamble, no code fence
 
     try {
       // Snapshot position before sending so we only read the new response
-      const {position: startPos} = await agentRPCClient.getAgentEvents({agentId, fromPosition: 0});
+      const startResult = await agentRPCClient.getAgentEvents({agentId, fromPosition: 0});
+      if (startResult.status !== 'success') return;
       await agentRPCClient.sendInput({agentId, input: {from: 'Documents app', message: prompt}});
 
       let accumulated = '';
       let gotResponse = false;
 
-      for await (const chunk of agentRPCClient.streamAgentEvents({agentId, fromPosition: startPos}, ac.signal)) {
+      for await (const chunk of agentRPCClient.streamAgentEvents({agentId, fromPosition: startResult.position}, ac.signal)) {
+        if (chunk.status !== 'success') continue;
         for (const event of chunk.events) {
           if (event.type === 'output.chat') {
             accumulated += event.message;

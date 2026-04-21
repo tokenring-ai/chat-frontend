@@ -16,14 +16,14 @@ interface FileInlineProps {
 }
 
 export default function FileInlineQuestion({
-  question: { allowFiles, allowDirectories, minimumSelections, maximumSelections, defaultValue },
-  agentId,
-  requestId,
-  interactionId,
-  onSubmitValue,
-  onClose,
-  autoFocus = true,
-}: FileInlineProps) {
+                                             question: {allowFiles, allowDirectories, minimumSelections, maximumSelections, defaultValue},
+                                             agentId,
+                                             requestId,
+                                             interactionId,
+                                             onSubmitValue,
+                                             onClose,
+                                             autoFocus = true,
+                                           }: FileInlineProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set(['.']));
   const [loading, setLoading] = useState<Set<string>>(new Set());
   const [files, setFiles] = useState<Map<string, string[]>>(new Map());
@@ -37,7 +37,7 @@ export default function FileInlineQuestion({
   // Auto-focus on mount and scroll into view
   useEffect(() => {
     if (autoFocus && containerRef.current) {
-      containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      containerRef.current.scrollIntoView({behavior: 'smooth', block: 'nearest'});
     }
   }, [autoFocus]);
 
@@ -46,14 +46,14 @@ export default function FileInlineQuestion({
   }, []);
 
   const fsState = useFilesystemState(agentId);
-  const provider = fsState.data?.provider ?? null;
+  const provider = fsState.data?.status === 'success' ? fsState.data.provider : null;
 
   const loadDirectory = async (path: string) => {
     if (files.has(path)) return;
     if (!provider) return;
     setLoading((prev) => new Set(prev).add(path));
     try {
-      const result = await filesystemRPCClient.listDirectory({ path, showHidden: true, provider, recursive: false });
+      const result = await filesystemRPCClient.listDirectory({path, showHidden: true, provider, recursive: false});
       setFiles((prev) => new Map(prev).set(path, result.files));
     } catch {
       setError('Failed to load directory');
@@ -177,7 +177,7 @@ export default function FileInlineQuestion({
           className={`flex items-center gap-2 px-2 py-1.5 rounded-md transition-colors ${
             isSelected ? 'bg-accent/20' : 'hover:bg-hover'
           } ${!isSelectable ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
-          style={{ paddingLeft: `${depth * 16 + 8}px` }}
+          style={{paddingLeft: `${depth * 16 + 8}px`}}
           onClick={() => {
             if (!isSelectable) return;
             if (isDir) {
@@ -201,24 +201,24 @@ export default function FileInlineQuestion({
           {isDir ? (
             <span className="text-muted shrink-0" aria-hidden="true">
               {isLoading ? (
-                <RefreshCw className="w-3.5 h-3.5 animate-spin text-muted" />
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-muted"/>
               ) : isExpanded ? (
-                <ChevronDown className="w-3.5 h-3.5 text-muted" />
+                <ChevronDown className="w-3.5 h-3.5 text-muted"/>
               ) : (
-                <ChevronRight className="w-3.5 h-3.5 text-muted" />
+                <ChevronRight className="w-3.5 h-3.5 text-muted"/>
               )}
             </span>
           ) : (
             <span className="w-3.5 shrink-0"></span>
           )}
           {isDir ? (
-            <Folder className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" aria-hidden="true" />
+            <Folder className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" aria-hidden="true"/>
           ) : (
-            <File className="w-3.5 h-3.5 text-primary shrink-0" aria-hidden="true" />
+            <File className="w-3.5 h-3.5 text-primary shrink-0" aria-hidden="true"/>
           )}
           <span className="text-sm truncate">{name}</span>
           {isSelected && (
-            <Check className="w-3.5 h-3.5 text-accent ml-auto shrink-0" aria-hidden="true" />
+            <Check className="w-3.5 h-3.5 text-accent ml-auto shrink-0" aria-hidden="true"/>
           )}
         </div>
       )
@@ -250,7 +250,7 @@ export default function FileInlineQuestion({
           className="flex items-center gap-2 px-3 py-2 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-sm"
           role="alert"
         >
-          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+          <AlertCircle className="w-3.5 h-3.5 shrink-0"/>
           <span>{error}</span>
         </div>
       )}
@@ -282,7 +282,7 @@ export default function FileInlineQuestion({
             disabled={isSubmitting}
             className="flex items-center gap-1.5 p-1.5 rounded-md text-xs text-muted hover:bg-hover hover:text-primary transition-colors disabled:opacity-50 focus-ring"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-3.5 h-3.5"/>
             Cancel
           </button>
           <button
@@ -291,7 +291,7 @@ export default function FileInlineQuestion({
             className="flex items-center gap-1.5 bg-accent hover:bg-accent/90 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
           >
             {isSubmitting ? 'Sending...' : 'Submit'}
-            <Send className="w-3.5 h-3.5" />
+            <Send className="w-3.5 h-3.5"/>
           </button>
         </div>
       </div>

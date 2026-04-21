@@ -1,6 +1,5 @@
-import {Loader2} from 'lucide-react';
 import {useEffect, useRef, useState} from 'react';
-import {Route, Routes, useLocation, useNavigate} from 'react-router-dom';
+import {Route, Routes, useLocation} from 'react-router-dom';
 import './index.css';
 import {StorageErrorBanner} from './components/chat/StorageErrorBanner.tsx';
 import {ChatInputProvider} from './components/ChatInputContext.tsx';
@@ -34,9 +33,7 @@ import {useAgentList, useAgentTypes, useWorkflows} from './rpc.ts';
 
 export default function App() {
   const location = useLocation();
-  const navigate = useNavigate();
   const [toasts, setToasts] = useState<any[]>();
-  const [isNavigating, setIsNavigating] = useState(false);
   const [showLoadingBar, setShowLoadingBar] = useState(false);
   const loadingBarTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -129,47 +126,8 @@ export default function App() {
                     <Route path="/settings" element={<SettingsApp/>}/>
                     <Route path="/vault" element={<VaultApp/>}/>
 
-                    {/* Agent chat — existing */}
-                    <Route path="/agent/:agentId/*" element={
-                      currentAgentId && agents.data && !agents.data.find(a => a.id === currentAgentId)
-                        ? (
-                          <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                            <div className="mb-6 max-w-md">
-                              <div className="w-12 h-12 rounded-full bg-warning/10 flex items-center justify-center mx-auto mb-4 shadow-card">
-                                <svg className="w-6 h-6 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                </svg>
-                              </div>
-                              <h1 className="text-lg font-semibold text-primary mb-2">Agent Not Found</h1>
-                              <p className="text-sm text-muted">
-                                The agent <code
-                                className="px-1.5 py-0.5 bg-tertiary border border-primary rounded-md text-primary font-mono text-xs">{currentAgentId}</code>
-                                could not be found.<br/> It may have been stopped or removed.
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => {
-                                setIsNavigating(true);
-                                void navigate('/agents');
-                              }}
-                              disabled={isNavigating}
-                              className="px-5 py-2.5 bg-accent hover:bg-accent/90 disabled:bg-accent/50 text-primary rounded-button transition-colors focus-ring font-medium flex items-center gap-2 shadow-button-primary"
-                              aria-busy={isNavigating}
-                            >
-                              {isNavigating ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 animate-spin"/>
-                                  <span>Navigating...</span>
-                                </>
-                              ) : (
-                                <span>Browse Available Agents</span>
-                              )}
-                            </button>
-                          </div>
-                        )
-                        : <ChatPage key={currentAgentId} agentId={currentAgentId!}/>
-                    }/>
+                    {/* Agent chat */}
+                    <Route path="/agent/:agentId/*" element={<ChatPage key={currentAgentId} agentId={currentAgentId!}/>}/>
                   </Routes>
                 </ErrorBoundary>
               </main>
