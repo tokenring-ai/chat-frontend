@@ -1,4 +1,5 @@
 import { getTreeNodeValue, isTreeBranch, type ParsedTreeSelectQuestion, type TreeLeaf } from "@tokenring-ai/agent/question";
+import type { MaybePromise } from "bun";
 import { Check, ChevronDown, ChevronRight, Send, X } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -9,7 +10,7 @@ interface TreeInlineProps {
   agentId: string;
   requestId: string;
   interactionId?: string;
-  onSubmitValue?: (value: string[] | null) => Promise<void> | void;
+  onSubmitValue?: (value: string[] | null) => MaybePromise<void>;
   onClose: () => void;
   autoFocus?: boolean;
 }

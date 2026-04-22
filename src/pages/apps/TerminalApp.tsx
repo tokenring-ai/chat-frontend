@@ -1,3 +1,4 @@
+import errorAsString from "@tokenring-ai/utility/error/errorAsString";
 import { Loader2, Plus, Terminal, Trash2, Unplug } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ConfirmDialog from "../../components/overlay/confirm-dialog.tsx";
@@ -97,8 +98,8 @@ export default function TerminalApp() {
       const { terminalName } = await terminalRPCClient.spawnTerminal({});
       await terminals.mutate();
       connectToTerminal(terminalName);
-    } catch (error: any) {
-      toastManager.error(error.message || "Failed to spawn terminal", { duration: 5000 });
+    } catch (error) {
+      toastManager.error(errorAsString(error), { duration: 5000 });
     } finally {
       setSpawning(false);
     }
@@ -117,8 +118,8 @@ export default function TerminalApp() {
         return next;
       });
       await terminals.mutate();
-    } catch (error: any) {
-      toastManager.error(error.message || "Failed to terminate terminal", { duration: 5000 });
+    } catch (error) {
+      toastManager.error(errorAsString(error), { duration: 5000 });
     }
   };
 
@@ -130,8 +131,8 @@ export default function TerminalApp() {
         input: inputValue + "\n",
       });
       setInputValue("");
-    } catch (error: any) {
-      toastManager.error(error.message || "Failed to send input", { duration: 5000 });
+    } catch (error) {
+      toastManager.error(errorAsString(error), { duration: 5000 });
     }
   };
 

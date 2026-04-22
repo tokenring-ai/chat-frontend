@@ -1,3 +1,4 @@
+import errorAsString from "@tokenring-ai/utility/error/errorAsString";
 import { GitBranch, Loader2, Pause } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -16,8 +17,8 @@ export default function WorkflowsApp() {
       const { id } = await workflowRPCClient.spawnWorkflow({ name, headless: false });
       await agents.mutate();
       void navigate(`/agent/${id}`);
-    } catch (error: any) {
-      toastManager.error(error.message || "Failed to spawn workflow", { duration: 5000 });
+    } catch (error) {
+      toastManager.error(errorAsString(error), { duration: 5000 });
     } finally {
       setSpawning(null);
     }

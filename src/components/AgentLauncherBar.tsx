@@ -1,3 +1,4 @@
+import errorAsString from "@tokenring-ai/utility/error/errorAsString";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { agentRPCClient, useAgentTypes } from "../rpc.ts";
@@ -39,8 +40,8 @@ export default function AgentLauncherBar({ defaultAgentType, buttonLabel, button
     try {
       const { id } = await agentRPCClient.createAgent({ agentType: selectedType, headless: false });
       onLaunch(id);
-    } catch (error: any) {
-      toastManager.error(error.message || "Failed to launch agent", { duration: 5000 });
+    } catch (error) {
+      toastManager.error(errorAsString(error), { duration: 5000 });
     } finally {
       setLaunching(false);
     }

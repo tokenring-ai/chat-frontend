@@ -1,3 +1,4 @@
+import errorAsString from "@tokenring-ai/utility/error/errorAsString";
 import {
   BookOpen,
   CalendarDays,
@@ -94,8 +95,8 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
       const { id } = await agentRPCClient.createAgent({ agentType: type, headless: false });
       await agents.mutate();
       navigateAndClose(`/agent/${id}`);
-    } catch (error: any) {
-      toastManager.error(error.message || "Failed to create agent", { duration: 5000 });
+    } catch (error) {
+      toastManager.error(errorAsString(error), { duration: 5000 });
     }
   };
 
@@ -104,8 +105,8 @@ export default function Sidebar({ currentAgentId, agents, workflows, agentTypes 
       const { id } = await workflowRPCClient.spawnWorkflow({ name, headless: false });
       await agents.mutate();
       navigateAndClose(`/agent/${id}`);
-    } catch (error: any) {
-      toastManager.error(error.message || "Failed to spawn workflow", { duration: 5000 });
+    } catch (error) {
+      toastManager.error(errorAsString(error), { duration: 5000 });
     }
   };
 

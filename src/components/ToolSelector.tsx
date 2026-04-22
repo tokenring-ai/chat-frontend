@@ -137,7 +137,7 @@ export default function ToolSelector({ agentId, triggerVariant = "default" }: To
         console.error("Failed to toggle tool:", error);
       }
     },
-    [agentId, enabledTools, enabledToolsData?.tools?.includes],
+    [agentId, enabledTools, enabledToolsData?.tools],
   );
 
   const handleToggleCategory = useCallback(

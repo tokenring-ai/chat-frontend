@@ -1,3 +1,4 @@
+import errorAsString from "@tokenring-ai/utility/error/errorAsString";
 import {
   Bot,
   Calendar,
@@ -1030,8 +1031,8 @@ export default function CalendarApp() {
           setModalOpen(false);
           void navigate(`/agent/${id}`);
         }
-      } catch (error: any) {
-        toastManager.error(error.message || "Failed to run event");
+      } catch (error) {
+        toastManager.error(errorAsString(error));
       } finally {
         setRunning(false);
       }

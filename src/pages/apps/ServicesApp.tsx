@@ -1,20 +1,22 @@
-import { Cpu, Loader2, Plug, Wrench, Zap } from "lucide-react";
+import { Cpu, Loader2, Plug, ScrollText, Wrench, Zap } from "lucide-react";
 import type React from "react";
-import { useState } from "react";
-import { useAvailableHooks, useAvailableTools, useChatModelsByProvider } from "../../rpc.ts";
+import { useEffect, useRef, useState } from "react";
+import { useAppLogs, useAvailableHooks, useAvailableTools, useChatModelsByProvider } from "../../rpc.ts";
 
-type Tab = "tools" | "models" | "hooks";
+type Tab = "tools" | "models" | "hooks" | "logs";
 
 export default function ServicesApp() {
   const [activeTab, setActiveTab] = useState<Tab>("tools");
   const availableTools = useAvailableTools();
   const modelsByProvider = useChatModelsByProvider();
   const availableHooks = useAvailableHooks();
+  const appLogs = useAppLogs();
 
   const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "tools", label: "Tools", icon: <Wrench className="w-3.5 h-3.5" /> },
     { id: "models", label: "Models", icon: <Cpu className="w-3.5 h-3.5" /> },
     { id: "hooks", label: "Hooks", icon: <Zap className="w-3.5 h-3.5" /> },
+    { id: "logs", label: "Logs", icon: <ScrollText className="w-3.5 h-3.5" /> },
   ];
 
   return (
@@ -52,6 +54,7 @@ export default function ServicesApp() {
           {activeTab === "tools" && <ToolsTab tools={availableTools} />}
           {activeTab === "models" && <ModelsTab models={modelsByProvider} />}
           {activeTab === "hooks" && <HooksTab hooks={availableHooks} />}
+          {activeTab === "logs" && <LogsTab logs={appLogs} />}
         </div>
       </div>
     </div>
@@ -189,6 +192,46 @@ function ModelsTab({ models }: { models: ReturnType<typeof useChatModelsByProvid
  * optional `data` into a concrete local variable, giving TypeScript
  * a definite type for the record entries.
  */
+function LogsTab({ logs }: { logs: ReturnType<typeof useAppLogs> }) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [logs.data?.logs.length]);
+
+  if (logs.isLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="w-6 h-6 text-muted animate-spin" />
+      </div>
+    );
+  }
+
+  const entries = logs.data?.logs ?? [];
+
+  return (
+    <div className="space-y-2">
+      <p className="text-2xs text-muted px-1">{entries.length} log entries</p>
+      <div className="bg-secondary border border-primary rounded-xl overflow-hidden">
+        <div className="font-mono text-2xs divide-y divide-primary">
+          {entries.length === 0 ? (
+            <p className="text-muted text-center py-8">No log entries</p>
+          ) : (
+            entries.map((entry, i) => (
+              <div key={i} className={`flex gap-3 px-3 py-1.5 ${entry.level === "error" ? "bg-red-500/5 text-red-400" : "text-muted hover:text-primary"}`}>
+                <span className="shrink-0 text-muted/60">{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                <span className={`shrink-0 uppercase font-semibold ${entry.level === "error" ? "text-red-400" : "text-emerald-500/70"}`}>{entry.level}</span>
+                <span className="break-all">{entry.message}</span>
+              </div>
+            ))
+          )}
+        </div>
+        <div ref={bottomRef} />
+      </div>
+    </div>
+  );
+}
+
 function HooksTab({ hooks }: { hooks: ReturnType<typeof useAvailableHooks> }) {
   if (hooks.isLoading) {
     return (

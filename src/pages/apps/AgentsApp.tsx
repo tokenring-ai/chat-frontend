@@ -1,3 +1,4 @@
+import errorAsString from "@tokenring-ai/utility/error/errorAsString";
 import { Cpu, Loader2, Pause, Trash2, User } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -23,8 +24,8 @@ export default function AgentsApp() {
       const { id } = await agentRPCClient.createAgent({ agentType: type, headless: false });
       await agents.mutate();
       void navigate(`/agent/${id}`);
-    } catch (error: any) {
-      toastManager.error(error.message || "Failed to create agent", { duration: 5000 });
+    } catch (error) {
+      toastManager.error(errorAsString(error), { duration: 5000 });
     } finally {
       setCreatingAgentType(null);
     }
@@ -36,8 +37,8 @@ export default function AgentsApp() {
       const { id } = await workflowRPCClient.spawnWorkflow({ name, headless: false });
       await agents.mutate();
       void navigate(`/agent/${id}`);
-    } catch (error: any) {
-      toastManager.error(error.message || "Failed to spawn workflow", { duration: 5000 });
+    } catch (error) {
+      toastManager.error(errorAsString(error), { duration: 5000 });
     } finally {
       setSpawningWorkflow(null);
     }

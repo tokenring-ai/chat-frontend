@@ -1,4 +1,5 @@
 import type { ParsedFileSelectQuestion } from "@tokenring-ai/agent/question";
+import type { MaybePromise } from "bun";
 import { AlertCircle, Check, ChevronDown, ChevronRight, File, Folder, RefreshCw, Send, X } from "lucide-react";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -10,7 +11,7 @@ interface FileInlineProps {
   agentId: string;
   requestId: string;
   interactionId?: string;
-  onSubmitValue?: (value: string[] | null) => Promise<void> | void;
+  onSubmitValue?: (value: string[] | null) => MaybePromise<void>;
   onClose: () => void;
   autoFocus?: boolean;
 }
@@ -56,7 +57,7 @@ export default function FileInlineQuestion({
         });
       }
     },
-    [provider, files.has],
+    [provider, files],
   );
 
   const toggleExpand = async (path: string) => {

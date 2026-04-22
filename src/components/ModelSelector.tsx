@@ -1,3 +1,4 @@
+import errorAsString from "@tokenring-ai/utility/error/errorAsString";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Cpu } from "lucide-react";
 import type React from "react";
@@ -80,10 +81,9 @@ export default function ModelSelector({ agentId, triggerVariant = "default" }: M
         setSelectingModelId(null);
         setIsOpen(false);
         toastManager.success(`Model changed to ${modelId.split("/").pop()}`, { duration: 3000 });
-      } catch (error: any) {
-        const errorMessage = error.message || "Failed to select model";
+      } catch (error) {
         console.error("Failed to set model:", error);
-        toastManager.error(errorMessage, { duration: 5000 });
+        toastManager.error(errorAsString(error), { duration: 5000 });
         setIsSelecting(false);
         setSelectingModelId(null);
       }

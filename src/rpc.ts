@@ -167,6 +167,10 @@ export function usePlugins() {
   return useSWR("/app/listPlugins", () => appRPCClient.listPlugins({}));
 }
 
+export function useAppLogs() {
+  return useSWR("/app/getLogs", () => appRPCClient.getLogs({}), { refreshInterval: 2000 });
+}
+
 export function useCheckpointList() {
   return useSWR("/checkpoint/listCheckpoints", () => checkpointRPCClient.listCheckpoints({}), { refreshInterval: 5000 });
 }

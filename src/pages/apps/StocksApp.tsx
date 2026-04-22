@@ -634,7 +634,7 @@ function StockDetail({ symbol, onClear }: { symbol: string; onClear: () => void 
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b border-primary pb-0 -mb-1">
+      <div className="flex gap-1 border-b border-primary pb-0 mb-1">
         {tabs.map(t => (
           <button
             type="button"

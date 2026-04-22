@@ -1,6 +1,7 @@
 import { formatDate } from "@tokenring-ai/utility/date/formatDate";
 import { formatTime } from "@tokenring-ai/utility/date/formatTime";
 import { formatTimeAgo } from "@tokenring-ai/utility/date/formatTimeAgo";
+import errorAsString from "@tokenring-ai/utility/error/errorAsString";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronRight, History, Loader2, RotateCcw, Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -104,8 +105,8 @@ export default function CheckpointBrowser({ agents }: CheckpointBrowserProps) {
       const { agentId } = await checkpointRPCClient.launchAgentFromCheckpoint({ checkpointId, headless: false });
       await agents.mutate();
       void navigate(`/agent/${agentId}`);
-    } catch (error: any) {
-      toastManager.error(error.message || "Failed to launch from checkpoint", { duration: 5000 });
+    } catch (error) {
+      toastManager.error(errorAsString(error), { duration: 5000 });
     } finally {
       setLaunchingId(null);
     }
