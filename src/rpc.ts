@@ -1,6 +1,7 @@
 import AgentRpcSchema from "@tokenring-ai/agent/rpc/schema";
 import AIClientRpcSchema from "@tokenring-ai/ai-client/rpc/schema";
 import AppRpcSchema from "@tokenring-ai/app/rpc/schema";
+import AudioRpcSchema from "@tokenring-ai/audio/rpc/schema";
 import BlogRpcSchema from "@tokenring-ai/blog/rpc/schema";
 import CalendarRpcSchema from "@tokenring-ai/calendar/rpc/schema";
 import ChatRpcSchema from "@tokenring-ai/chat/rpc/schema";
@@ -8,7 +9,7 @@ import CheckpointRpcSchema from "@tokenring-ai/checkpoint/rpc/schema";
 import CloudQuoteRpcSchema from "@tokenring-ai/cloudquote/rpc/schema";
 import EmailRpcSchema from "@tokenring-ai/email/rpc/schema";
 import FileSystemRpcSchema from "@tokenring-ai/filesystem/rpc/schema";
-import ImageGenerationRpcSchema from "@tokenring-ai/image-generation/rpc/schema";
+import ImageGenerationRpcSchema from "@tokenring-ai/image/rpc/schema";
 import LifecycleRpcSchema from "@tokenring-ai/lifecycle/rpc/schema";
 import NewsRPMRpcSchema from "@tokenring-ai/newsrpm/rpc/schema";
 import type { IndexedDataSearch } from "@tokenring-ai/newsrpm/schema";
@@ -17,6 +18,7 @@ import TerminalRpcSchema from "@tokenring-ai/terminal/rpc/schema";
 import { arrayableToArray } from "@tokenring-ai/utility/array/arrayable";
 import { stripUndefinedKeys } from "@tokenring-ai/utility/object/stripObject";
 import VaultRpcSchema from "@tokenring-ai/vault/rpc/schema";
+import VideoRpcSchema from "@tokenring-ai/video/rpc/schema";
 import createWsRPCClient from "@tokenring-ai/web-host/createWsRPCClient";
 import WorkflowRpcSchema from "@tokenring-ai/workflow/rpc/schema";
 import useSWR from "swr";
@@ -24,8 +26,10 @@ import useSWR from "swr";
 const baseURL = new URL(window.location.origin);
 
 export const agentRPCClient = createWsRPCClient(baseURL, AgentRpcSchema);
+export const audioRPCClient = createWsRPCClient(baseURL, AudioRpcSchema);
 export const blogRPCClient = createWsRPCClient(baseURL, BlogRpcSchema);
 export const imageGenerationRPCClient = createWsRPCClient(baseURL, ImageGenerationRpcSchema);
+export const videoGenerationRPCClient = createWsRPCClient(baseURL, VideoRpcSchema);
 export const appRPCClient = createWsRPCClient(baseURL, AppRpcSchema);
 export const cloudquoteRPCClient = createWsRPCClient(baseURL, CloudQuoteRpcSchema);
 export const newsrpmRPCClient = createWsRPCClient(baseURL, NewsRPMRpcSchema);
@@ -155,6 +159,13 @@ export function useStockLeaders(list: "MOSTACTIVE" | "PERCENTGAINERS" | "PERCENT
   return useSWR(`/cloudquote/getLeaders/${list}`, () => cloudquoteRPCClient.getLeaders({ list, limit }), { refreshInterval: 60000 });
 }
 
+export function useFindStock(search: string | undefined, limit = 10) {
+  const trimmed = search?.trim();
+  return useSWR(trimmed ? `/cloudquote/findStock/${trimmed}/${limit}` : null, () => cloudquoteRPCClient.findStock({ search: trimmed!, limit }), {
+    dedupingInterval: 300,
+  });
+}
+
 export function useNewsRPMIndexedDataSearchResults(search: IndexedDataSearch | undefined) {
   const cacheKey = search
     ? [search.key, ...arrayableToArray(search.value), search.minDate, search.maxDate, search.offset, search.count, search.order].join("|")
@@ -251,10 +262,28 @@ export function useVaultKeys() {
 }
 
 export function useImages(search?: string, limit?: number) {
-  const key = search ? `/image-generation/getImages/${search}/${limit ?? 200}` : `/image-generation/getImages/${limit ?? 200}`;
+  const key = search ? `/image/getImages/${search}/${limit ?? 200}` : `/image/getImages/${limit ?? 200}`;
   return useSWR(key, () => imageGenerationRPCClient.getImages(stripUndefinedKeys({ search, limit })), { refreshInterval: 10000 });
 }
 
 export function useImageGenerationModels() {
   return useSWR("/ai-client/listImageGenerationModels", () => aiRPCClient.listImageGenerationModels({}));
+}
+
+export function useVideos(search?: string, limit?: number) {
+  const key = search ? `/video/getVideos/${search}/${limit ?? 200}` : `/video/getVideos/${limit ?? 200}`;
+  return useSWR(key, () => videoGenerationRPCClient.getVideos(stripUndefinedKeys({ search, limit })), { refreshInterval: 10000 });
+}
+
+export function useVideoGenerationModels() {
+  return useSWR("/ai-client/listVideoGenerationModels", () => aiRPCClient.listVideoGenerationModels({}));
+}
+
+export function useAudios(search?: string, limit?: number) {
+  const key = search ? `/audio/getAudios/${search}/${limit ?? 200}` : `/audio/getAudios/${limit ?? 200}`;
+  return useSWR(key, () => audioRPCClient.getAudios(stripUndefinedKeys({ search, limit })), { refreshInterval: 10000 });
+}
+
+export function useSpeechModels() {
+  return useSWR("/ai-client/listSpeechModels", () => aiRPCClient.listSpeechModels({}));
 }
