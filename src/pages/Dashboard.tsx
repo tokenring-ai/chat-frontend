@@ -198,7 +198,7 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={() => navigate("/agents")}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors focus-ring shadow-button-primary cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors focus-ring shadow-button-primary"
             >
               <User className="w-3.5 h-3.5" />
               New Agent

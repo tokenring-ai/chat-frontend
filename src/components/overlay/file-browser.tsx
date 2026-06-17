@@ -218,14 +218,15 @@ export default function FileBrowser({ agentId, isOpen, onClose }: FileBrowserOve
     const fullPath = isDir ? file.slice(0, -1) : file;
     try {
       if (!provider) return;
-      const stat = await filesystemRPCClient.stat({ path: fullPath, provider });
-      const stats = JSON.parse(stat.stats);
+      const {stats} = await filesystemRPCClient.stat({ path: fullPath, provider });
 
-      if (stats.isDirectory) {
-        setPath(fullPath);
-        setSelectedFile(null);
-      } else {
-        setSelectedFile(file);
+      if (stats.exists) {
+        if (stats.isDirectory) {
+          setPath(fullPath);
+          setSelectedFile(null);
+        } else {
+          setSelectedFile(file);
+        }
       }
     } catch (error: unknown) {
       console.error("Failed to read file:", error);

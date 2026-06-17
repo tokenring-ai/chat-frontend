@@ -28,7 +28,7 @@ const toastStyles = {
   warning: "border-toast-warning bg-toast-warning text-toast-warning",
 };
 
-export default function Toast({ type = "info", title, message, duration = 5000, onClose }: ToastProps) {
+export default function Toast({ type, title, message, duration = 5000, onClose }: ToastProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);

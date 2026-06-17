@@ -333,7 +333,7 @@ function AudioViewer({
           <div className="w-full max-w-xl bg-tertiary rounded-2xl p-5 shadow-lg">
             <div className="flex items-center justify-between mb-2">
               <p className="text-2xs font-medium text-muted uppercase tracking-wide">Transcript</p>
-              <button type="button" onClick={() => setTranscript(null)} className="text-muted hover:text-primary transition-colors cursor-pointer">
+              <button type="button" onClick={() => setTranscript(null)} className="text-muted hover:text-primary transition-colors">
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>

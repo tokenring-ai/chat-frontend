@@ -186,7 +186,7 @@ function PostViewer({
     if (post.status === "published") return;
     setPublishing(true);
     try {
-      await blogRPCClient.updatePost({ provider, id: post.id, updatedData: { status: "published" } as any });
+      await blogRPCClient.updatePost({ provider, id: post.id, updatedData: { status: "published" }});
       toastManager.success("Post published!", { duration: 3000 });
       onRefresh();
     } catch (err: any) {

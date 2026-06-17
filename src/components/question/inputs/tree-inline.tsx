@@ -22,14 +22,13 @@ const CompactTreeNode: React.FC<{
   onToggle: (value: string) => void;
   onExpand: (nodeValue: string) => void;
   isExpanded: boolean;
-  multiple: boolean;
   canSelect: (value: string) => boolean;
   focusedValue: string | null;
   isFocused: boolean;
   onFocus: (value: string) => void;
   onNavigate: (direction: "up" | "down" | "home" | "end") => void;
   isExpandedChild: (value: string) => boolean;
-}> = ({ node, depth, selected, onToggle, onExpand, isExpanded, multiple, canSelect, focusedValue, isFocused, onFocus, onNavigate, isExpandedChild }) => {
+}> = ({ node, depth, selected, onToggle, onExpand, isExpanded, canSelect, focusedValue, isFocused, onFocus, onNavigate, isExpandedChild }) => {
   const value = getTreeNodeValue(node);
   const isSelected = selected.has(value);
   const hasChildren = isTreeBranch(node) && node.children.length > 0;
@@ -122,7 +121,6 @@ const CompactTreeNode: React.FC<{
                 onToggle={onToggle}
                 onExpand={onExpand}
                 isExpanded={isExpandedChild(childValue)}
-                multiple={multiple}
                 canSelect={canSelect}
                 focusedValue={focusedValue}
                 isFocused={focusedValue === childValue}
@@ -321,7 +319,6 @@ export default function TreeInlineQuestion({ question, agentId, requestId, inter
               onToggle={handleToggle}
               onExpand={toggleExpand}
               isExpanded={expandedNodes.has(rootValue)}
-              multiple={multiple}
               canSelect={canSelect}
               focusedValue={focusedValue}
               isFocused={focusedValue === rootValue}

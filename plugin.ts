@@ -1,13 +1,13 @@
-import fs from "node:fs";
-import path from "node:path";
 import type { TokenRingPlugin } from "@tokenring-ai/app";
 import { WebHostService } from "@tokenring-ai/web-host";
 import SPAResource from "@tokenring-ai/web-host/SPAResource";
+import fs from "node:fs";
+import path from "node:path";
 import { z } from "zod";
 import packageJSON from "./package.json" with { type: "json" };
 
 const packageConfigSchema = z.object({
-  chatFrontend: z.object({
+  oneFrontend: z.object({
     spaDirectory: z.string(),
   }),
 });
@@ -18,9 +18,9 @@ export default {
   version: packageJSON.version,
   description: packageJSON.description,
   install(app, config) {
-    const indexFile = path.resolve(config.chatFrontend.spaDirectory, "index.html");
+    const indexFile = path.resolve(config.oneFrontend.spaDirectory, "index.html");
     if (!fs.existsSync(indexFile)) {
-      throw new Error(`Chat frontend not found at ${indexFile}`);
+      throw new Error(`One frontend not found at ${indexFile}`);
     }
 
     app.waitForService(WebHostService, webHostService => {

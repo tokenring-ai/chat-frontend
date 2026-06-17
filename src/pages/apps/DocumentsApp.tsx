@@ -374,7 +374,7 @@ function SaveAsModal({ providers, initialPath, onSave, onClose }: SaveAsModalPro
       <div className="bg-secondary border border-primary rounded-xl p-5 w-96 shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-primary">Save As</h2>
-          <button type="button" onClick={onClose} className="p-1 text-muted hover:text-primary focus-ring rounded cursor-pointer">
+          <button type="button" onClick={onClose} className="p-1 text-muted hover:text-primary focus-ring rounded">
             <X className="w-4 h-4" />
           </button>
         </div>

@@ -166,7 +166,7 @@ function AgentLaunchPanel({ selectedPaths, onClear }: AgentLaunchPanelProps) {
         type="button"
         onClick={launch}
         disabled={launching || !chosenType}
-        className="flex items-center gap-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors focus-ring shadow-button-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center gap-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg transition-colors focus-ring shadow-button-primary disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label="Launch agent with selected files"
       >
         {launching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <User className="w-3.5 h-3.5" />}
@@ -193,7 +193,7 @@ function BreadcrumbBar({ path, onNavigate, showHidden, onToggleHidden, onUpload,
     <div className="h-10 border-b border-primary bg-secondary flex items-center gap-2 px-3 shrink-0">
       {/* Breadcrumbs */}
       <div className="flex items-center gap-0.5 text-xs text-muted flex-1 min-w-0 overflow-hidden">
-        <button type="button" onClick={() => onNavigate(".")} className="hover:text-primary shrink-0 focus-ring rounded px-1 cursor-pointer">
+        <button type="button" onClick={() => onNavigate(".")} className="hover:text-primary shrink-0 focus-ring rounded px-1">
           root
         </button>
         {parts.map((part, i) => (
@@ -476,7 +476,7 @@ function PreviewMetadataPane({ file, provider, selectedPaths, onToggleSelected, 
           </p>
           <p className="text-2xs text-muted mt-0.5">{file.split(".").pop()?.toUpperCase() || "File"}</p>
         </div>
-        <button type="button" onClick={onClose} className="p-1 text-muted hover:text-primary focus-ring rounded cursor-pointer" aria-label="Close preview">
+        <button type="button" onClick={onClose} className="p-1 text-muted hover:text-primary focus-ring rounded" aria-label="Close preview">
           <X className="w-3.5 h-3.5" />
         </button>
       </div>

@@ -257,7 +257,7 @@ function ToolCallDisplay({ msg }: { msg: Extract<AgentEventEnvelope, { type: "to
 
   return (
     <div className="cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
-      <button type="button" className="flex items-center gap-1.5 w-full text-left cursor-pointer hover:opacity-80 transition-opacity">
+      <button type="button" className="flex items-center gap-1.5 w-full text-left hover:opacity-80 transition-opacity">
         <span className="text-primary font-medium">{msg.summary}</span>
         <div className={`mr-auto transition-transform duration-150 ${isExpanded ? "rotate-0" : "-rotate-90"}`}>
           <ChevronDown size={13} className="text-dim" />
@@ -362,7 +362,7 @@ function MessageFooter({ msg, onDownload }: { msg: ChatMessage; onDownload?: () 
         </button>
       )}
       {onDownload && (
-        <button type="button" onClick={onDownload} className="cursor-pointer transition-colors focus-ring rounded-md" title="Download">
+        <button type="button" onClick={onDownload} className="transition-colors focus-ring rounded-md" title="Download">
           <Download className="w-3.5 h-3.5 text-muted hover:text-primary" />
         </button>
       )}

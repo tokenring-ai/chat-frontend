@@ -189,7 +189,7 @@ export default function TerminalApp() {
                     activeTerminal === t.name ? "bg-hover border border-emerald-500/50" : "hover:bg-hover border border-transparent"
                   }`}
                 >
-                  <button type="button" onClick={() => connectToTerminal(t.name)} className="flex-1 flex items-center gap-2 text-left min-w-0 cursor-pointer">
+                  <button type="button" onClick={() => connectToTerminal(t.name)} className="flex-1 flex items-center gap-2 text-left min-w-0">
                     <div className={`w-2 h-2 rounded-full shrink-0 ${t.running ? "bg-emerald-500" : "bg-muted/50"}`} />
                     <div className="min-w-0">
                       <div className="text-xs font-medium text-primary truncate">{t.lastInput}</div>

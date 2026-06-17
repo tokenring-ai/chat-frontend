@@ -18,7 +18,7 @@ interface InlineQuestionProps {
   urgencyLevel?: number | null;
 }
 
-function formatResponseResult(result: any) {
+function formatResponseResult(result: unknown) {
   if (result === null) return "Cancelled";
 
   if (Array.isArray(result)) {

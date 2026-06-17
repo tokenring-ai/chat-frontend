@@ -54,6 +54,10 @@
   overflow: hidden;
  }
 
+  button {
+    cursor: pointer;
+  }
+
  /* Paper texture for light mode */
  :root:not(.dark) body {
   background-image:

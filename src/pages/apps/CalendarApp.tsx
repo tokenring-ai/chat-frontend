@@ -1,3 +1,4 @@
+import type { CalendarEventSchema } from "@tokenring-ai/calendar/CalendarProvider";
 import errorAsString from "@tokenring-ai/utility/error/errorAsString";
 import {
   Bot,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { z } from "zod";
 import { toastManager } from "../../components/ui/toast.tsx";
 import { cn } from "../../lib/utils.ts";
 import { agentRPCClient, useAgentTypes, useCalendarEvents, useCalendarProviders, useWorkflows, workflowRPCClient } from "../../rpc.ts";
@@ -77,7 +79,7 @@ function startOfWeek(d: Date) {
   return r;
 }
 
-function rpcToLocalEvent(ev: any): CalendarEvent {
+function rpcToLocalEvent(ev: z.output<typeof CalendarEventSchema>): CalendarEvent {
   const start = new Date(ev.startAt);
   const end = new Date(ev.endAt);
   const fmt = (h: number, m: number) => `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
@@ -93,8 +95,12 @@ function rpcToLocalEvent(ev: any): CalendarEvent {
     type: "calendar",
     color: "bg-indigo-500",
     source: "rpc",
-    description: ev.description,
-    location: ev.location,
+    ...(ev.description && {
+      description: ev.description
+    }),
+    ...(ev.location && {
+      location: ev.location,
+    }),
   };
 }
 
@@ -105,11 +111,11 @@ const WEEKDAYS_LETTER = ["S", "M", "T", "W", "T", "F", "S"];
 // ─── Provider selector ────────────────────────────────────────────────────────
 
 function ProviderSelector({
-  provider,
-  availableProviders,
-  loading,
-  onProviderChange,
-}: {
+                            provider,
+                            availableProviders,
+                            loading,
+                            onProviderChange,
+                          }: {
   provider: string | null;
   availableProviders: string[];
   loading: boolean;
@@ -120,7 +126,7 @@ function ProviderSelector({
   if (loading && availableProviders.length === 0) {
     return (
       <span className="text-2xs text-muted flex items-center gap-1">
-        <Loader2 className="w-3 h-3 animate-spin" /> Loading providers
+        <Loader2 className="w-3 h-3 animate-spin"/> Loading providers
       </span>
     );
   }
@@ -128,7 +134,7 @@ function ProviderSelector({
   if (availableProviders.length === 0) {
     return (
       <span className="text-2xs text-muted flex items-center gap-1">
-        <WifiOff className="w-3 h-3" /> No providers
+        <WifiOff className="w-3 h-3"/> No providers
       </span>
     );
   }
@@ -140,9 +146,9 @@ function ProviderSelector({
         onClick={() => setOpen(o => !o)}
         className="flex items-center gap-1.5 px-2.5 py-1.5 bg-secondary border border-primary rounded-lg text-xs text-muted hover:text-primary hover:border-sky-500/40 transition-all focus-ring cursor-pointer"
       >
-        <Globe className="w-3 h-3" />
+        <Globe className="w-3 h-3"/>
         <span className="font-medium text-primary max-w-32 truncate">{provider ?? "No provider"}</span>
-        <ChevronDown className="w-3 h-3" />
+        <ChevronDown className="w-3 h-3"/>
       </button>
       {open && (
         <div className="absolute top-full right-0 mt-1 w-48 bg-secondary border border-primary rounded-xl shadow-card z-50 overflow-hidden">
@@ -159,7 +165,7 @@ function ProviderSelector({
               }}
               className={`w-full flex items-center gap-2 px-3 py-2.5 text-xs hover:bg-hover transition-colors cursor-pointer text-left focus-ring ${p === provider ? "text-sky-500 font-medium" : "text-primary"}`}
             >
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${p === provider ? "bg-sky-500" : "bg-transparent"}`} />
+              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${p === provider ? "bg-sky-500" : "bg-transparent"}`}/>
               {p}
             </button>
           ))}
@@ -197,7 +203,7 @@ function EventChip({ event, onClick, compact = false }: { event: CalendarEvent; 
       )}
       aria-label={`Event: ${event.title}`}
     >
-      <TypeIcon className="shrink-0" size={compact ? 8 : 10} />
+      <TypeIcon className="shrink-0" size={compact ? 8 : 10}/>
       <span className="truncate">
         {compact ? "" : event.startTime ? `${event.startTime} ` : ""}
         {event.title}
@@ -209,13 +215,13 @@ function EventChip({ event, onClick, compact = false }: { event: CalendarEvent; 
 // ─── Month view ───────────────────────────────────────────────────────────────
 
 function MonthView({
-  year,
-  month,
-  today,
-  events,
-  onDayClick,
-  onEventClick,
-}: {
+                     year,
+                     month,
+                     today,
+                     events,
+                     onDayClick,
+                     onEventClick,
+                   }: {
   year: number;
   month: number;
   today: Date;
@@ -282,7 +288,7 @@ function MonthView({
               </div>
               <div className="space-y-0.5">
                 {dayEvents.slice(0, showMax).map(ev => (
-                  <EventChip key={ev.id} event={ev} onClick={() => onEventClick(ev)} />
+                  <EventChip key={ev.id} event={ev} onClick={() => onEventClick(ev)}/>
                 ))}
                 {overflow > 0 && (
                   <button
@@ -311,12 +317,12 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const HOUR_H = 56; // px per hour
 
 function WeekView({
-  weekStart,
-  today,
-  events,
-  onSlotClick,
-  onEventClick,
-}: {
+                    weekStart,
+                    today,
+                    events,
+                    onSlotClick,
+                    onEventClick,
+                  }: {
   weekStart: Date;
   today: Date;
   events: CalendarEvent[];
@@ -357,7 +363,7 @@ function WeekView({
     <div className="flex flex-col flex-1 min-h-0">
       {/* Day header */}
       <div className="flex border-b border-primary shrink-0">
-        <div className="w-14 shrink-0" />
+        <div className="w-14 shrink-0"/>
         {days.map(day => {
           const key = toDateKey(day);
           const isToday = key === todayKey;
@@ -377,7 +383,7 @@ function WeekView({
               {/* All-day events */}
               <div className="mt-1 px-1 space-y-0.5 min-h-1">
                 {(allDayByDate[key] ?? []).map(ev => (
-                  <EventChip key={ev.id} event={ev} onClick={() => onEventClick(ev)} compact />
+                  <EventChip key={ev.id} event={ev} onClick={() => onEventClick(ev)} compact/>
                 ))}
               </div>
             </div>
@@ -436,7 +442,7 @@ function WeekView({
                         style={{ top: `${top}px`, height: `${height}px` }}
                       >
                         <div className="flex items-center gap-1 truncate">
-                          {ev.type === "workflow" ? <GitBranch size={8} className="shrink-0" /> : <Bot size={8} className="shrink-0" />}
+                          {ev.type === "workflow" ? <GitBranch size={8} className="shrink-0"/> : <Bot size={8} className="shrink-0"/>}
                           {ev.title}
                         </div>
                         {ev.startTime && <div className="text-white/70">{ev.startTime}</div>}
@@ -455,12 +461,12 @@ function WeekView({
 // ─── Day view ─────────────────────────────────────────────────────────────────
 
 function DayView({
-  date,
-  today,
-  events,
-  onSlotClick,
-  onEventClick,
-}: {
+                   date,
+                   today,
+                   events,
+                   onSlotClick,
+                   onEventClick,
+                 }: {
   date: Date;
   today: Date;
   events: CalendarEvent[];
@@ -495,7 +501,7 @@ function DayView({
         {allDay.length > 0 && (
           <div className="ml-4 flex gap-1 flex-wrap">
             {allDay.map(ev => (
-              <EventChip key={ev.id} event={ev} onClick={() => onEventClick(ev)} compact />
+              <EventChip key={ev.id} event={ev} onClick={() => onEventClick(ev)} compact/>
             ))}
           </div>
         )}
@@ -542,7 +548,7 @@ function DayView({
                   style={{ top: `${top}px`, height: `${height}px` }}
                 >
                   <div className="flex items-center gap-1.5 truncate font-semibold">
-                    {ev.type === "workflow" ? <GitBranch size={10} className="shrink-0" /> : <Bot size={10} className="shrink-0" />}
+                    {ev.type === "workflow" ? <GitBranch size={10} className="shrink-0"/> : <Bot size={10} className="shrink-0"/>}
                     {ev.title}
                   </div>
                   {ev.startTime && (
@@ -635,7 +641,7 @@ function EventModal({ event, defaultDate, defaultHour, onClose, onSave, onDelete
             className="p-1 rounded-lg hover:bg-hover transition-colors text-muted hover:text-primary cursor-pointer"
             aria-label="Close"
           >
-            <X size={18} />
+            <X size={18}/>
           </button>
         </div>
 
@@ -665,7 +671,7 @@ function EventModal({ event, defaultDate, defaultHour, onClose, onSave, onDelete
               />
             </div>
             <label className="flex items-center gap-2 mt-4 cursor-pointer select-none">
-              <input type="checkbox" checked={allDay} onChange={e => setAllDay(e.target.checked)} className="rounded accent-sky-500" />
+              <input type="checkbox" checked={allDay} onChange={e => setAllDay(e.target.checked)} className="rounded accent-sky-500"/>
               <span className="text-xs text-primary">All day</span>
             </label>
           </div>
@@ -706,7 +712,7 @@ function EventModal({ event, defaultDate, defaultHour, onClose, onSave, onDelete
                   type === "workflow" ? "border-sky-500 bg-sky-500/10 text-sky-400" : "border-primary text-muted hover:border-sky-500/40 hover:text-primary",
                 )}
               >
-                <GitBranch size={14} /> Workflow
+                <GitBranch size={14}/> Workflow
               </button>
               <button
                 type="button"
@@ -716,7 +722,7 @@ function EventModal({ event, defaultDate, defaultHour, onClose, onSave, onDelete
                   type === "agent" ? "border-sky-500 bg-sky-500/10 text-sky-400" : "border-primary text-muted hover:border-sky-500/40 hover:text-primary",
                 )}
               >
-                <Bot size={14} /> Agent
+                <Bot size={14}/> Agent
               </button>
             </div>
           </div>
@@ -727,7 +733,7 @@ function EventModal({ event, defaultDate, defaultHour, onClose, onSave, onDelete
               <label className="text-2xs font-semibold text-muted uppercase tracking-wider block mb-1">Workflow</label>
               {workflows.isLoading ? (
                 <div className="flex items-center gap-2 text-muted text-xs py-2">
-                  <Loader2 size={14} className="animate-spin" /> Loading…
+                  <Loader2 size={14} className="animate-spin"/> Loading…
                 </div>
               ) : (workflows.data?.length ?? 0) === 0 ? (
                 <p className="text-xs text-muted py-1">
@@ -753,7 +759,7 @@ function EventModal({ event, defaultDate, defaultHour, onClose, onSave, onDelete
               <label className="text-2xs font-semibold text-muted uppercase tracking-wider block mb-1">Agent type</label>
               {agentTypes.isLoading ? (
                 <div className="flex items-center gap-2 text-muted text-xs py-2">
-                  <Loader2 size={14} className="animate-spin" /> Loading…
+                  <Loader2 size={14} className="animate-spin"/> Loading…
                 </div>
               ) : (
                 <select
@@ -802,7 +808,7 @@ function EventModal({ event, defaultDate, defaultHour, onClose, onSave, onDelete
               disabled={running}
               className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
             >
-              {running ? <Loader2 size={13} className="animate-spin" /> : <Clock size={13} />}
+              {running ? <Loader2 size={13} className="animate-spin"/> : <Clock size={13}/>}
               Run now
             </button>
           )}
@@ -812,11 +818,11 @@ function EventModal({ event, defaultDate, defaultHour, onClose, onSave, onDelete
               onClick={() => onDelete(event!.id)}
               className="flex items-center gap-1.5 px-3 py-2 border border-rose-500/40 hover:bg-rose-500/10 text-rose-500 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
             >
-              <Trash2 size={13} /> Delete
+              <Trash2 size={13}/> Delete
             </button>
           )}
-          <div className="flex-1" />
-          <button type="button" onClick={onClose} className="px-4 py-2 text-xs font-semibold text-muted hover:text-primary transition-colors cursor-pointer">
+          <div className="flex-1"/>
+          <button type="button" onClick={onClose} className="px-4 py-2 text-xs font-semibold text-muted hover:text-primary transition-colors">
             Cancel
           </button>
           <button
@@ -840,7 +846,7 @@ function RpcEventDetail({ event, onClose }: { event: CalendarEvent; onClose: () 
       <div className="bg-primary border border-primary rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
           <div className="flex items-center gap-2 min-w-0">
-            <Calendar size={16} className="shrink-0 text-indigo-500" />
+            <Calendar size={16} className="shrink-0 text-indigo-500"/>
             <h2 className="text-base font-bold text-primary truncate">{event.title}</h2>
           </div>
           <button
@@ -849,12 +855,12 @@ function RpcEventDetail({ event, onClose }: { event: CalendarEvent; onClose: () 
             className="shrink-0 p-1 rounded-lg hover:bg-hover transition-colors text-muted hover:text-primary cursor-pointer"
             aria-label="Close"
           >
-            <X size={18} />
+            <X size={18}/>
           </button>
         </div>
         <div className="px-5 pb-5 space-y-2">
           <div className="flex items-center gap-2 text-sm text-muted">
-            <CalendarDays size={14} className="shrink-0" />
+            <CalendarDays size={14} className="shrink-0"/>
             <span>
               {event.date}
               {event.allDay ? " · All day" : event.startTime ? ` · ${event.startTime}${event.endTime ? ` – ${event.endTime}` : ""}` : ""}
@@ -862,7 +868,7 @@ function RpcEventDetail({ event, onClose }: { event: CalendarEvent; onClose: () 
           </div>
           {event.location && (
             <div className="flex items-start gap-2 text-sm text-muted">
-              <MapPin size={14} className="shrink-0 mt-0.5" />
+              <MapPin size={14} className="shrink-0 mt-0.5"/>
               <span>{event.location}</span>
             </div>
           )}
@@ -1055,7 +1061,7 @@ export default function CalendarApp() {
             className="p-1.5 rounded-lg hover:bg-hover text-muted hover:text-primary transition-colors cursor-pointer"
             aria-label="Previous"
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft size={16}/>
           </button>
           <button
             type="button"
@@ -1063,7 +1069,7 @@ export default function CalendarApp() {
             className="p-1.5 rounded-lg hover:bg-hover text-muted hover:text-primary transition-colors cursor-pointer"
             aria-label="Next"
           >
-            <ChevronRight size={16} />
+            <ChevronRight size={16}/>
           </button>
           <button
             type="button"
@@ -1076,11 +1082,11 @@ export default function CalendarApp() {
 
         {/* Title */}
         <h2 className="text-sm font-bold text-primary ml-1 flex items-center gap-2">
-          <CalendarDays size={16} className="text-sky-500" />
+          <CalendarDays size={16} className="text-sky-500"/>
           {titleLabel}
         </h2>
 
-        <div className="flex-1" />
+        <div className="flex-1"/>
 
         {/* Provider selector */}
         <ProviderSelector
@@ -1113,16 +1119,16 @@ export default function CalendarApp() {
           onClick={() => openNew()}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-500 hover:bg-sky-400 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-sm"
         >
-          <Plus size={14} /> New event
+          <Plus size={14}/> New event
         </button>
       </div>
 
       {/* Calendar body */}
       {view === "month" && (
-        <MonthView year={cursor.getFullYear()} month={cursor.getMonth()} today={today} events={allEvents} onDayClick={handleDayClick} onEventClick={openEdit} />
+        <MonthView year={cursor.getFullYear()} month={cursor.getMonth()} today={today} events={allEvents} onDayClick={handleDayClick} onEventClick={openEdit}/>
       )}
-      {view === "week" && <WeekView weekStart={weekStart} today={today} events={allEvents} onSlotClick={handleSlotClick} onEventClick={openEdit} />}
-      {view === "day" && <DayView date={cursor} today={today} events={allEvents} onSlotClick={handleSlotClick} onEventClick={openEdit} />}
+      {view === "week" && <WeekView weekStart={weekStart} today={today} events={allEvents} onSlotClick={handleSlotClick} onEventClick={openEdit}/>}
+      {view === "day" && <DayView date={cursor} today={today} events={allEvents} onSlotClick={handleSlotClick} onEventClick={openEdit}/>}
 
       {/* Scheduler event modal */}
       {modalOpen && (
@@ -1139,7 +1145,7 @@ export default function CalendarApp() {
       )}
 
       {/* RPC calendar event detail */}
-      {rpcDetailEvent && <RpcEventDetail event={rpcDetailEvent} onClose={() => setRpcDetailEvent(null)} />}
+      {rpcDetailEvent && <RpcEventDetail event={rpcDetailEvent} onClose={() => setRpcDetailEvent(null)}/>}
     </div>
   );
 }

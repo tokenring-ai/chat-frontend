@@ -304,7 +304,7 @@ function BulkImportModal({
             <p className="text-sm font-semibold text-primary">Bulk Import</p>
             <p className="text-2xs text-muted">Into: {categoryLabel}</p>
           </div>
-          <button type="button" onClick={onClose} className="p-1.5 text-muted hover:text-primary transition-colors rounded-md cursor-pointer focus-ring">
+          <button type="button" onClick={onClose} className="p-1.5 text-muted hover:text-primary transition-colors rounded-md focus-ring">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
